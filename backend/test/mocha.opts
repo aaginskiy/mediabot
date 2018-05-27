@@ -1,0 +1,7 @@
+--require chai
+--require sinon
+--require chai-as-promised
+--report spec
+--ui bdd
+--colors
+--watch

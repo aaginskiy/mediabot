@@ -1,0 +1,59 @@
+{
+  "name": "ruby-media-bot",
+  "description": "Media management automation suite.",
+  "version": "0.0.1",
+  "homepage": "",
+  "main": "src",
+  "keywords": [
+    "feathers"
+  ],
+  "author": {
+    "name": "Artem Aginskiy",
+    "email": "aaginskiy@gmail.com"
+  },
+  "contributors": [],
+  "bugs": {},
+  "directories": {
+    "lib": "src",
+    "test": "test/"
+  },
+  "engines": {
+    "node": ">= 6.0.0",
+    "yarn": ">= 0.18.0"
+  },
+  "scripts": {
+    "test": "npm run eslint && npm run mocha",
+    "eslint": "eslint src/. test/. --config .eslintrc.json",
+    "start": "nodemon src/",
+    "mocha": "NODE_ENV=TEST mocha test/bootstrap.js test/**/*.test.js"
+  },
+  "dependencies": {
+    "body-parser": "^1.18.2",
+    "chai-as-promised": "^7.1.1",
+    "compression": "^1.7.1",
+    "cors": "^2.8.4",
+    "feathers": "^2.2.3",
+    "feathers-configuration": "^0.4.2",
+    "feathers-errors": "^2.9.2",
+    "feathers-hooks": "^2.1.1",
+    "feathers-hooks-common": "^3.10.0",
+    "feathers-nedb": "^2.7.0",
+    "feathers-rest": "^1.8.0",
+    "feathers-seeder": "^1.0.10",
+    "feathers-socketio": "^2.0.0",
+    "helmet": "^3.9.0",
+    "lodash": "^4.17.4",
+    "nedb": "^1.8.0",
+    "serve-favicon": "^2.4.5",
+    "shellwords": "^0.1.1",
+    "winston": "^2.4.0"
+  },
+  "devDependencies": {
+    "chai": "^4.1.2",
+    "eslint": "^4.9.0",
+    "mocha": "^4.0.1",
+    "request": "^2.83.0",
+    "request-promise": "^4.2.2",
+    "sinon": "^4.0.1"
+  }
+}
