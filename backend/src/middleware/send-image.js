@@ -3,6 +3,6 @@ module.exports = function (options = {}) {
     req.app.info(`Sending image type '${res.hook.params.query.type}' for movie #${res.hook.id}.`, { label: "ImageService"});
 
     const filename = res.data[res.hook.params.query.type];
-    res.sendFile(filename);
+    res.sendFile(`${res.data.dir}/${filename}`);
   };
 };

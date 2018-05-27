@@ -112,7 +112,7 @@
           </b-table-column>
           <b-table-column field="title" label="Title" centered>
               <b-input @input="commitMovie"
-                v-model="props.row.title">{{ props.row.title }}</b-input>
+                v-model="props.row.name">{{ props.row.name }}</b-input>
           </b-table-column>
           <b-table-column field="language" label="Language" width="90" centered>
             <b-input v-model="props.row.language"

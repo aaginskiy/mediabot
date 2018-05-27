@@ -7,6 +7,8 @@ const image = require('./image/image.service.js');
 
 const jobScheduler = require('./job-scheduler/job-scheduler.service.js');
 
+const autofixRules = require('./autofix-rules/autofix-rules.service.js');
+
 module.exports = function () {
   const app = this; // eslint-disable-line no-unused-vars
   app.configure(movies);
@@ -14,4 +16,5 @@ module.exports = function () {
   app.configure(jobs);
   app.configure(image);
   app.configure(jobScheduler);
+  app.configure(autofixRules);
 };

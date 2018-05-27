@@ -9,7 +9,6 @@ const EventEmitter = require('events');
 // const Promise = require("bluebird");
 const fs = require('fs');
 const rename = util.promisify(fs.rename);
-const readdir = util.promisify(fs.readdir);
 // const rename = Promise.promisify
 
 class Service {
@@ -24,75 +23,58 @@ class Service {
   }
 
   /**
-   * MediaFileService#find
+   * MediaFileService#loadFromFile
    *
-   * Loads movie metadata, artowrk and directory files from disk.
-   *
-   * @param {any} params
-   * @returns Promise
-   * @memberof MediaFile
+   * Loads movie metadata, artwork and directory files from disk.
+   * 
+   * @since 0.1.0
+   * @memberof MediaFileService
+   * @param {String} filename Filename of the media to load.
+   * @returns Promise Promise to resolve metadata from file.
    */
-  async find(params) {
-    this.app.info('Loading movies fromt the disk.', { label: "MediaFileService" });
-    this.app.debug(params.query.filenames, { label: "MediaFileService" });
+  loadFromFile(filename) {
+    this.app.info('Loading requested movie from the disk.', { label: "MediaFileService" });
+    this.app.debug(filename, { label: "MediaFileService" });
 
-    if (!params.query.filenames) return Promise.resolve([]);
-    const { filenames } = params.query;
+    if (!filename) return Promise.resolve({});
 
-    return Promise.all(filenames.map(filename =>
-      this._readMovieInfo(filename)
-        .catch(err => {
-          this.app.warn(`Unable to find movie \"${filename}\".`, { label: "MediaFileService"});
-          this.app.warn(err.message, { label: "MediaFileService"});
+    return this.parseMkvmergeInfo(filename)
+      .then(async movie => {
+        const readdir = util.promisify(fs.readdir);
 
-          return null;
-        })
-        .then(async movie => {
-          if (movie) {
-            let artworkType = [
-              'poster',
-              'fanart',
-              'landscape',
-              'banner',
-              'clearart',
-              'disc',
-              'logo',
-            ];
-            let filePath = path.parse(filename);
+        let filePath = path.parse(filename);
 
+        movie.dir = filePath.dir;
 
-            // Load all files
-            movie.files = await readdir(filePath.dir);
+        movie.files = await readdir(filePath.dir);
 
-            await Promise.all(artworkType.map(artwork => glob(`${filePath.dir}/*${artwork}*`)
-              .then(filename => {
-                if (filename) movie[artwork] = filename[0];
-                return filename;
-              })
-            ));
-          }
+        if (movie.files.includes(filePath.name+"-poster.jpg")) movie.poster = filePath.name+"-poster.jpg";
 
-          return movie;
-        })
-      )).then(res => _.compact(res));
+        if (movie.files.includes(filePath.name+"-fanart.jpg")) movie.fanart = filePath.name+"-fanart.jpg";
+
+        return movie;
+      })
+      .catch(err => {
+        this.app.warn(`Unable to find movie \"${filename}\".`, { label: "MediaFileService"});
+        this.app.warn(err.message, { label: "MediaFileService"});
+        return {};
+      });
   }
 
   /**
    * MediaFile#create
    *
    * Loads all movies media directory. Existing movies are refreshed,
-   * new movies are added, and missing moves are removed.
+   * new movies are added, and missing movies are removed.
    *
-   * @param {any} id
-   * @param {any} params
-   * @returns Promise
-   * @memberof MediaFile
+   * @since 0.1.0
+   * @memberof MediaFileService
+   * @param {Object} data Unused. Compatibility with FeathersJS services #create signature.
+   * @param {Object} params Filenames in FeathersJS params structure: params.query.filenames.
+   * @returns {Object} res 
    */
   async create(data, params) {
-    this.app.silly('Called MediaFile#create with:', { label: "MediaFileService"});
-    this.app.silly({ data: data, params: params }, { label: "MediaFileService"});
-
-    const _self = this;
+    this.app.info('Reloading requested movies from the disk.', { label: "MediaFileService" });
 
     // Load all media files in media directory if no filenames specified
     if (!params.query.filenames || params.query.filenames.length === 0) {
@@ -103,47 +85,74 @@ class Service {
     }
 
     // Load all movies
-    const movies = await _self.Movie.find();
+    const movies = await this.Movie.find();
+    const movieFilenames = movies.map(movie => movie.filename);
+
+    const deleteFilenames = _.difference(movieFilenames, params.query.filenames);
+
+    this.app.debug('Deleting missing movies:', { label: "MediaFileService"});
+    this.app.debug(deleteFilenames, { label: "MediaFileService"});
+
     const existingMovies = movies.filter(movie => params.query.filenames.includes(movie.filename));
     const existingFilenames = existingMovies.map(movie => movie.filename);
 
     // Filter out existing movies
     const createFilenames = _.difference(params.query.filenames, existingFilenames);
-    params.query.filenames = createFilenames;
 
-    this.app.debug('Loading new movies from:', { label: "MediaFileService"});
+    this.app.debug('Loading new movies:', { label: "MediaFileService"});
     this.app.debug(createFilenames, { label: "MediaFileService"});
 
-    this.app.debug('Refreshing movies from:', { label: "MediaFileService"});
+    this.app.debug('Refreshing existing movies:', { label: "MediaFileService"});
     this.app.debug(existingFilenames, { label: "MediaFileService"});
 
-    // Create new movies
-    const createData = await _self.find(params);
-
-    // TODO delete orphaned movie enteries
-
     return Promise.all([
-      _self.Movie.create(createData),
+      Promise.all(createFilenames.map((filename) => this.loadFromFile(filename).then((movie) => {
+        return this.Movie.create(movie)
+          .catch((err) => {
+            this.app.error(err);
+          });
+      }))),
       Promise.all(existingMovies.map(async (movie) => {
-        const mediaInfo = await _self.find({ query: { filenames: [movie.filename] } });
-        this.app.debug(`Patching movie #${movie._id}.`);
-        return _self.Movie.update(movie._id, mediaInfo[0], { skipWrite: true });
+        const mediaInfo = await this.loadFromFile(movie.filename);
+
+        if (_.isEmpty(mediaInfo)) {
+          return null;
+        } else {
+          return this.Movie.update(movie._id, mediaInfo, { skipWrite: true });
+        }
       })),
-    ]).then(res => ({
-      created: res[0],
-      updated: res[1],
-    }));
+      this.Movie.remove(null, { query: { filename: { $in: deleteFilenames } } }),
+    ]).then((res) => {
+      return {
+        'created': _.compact(res[0]),
+        'updated': _.compact(res[1]),
+        'deleted': _.compact(res[2]),
+      };
+    });
   }
 
+  /**
+   * MediaFile#get
+   *
+   * Reload existing movie from file by ID.
+   *
+   * @since 0.1.0
+   * @memberof MediaFileService
+   * @param {Integer} id 
+   * @param {Object} params Unused. Compatibility with FeathersJS services #get signature.
+   * @returns {Object} metadata Reloaded metadata from file.
+   */
   get(id, params) {
     this.app.info(`Loading movie #${id} metadata from file.`, { label: "MediaFileService"});
 
     return this.Movie.get(id)
-      .then(async data => this.Movie.update(id, await this._readMovieInfo(data.filename), { skipWrite: true }))
+      .then(data => 
+        this.parseMkvmergeInfo(data.filename)
+          .then(movie => this.Movie.update(id, movie, { skipWrite: true })))
       .catch(err => {
-        this.app.error('error');
+        this.app.error(`Unable to load movie #${id} metadata from file.`);
         this.app.error(err, { label: "MediaFileService#get"});
-        return Promise.reject(err);
+        throw err;
       });
   }
 
@@ -187,7 +196,18 @@ class Service {
       });
   }
 
-  _readMovieInfo(filename) {
+  /**
+   * MediaFileService#parseMkvmergeInfo
+   *
+   * Loads movie metadata, artwork and directory files from disk.
+   * 
+   * @since 0.1.0
+   * @memberof MediaFileService
+   * @private
+   * @param {String} filename Filename of the media file to parse.
+   * @returns Promise Promise to resolve metadata from file by mkvmerge.
+   */
+  parseMkvmergeInfo(filename) {
     const _self = this;
     const escapedFilename = shellwords.escape(filename);
     const exec = util.promisify(childProcess.exec);
@@ -226,7 +246,7 @@ class Service {
         });
 
         mediaInfo = _.omitBy(mediaInfo, _.isNil);
-        return Promise.resolve(mediaInfo);
+        return mediaInfo;
       });
   }
 
@@ -239,15 +259,18 @@ class Service {
       command += ` --edit track:${track.number + 1}`;
 
       [['name', track.name],
-        ['language', track.language],
-        ['flag-default', track.isDefault ? 1 : 0],
+        ['language', track.language]].forEach((field) => {
+          if (field[1]) {
+            command += ` --set \"${field[0]}=${field[1]}\"`;
+          } else {
+            command += ` --delete \"${field[0]}\"`;
+          }
+      });
+
+      [['flag-default', track.isDefault ? 1 : 0],
         ['flag-enabled', track.isEnabled ? 1 : 0],
         ['flag-forced', track.isForced ? 1 : 0]].forEach((field) => {
-        // if (!field[1]) {
-          // command += ` --delete ${field[0]}`;
-        // } else {
           command += ` --set \"${field[0]}=${field[1]}\"`;
-        // }
       });
     });
 
