@@ -13,7 +13,6 @@ class Service {
 
   async create (data, params) {
     this.app.info(`Received webhook request - ${data.eventType}.`, { label: "WebhookService" });
-    this.app.debug(data, { label: "WebhookService" });
 
     // Check for radarr webhook
     if (data.movie && data.eventType === 'Download') {
@@ -35,15 +34,13 @@ class Service {
   }
 
   getFilenameFromRadarr(id) {
-    this.app.debug(`Loading filename from Radarr by id: ${id}.`, { label: "WebhookService" });
+    this.app.info(`Loading filename from Radarr by id: ${id}.`, { label: "WebhookService" });
     let { hostname, apikey } = this.app.get('radarr');
     let uri = `${hostname}/api/movie/${id}?apikey=${apikey}`
-    this.app.debug(uri, { label: "WebhookService" });
+    this.app.debug(`Connecting to Radarr by uri: ${uri}`, { label: "WebhookService" });
     return request(uri)
       .then((res) => {
         let json;
-
-        this.app.debug(res, { label: "WebhookService" });
 
         try {
           json = JSON.parse(res);

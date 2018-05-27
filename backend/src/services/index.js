@@ -13,6 +13,8 @@ const scrape = require('./scrape/scrape.service.js');
 
 const webhook = require('./webhook/webhook.service.js');
 
+const settings = require('./settings/settings.service.js');
+
 module.exports = function () {
   const app = this; // eslint-disable-line no-unused-vars
   app.configure(movies);
@@ -23,4 +25,5 @@ module.exports = function () {
   app.configure(autofixRules);
   app.configure(scrape);
   app.configure(webhook);
+  app.configure(settings);
 };
