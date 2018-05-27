@@ -1,6 +1,6 @@
 <template>
   <div>
-    <router-link :to="{ name: 'movies', params: { id: movie.id } }"
+    <router-link :to="{ name: 'movies', params: { id: movie._id } }"
      class="panel-block" style="display: block;" active-class="is-active"
      v-bind:class="{ 'is-unsaved': isDirty }">
     <div class="columns is-multiline">
@@ -16,16 +16,14 @@
         </p>
       </div>
       <div class="column is-one-third has-text-right">
-        <!-- <div class="tags"> -->
-          <span class="tag"
-            v-bind:class="{ 'is-danger': !isMuxed, 'is-success': isMuxed}">
-            M
-          </span>
-          <span class="tag"
-            v-bind:class="{ 'is-danger': !movie.isFixed, 'is-success': movie.isFixed}">
-            F
-          </span>
-        <!-- </div> -->
+        <span class="tag"
+          v-bind:class="{ 'is-danger': !isMuxed, 'is-success': isMuxed}">
+          M
+        </span>
+        <span class="tag"
+          v-bind:class="{ 'is-danger': !movie.isFixed, 'is-success': movie.isFixed}">
+          F
+        </span>
       </div>
       <div class="column is-italic">
         <p class="subtitle is-7">{{ movie.filename }}</p>

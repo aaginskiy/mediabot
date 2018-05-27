@@ -11,14 +11,16 @@
           MovieBot
         </a>
       </div>
-
-        <div id="navbarExampleTransparentExample" class="navbar-menu">
-          <div class="navbar-start">
-            <router-link to="/movies" class="navbar-item is-active is-tab">
-              Movies
-            </router-link>
-          </div>
+      <div class="navbar-menu">
+        <div class="navbar-start">
+          <router-link to="/movies" class="navbar-item is-tab" active-class="is-active">
+            Movies
+          </router-link>
+          <router-link to="/jobs" class="navbar-item is-tab" active-class="is-active">
+            Jobs
+          </router-link>
         </div>
+      </div>
     </nav>
     <router-view/>
   </div>

@@ -6,6 +6,10 @@ const shellwords = require('shellwords');
 const _ = require('lodash');
 const path = require('path');
 const EventEmitter = require('events');
+// const Promise = require("bluebird");
+const fs = require('fs');
+const rename = util.promisify(fs.rename);
+// const rename = Promise.promisify
 
 class Service {
   constructor(options) {
@@ -15,15 +19,22 @@ class Service {
   setup(app) {
     this.app = app;
     this.Movie = app.service('movies');
+    this.Job = app.service('jobs');
   }
 
   async find(params) {
+    this.app.silly('Called MediaFile#find with:', { label: "MediaFileService"});
+    this.app.silly({ params: params }, { label: "MediaFileService"});
     const _self = this;
     if (!params.query.filenames) return Promise.resolve([]);
     const { filenames } = params.query;
 
     return Promise.all(filenames.map(filename =>
-      _self._readMovieInfo(filename).catch(error => null))).then(res => _.compact(res));
+      _self._readMovieInfo(filename)
+        .catch(error => {
+          this.app.error(error, { label: "MediaFileService"});
+          return Promise.reject(error);
+        }))).then(res => _.compact(res));
   }
 
   /**
@@ -38,17 +49,16 @@ class Service {
    * @memberof MediaFile
    */
   async create(data, params) {
-    this.app.info('Called MediaFile#create with:', data, params);
+    this.app.silly('Called MediaFile#create with:', { label: "MediaFileService"});
+    this.app.silly({ data: data, params: params }, { label: "MediaFileService"});
+
     const _self = this;
 
     // Load all media files in media directory if no filenames specified
     if (!params.query.filenames || params.query.filenames.length === 0) {
       const globString = `${this.app.get('movieDirectory')}/**/*.mkv`;
-      this.app.debug(`MediaFile#create - loading filenames from ${globString}.`);
-      glob.promise(globString)
-        .then(function(contents) {
-          console.log(contents); //=> []
-        });
+
+      this.app.info(`Loading movies from ${this.app.get('movieDirectory')}.`, { label: "MediaFileService"});
       params.query.filenames = await glob.promise(globString);
     }
 
@@ -61,7 +71,11 @@ class Service {
     const createFilenames = _.difference(params.query.filenames, existingFilenames);
     params.query.filenames = createFilenames;
 
-    this.app.debug('MediaFile#create - creating new movies from:', createFilenames);
+    this.app.debug('Loading new movies from:', { label: "MediaFileService"});
+    this.app.debug(createFilenames, { label: "MediaFileService"});
+
+    this.app.debug('Refreshing movies from:', { label: "MediaFileService"});
+    this.app.debug(existingFilenames, { label: "MediaFileService"});
 
     // Create new movies
     const createData = await _self.find(params);
@@ -72,7 +86,8 @@ class Service {
       _self.Movie.create(createData),
       Promise.all(existingMovies.map(async (movie) => {
         const mediaInfo = await _self.find({ query: { filenames: [movie.filename] } });
-        return _self.Movie.patch(movie.id, mediaInfo[0]);
+        this.app.debug(`Patching movie #${movie._id}.`);
+        return _self.Movie.update(movie._id, mediaInfo[0], { skipWrite: true });
       })),
     ]).then(res => ({
       created: res[0],
@@ -81,13 +96,31 @@ class Service {
   }
 
   get(id, params) {
+    this.app.info(`Loading movie #${id} metadata from file.`, { label: "MediaFileService"});
+
     return this.Movie.get(id)
-      .then(async data => this.Movie.update(id, await this._readMovieInfo(data.filename)));
+      .then(async data => this.Movie.update(id, await this._readMovieInfo(data.filename), { skipWrite: true }))
+      .catch(err => {
+        this.app.error('error');
+        this.app.error(err, { label: "MediaFileService#get"});
+        return Promise.reject(err);
+      });
   }
 
-  // update (id, data, params) {
-  //   return Promise.resolve(data);
-  // }
+  update (id, data, params) {
+    const jobData = {
+      movieId: id,
+      title: data.title,
+      status: this.app.get('JOB_STATUS.NEW'),
+      args: [
+        id,
+        data,
+      ],
+      service: 'media-file',
+      function: 'mux',
+    };
+    return this.Job.create(jobData, {});
+  }
 
   /**
    * MediaFile#patch
@@ -102,12 +135,16 @@ class Service {
    * @memberof MediaFile
    */
   async patch(id, data, params) {
-    this.app.info('Called MediaFile#patch with:', id, data, params);
+    this.app.info(`Patching movie #${id} metadata to file.`, { label: "MediaFileService"});
 
     const exec = util.promisify(childProcess.exec);
 
     const movieData = await this.Movie.get(id);
-    return exec(`mkvpropedit -v ${shellwords.escape(movieData.filename)} ${this._generateInfoCommand(data)}`);
+    return exec(`mkvpropedit -v ${shellwords.escape(movieData.filename)} ${this._generateInfoCommand(data)}`)
+      .catch(err => {
+        this.app.error(err, { label: "MediaFileService"});
+        return Promise.reject(err);
+      });
   }
 
   _readMovieInfo(filename) {
@@ -130,8 +167,8 @@ class Service {
 
           processedTrack.name = _.get(track, 'properties.track_name');
           processedTrack.language = _.get(track, 'properties.language');
-          processedTrack.number = _.get(track, 'properties.number');
-          processedTrack.newNumber = _.get(track, 'properties.number');
+          processedTrack.number = _.get(track, 'id');
+          processedTrack.newNumber = processedTrack.number;
           processedTrack.type = track.type;
           processedTrack.codecType = track.codec;
           processedTrack.isDefault = _.get(track, 'properties.default_track');
@@ -159,7 +196,7 @@ class Service {
     if (!data.tracks) return command;
 
     data.tracks.forEach((track) => {
-      command += ` --edit track:${track.number}`;
+      command += ` --edit track:${track.number + 1}`;
 
       [['name', track.name],
         ['language', track.language],
@@ -192,15 +229,14 @@ class Service {
       command: ['mkvmerge', '--output', `"${dir}/${base}.rmbtmp"`],
     };
 
-    // let command = 'mkvmerge --output "' + dir + '/' + base + '.rmbtmp"'
-
     _.sortBy(data.tracks, 'newNumber').forEach((track) => {
       if (track.isMuxed) {
         commandObj[`${track.type}Merge`] = true;
 
-        commandObj[`${track.type}Number`] += `${track.number - 1},`;
+        commandObj[`${track.type}Number`] += `${track.number},`;
+
+        commandObj.trackOrder += `0:${track.number},`;
       }
-      commandObj.trackOrder += `0:${track.number - 1},`;
     });
 
     if (commandObj.videoMerge) {
@@ -242,31 +278,51 @@ class Service {
     return commandObj.command;
   }
 
-  _update(id, data, progress) {
-    return new Promise((resolve, reject) => {
-      const command = this._generateMergeCommand(data);
-      const updateEvent = childProcess.spawn(command.shift(), command);
-      updateEvent.on('exit', (code) => {
-        if (code === 1 || code === 0) {
-          return resolve(code);
-        }
+  mux(id, data) {
+    this.app.silly('Called MediaFile#mux with:', { label: "MediaFileService"});
+    this.app.silly({ id: id, data: data }, { label: "MediaFileService"});
 
-        return reject(new Error(`Received 'exit' message with code '${code}' from mkvmerge on '${data.filename}'`));
-      });
-
-      updateEvent.on('error', err => reject(new Error(`Received 'error' message with '${err}' from mkvmerge on '${data.filename}'`)));
-
-      updateEvent.stdout.on('data', (res) => {
-        if (_.isFunction(progress)) {
-          const re = /(.*): (.*)/;
-          const result = re.exec(res.toString());
-
-          if (result[1] === 'Progress') {
-            progress(result[2]);
-          }
-        }
-      });
+    const muxEvent = new EventEmitter();
+    const command = this._generateMergeCommand(data);
+    const updateEvent = childProcess.spawn(command.shift(), command, {shell: true});
+    updateEvent.stdout.on('data', (res) => {
+      const re = /(.*): (.*)/;
+      const result = re.exec(res.toString());
+      if (result && result[1] === 'Progress') {
+        muxEvent.emit('progress', result[2].slice(0,-1));
+      }
     });
+
+    updateEvent.on('exit', (code) => {
+      if (code === 1 || code === 0) {
+        this.app.debug(`Backing up ${data.filename} to ${data.filename + 'bak'}.`, { label: "MediaFileService#mux"});
+        rename(data.filename, data.filename + 'bak')
+          .catch((err) => {
+            this.app.error(`Unable to rename ${data.filename} to ${data.filename + 'bak'}.`, { label: "MediaFileService#mux"});
+            muxEvent.emit('finished', new Error('Unable to rename MKV file to back up.'));
+            return Promise.reject(err);
+          })
+          .then((val) => {
+            this.app.debug(`Renaming ${data.filename.slice(0,-3) + 'rmbtmp'} to ${data.filename}.`, { label: "MediaFileService#mux"});
+            return rename(data.filename.slice(0,-3) + 'rmbtmp', data.filename);
+          })
+          .catch((err) => {
+            this.app.error(`Unable to rename ${data.filename.slice(0,-3) + 'rmbtmp'} to ${data.filename}.`, { label: "MediaFileService#mux"});
+            muxEvent.emit('finished', new Error('Unable to rename MKV file from new mux.'));
+            return Promise.reject(err);
+          })
+          .then((val) => {
+            this.get(id, {});
+            muxEvent.emit('finished', `Received 'exit' message with code '${code}' from mkvmerge on '${data.filename}'`);
+          });
+      } else {
+        muxEvent.emit('finished', new Error(`Received 'exit' message with code '${code}' from mkvmerge on '${data.filename}'`));
+      }
+    });
+
+    updateEvent.on('error', err => Promise.reject(new Error(`Received 'error' message with '${err}' from mkvmerge on '${data.filename}'`)));
+
+    return muxEvent;
   }
 }
 

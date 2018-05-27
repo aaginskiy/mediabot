@@ -35,16 +35,23 @@
             Files
           </a>
         </div>
-        <div class="navbar-end">
+        <div class="navbar-end level">
+          <span class="navbar-item">
+            <span class="tags">
+              <span class="tag is-info" v-if="movie.videoTag">{{ movie.videoTag }}</span>
+              <span class="tag is-info" v-if="movie.audioTag">{{ movie.audioTag }}</span>
+            </span>
+          </span>
           <span class="navbar-item">
             <template v-if="$loading.isLoading('saving movie error')">
               <a class="button is-primary"
                 v-bind:class="{ 'is-loading': $loading.isLoading('saving movie'),
-                'is-danger': $loading.isLoading('saving movie error') }"
+                'is-danger is-error': $loading.isLoading('saving movie error') }"
                 v-on:click="saveMovie(movie)">
                 <span class="icon">
                   <i class="fas fa-times"></i>
                 </span>
+                <span>Error</span>
               </a>
             </template>
             <template v-else-if="$loading.isLoading('saving movie success')">
@@ -55,6 +62,7 @@
                 <span class="icon">
                   <i class="fas fa-check"></i>
                 </span>
+                <span>Saved</span>
               </a>
             </template>
             <template v-else>
@@ -65,6 +73,7 @@
                 <span class="icon">
                   <i class="fas fa-save"></i>
                 </span>
+                <span>Save</span>
               </a>
             </template>
           </span>
@@ -164,7 +173,8 @@ export default {
           this.$loading.startLoading('saving movie success');
           setTimeout(() => this.$loading.endLoading('saving movie success'), 2000);
         })
-        .catch(() => {
+        .catch((e) => {
+          console.log(e);
           this.$loading.endLoading('saving movie');
           this.$loading.startLoading('saving movie error');
           setTimeout(() => this.$loading.endLoading('saving movie error'), 2000);
@@ -183,8 +193,10 @@ img.poster {
   background-size: cover;
 }
 .button.is-danger {
-    pointer-events: none;
-    animation: shake 0.25s;
+  pointer-events: none;
+}
+.button.is-error {
+  animation: shake 0.25s;
 }
 
 /* From Dan Eden's animate.css: http://daneden.me/animate/ */

@@ -10,7 +10,6 @@ module.exports = function () {
 
   const options = {
     name: 'movies',
-    id: 'id',
     Model,
     paginate
   };

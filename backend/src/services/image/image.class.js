@@ -14,7 +14,6 @@ class Service {
   }
 
   async get (id, params) {
-    console.log(id);
     return this.Movie.get(id, params);
   }
 

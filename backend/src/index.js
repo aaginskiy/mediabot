@@ -5,9 +5,9 @@ const host = app.get('host');
 const server = app.listen(port);
 
 process.on('unhandledRejection', (reason, p) =>
-  app.error('Unhandled Rejection at: Promise ', p, reason)
+  console.log('Unhandled Rejection at: Promise ', p, reason)
 );
 
 server.on('listening', () =>
-  app.info(`Feathers application started on http://${host}:${port}`)
+  app.info(`Feathers application started on http://${host}:${port}`, {label: 'MovieBotServer'})
 );

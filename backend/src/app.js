@@ -1,14 +1,57 @@
+// Load global dependencies
 const path = require('path');
+const parseArgs = require('minimist');
+const fs = require('fs');
+
+// Set up base app
+const feathers = require('@feathersjs/feathers');
+const express = require('@feathersjs/express');
+const app = express(feathers());
+
+// Load config file
+var argv = parseArgs(process.argv.slice(2));
+var configLocation;
+
+if (argv['config']) {
+  configLocation = path.join(__dirname, argv['config']);
+} else {
+  configLocation = path.join(__dirname, '../../config/');
+}
+
+app.set('configLocation', configLocation);
+
+const configFile = path.join(configLocation, './config.json');
+
+if (fs.existsSync(configFile)) {
+  let settings = require(configFile);
+  Object.keys(settings).forEach(key => app.set(key, settings[key]));
+} else {
+  var defaultConfig = {
+    'movieDirectory': '/default/movie/directory'
+  };
+
+  fs.writeFile(configFile, JSON.stringify(defaultConfig), (err) => {
+    if (err) throw err;
+    console.log('Created new ruby-media-bot config file.');
+  });
+}
+
+// Set global constants
+app.set('JOB_STATUS.NEW', 0);
+app.set('JOB_STATUS.RUNNING', 1);
+app.set('JOB_STATUS.SUCCESS', 2);
+app.set('JOB_STATUS.ERROR', -1);
+
+app.set('SCHEDULER_STATUS.OFF', 0);
+app.set('SCHEDULER_STATUS.IDLE', 1);
+app.set('SCHEDULER_STATUS.RUNNING', 2);
+app.set('SCHEDULER_STATUS.ERROR', -1);
+
 const favicon = require('serve-favicon');
 const compress = require('compression');
 const cors = require('cors');
 const helmet = require('helmet');
 const bodyParser = require('body-parser');
-
-const feathers = require('@feathersjs/feathers');
-const express = require('@feathersjs/express');
-const seeder = require('feathers-seeder');
-const seederConfig = require('./seeder-config');
 const configuration = require('@feathersjs/configuration');
 const rest = require('@feathersjs/express/rest');
 const socketio = require('@feathersjs/socketio');
@@ -24,16 +67,11 @@ const appHooks = require('./app.hooks');
 const channels = require('./channels');
 
 const winston = require('winston');
+// const moment = require('moment');
 const logger = require('feathers-logger');
-
-const app = express(feathers());
-
-const fs = require('fs');
 
 // Load app configuration
 app.configure(configuration());
-
-app.configure(seeder(seederConfig));
 // Enable CORS, security, compression, favicon and body parsing
 app.use(cors());
 app.use(helmet());
@@ -47,15 +85,6 @@ app.use('/', express.static(app.get('public')));
 app.configure(rest());
 app.configure(socketio());
 
-// app.configure(swagger({
-//   docsPath: '/docs',
-//   info: {
-//     title: 'A test',
-//     description: 'A description'
-//   },
-//   uiIndex: true
-// }));
-
 // Configure other middleware (see `middleware/index.js`)
 app.configure(middleware);
 // Set up our services (see `services/index.js`)
@@ -67,14 +96,34 @@ app.use(handler());
 
 app.hooks(appHooks);
 
+const prettyPrint = winston.format((info, opts) => {
+  if (typeof info.message !== 'string') {
+    info.message =  JSON.stringify(info.message, null, 2);
+    info.isString = false;
+  } else {
+    info.isString = true;
+  }
+  return info;
+});
+
+const logFormat = winston.format.combine(
+  prettyPrint(),
+  winston.format.timestamp(),
+  winston.format.colorize(),
+  winston.format.align(),
+  winston.format.printf(info => {
+    if (info.isString) {
+      return `${info.timestamp} [${info.label}] ${info.level}: ${info.message}`;
+    } else {
+      return info.message;
+    }
+  }),
+);
+
 const wlog = winston.createLogger({
   level: 'info',
   format: winston.format.json(),
   transports: [
-    //
-    // - Write to all logs with level `info` and below to `combined.log` 
-    // - Write all logs error (and below) to `error.log`.
-    //
     new winston.transports.File({
       filename: 'logs/error.log',
       level: 'error'
@@ -85,48 +134,16 @@ const wlog = winston.createLogger({
   ]
 });
 
-//
-// If we're not in production then log to the `console` with the format:
-// `${info.level}: ${info.message} JSON.stringify({ ...rest }) `
-// 
 if (!process.env.NODE_ENV) process.env.NODE_ENV = 'development';
 if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV.toLowerCase() !== 'test') {
   wlog.add(new winston.transports.Console({
     level: 'debug',
-    format: winston.format.simple()
+    format: logFormat,
   }));
 }
 
 app.configure(logger(wlog));
 
-// Seed initial development environment
-// if (app.settings.env === 'development') {
-//   app.seed().then(() => {
-//     app.info('Seeded initial database.');
-//   });
-// }
-
-const rmbConfigFile = path.join(__dirname, '../rmb.config.json');
-
-if (fs.existsSync(rmbConfigFile)) {
-  let settings = require('../rmb.config.json');
-
-  Object.keys(settings).forEach(key => app.set(key, settings[key]));
-} else {
-  var defaultConfig = {
-    'movieDirectory': '/default/movie/directory'
-  };
-
-  fs.writeFile(rmbConfigFile, JSON.stringify(defaultConfig), (err) => {
-    if (err) throw err;
-    console.log('Created new ruby-media-bot config file.');
-
-  });
-}
-
-process.on('uncaughtException', function (err) {
-  console.error(err.stack);
-  process.exit();
-});
+app.silly = wlog.silly;
 
 module.exports = app;

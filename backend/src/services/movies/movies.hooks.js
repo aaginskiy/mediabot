@@ -9,14 +9,16 @@ const checkMux = require('../../hooks/check-mux');
 
 const updateMediaFile = require('../../hooks/update-media-file');
 
+const populateMediaTags = require('../../hooks/populate-media-tags');
+
 module.exports = {
   before: {
     all: [],
     find: [],
     get: [],
-    create: [validateSchema(createSchema, ajv)],
-    update: [updateMediaFile()],
-    patch: [disallow('external')],
+    create: [validateSchema(createSchema, ajv), populateMediaTags()],
+    update: [populateMediaTags()],
+    patch: [disallow('external'), populateMediaTags()],
     remove: [disallow('external')]
   },
 
@@ -25,7 +27,7 @@ module.exports = {
     find: [],
     get: [],
     create: [],
-    update: [],
+    update: [updateMediaFile()],
     patch: [],
     remove: []
   },

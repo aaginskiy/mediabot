@@ -1,7 +1,6 @@
 module.exports = function (options = {}) {
   return function sendImage(req, res, next) {
-    console.log('sendImage middleware is running');
-    console.log(res.hook.params.query.type);
+    req.app.info(`Sending image type '${res.hook.params.query.type}' for movie #${res.hook.id}.`, { label: "ImageService"});
 
     let type;
     if (res.hook.params.query.type === 'poster') {
