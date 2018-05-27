@@ -32,11 +32,14 @@ class Service {
   }
 
   async create (data, params) {
+    this.app.debug('MediaFile#create');
     var _self = this;
 
     // Load all media files in media directory if no filenames specified
     if (!params.query.filenames || params.query.filenames.length == 0) {
-      params.query.filenames = await glob.promise(this.app.get('movieDirectory'));
+      let globString = this.app.get('movieDirectory') + '/**/*.mkv';
+      this.app.debug('[MediaFile#create]', globString)
+      params.query.filenames = await glob.promise(globString);
     }
 
     // Load all movies
