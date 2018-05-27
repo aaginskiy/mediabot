@@ -112,45 +112,40 @@ class Service {
       .then(res => {
         var mediaInfo = new Object();
         var stdout = JSON.parse(res.stdout);
-        if (stdout) {
-          // Set general movie information
-          mediaInfo.title = stdout.container.properties.title;
-          mediaInfo.filename = stdout.file_name;
-          mediaInfo.tracks = new Array();
 
-          // Cycle through tracks and add updates
-          _.each(stdout.tracks, function (track) {
-            var processedTrack = new Object();
+        // Set general movie information
+        mediaInfo.title     = _.get(stdout, 'container.properties.title');
+        mediaInfo.filename  = stdout.file_name || filename;
+        mediaInfo.tracks    = new Array();
 
-            processedTrack.name = track.properties.track_name;
-            processedTrack.language = track.properties.language;
-            processedTrack.number = track.properties.number;
-            processedTrack.newNumber = track.properties.number;
-            processedTrack.type = track.type;
-            processedTrack.codecType = track.codec;
-            processedTrack.isDefault = track.properties.default_track;
-            processedTrack.isEnabled = track.properties.enabled_track;
-            processedTrack.isForced = track.properties.forced_track;
-            processedTrack.isMuxed = true;
+        // Cycle through tracks and add updates
+        _.each(stdout.tracks, function (track) {
+          var processedTrack = new Object();
 
-            // Additional parameters for audio tracks
-            if (processedTrack.type == 'audio') {
-              processedTrack.audioChannels = track.properties.audio_channels;
-              processedTrack.bps = track.properties.tag_bps;
-            }
-            
-            processedTrack = _.omitBy(processedTrack, _.isNil);
-            mediaInfo.tracks.push(processedTrack);
-          });
+          processedTrack.name       = _.get(track, 'properties.track_name');
+          processedTrack.language   = _.get(track, 'properties.language');
+          processedTrack.number     = _.get(track, 'properties.number');
+          processedTrack.newNumber  = _.get(track, 'properties.number');
+          processedTrack.type       = track.type;
+          processedTrack.codecType  = track.codec;
+          processedTrack.isDefault  = _.get(track, 'properties.default_track');
+          processedTrack.isEnabled  = _.get(track, 'properties.enabled_track');
+          processedTrack.isForced   = _.get(track, 'properties.forced_track');
+          processedTrack.isMuxed    = true;
 
-          mediaInfo = _.omitBy(mediaInfo, _.isNil);
+          // Additional parameters for audio tracks
+          if (processedTrack.type == 'audio') {
+            processedTrack.audioChannels  = _.get(track, 'properties.audio_channels');
+            processedTrack.bps            = _.get(track, 'properties.tag_bps');
+          }
+          
+          processedTrack = _.omitBy(processedTrack, _.isNil);
+          mediaInfo.tracks.push(processedTrack);
+        });
 
-        } else {
-          return Promise.reject(new Error('[Ruby Media Bot] \'mkvmerge -i\' could not be parse to json.'));
-        }
+        mediaInfo = _.omitBy(mediaInfo, _.isNil);
         return Promise.resolve(mediaInfo);
       })
-      .catch(error => Promise.reject(error));
   }
 
   _generateInfoCommand (data) {

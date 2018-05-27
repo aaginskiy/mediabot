@@ -54,6 +54,9 @@ describe('\'Media File\' service', () => {
     this.execStub.withArgs('mkvmerge -J bad_filename.mkv')
       .yields(new Error('Stubbed Error.'));
 
+    this.execStub.withArgs('mkvmerge -J bad_JSON.mkv')
+      .yields(null, {stdout: 'not JSON'});
+
     this.execStub.withArgs('mkvmerge -J zathura1.mkv')
       .yields(null, fixture.zathuraOne);
 
@@ -301,12 +304,14 @@ describe('\'Media File\' service', () => {
   });
 
   describe('#_readMovieInfo', () => {
+    it('should catch any error from the external execution', () => 
+      expect(MediaFile._readMovieInfo('bad_filename.mkv')).to.be.rejectedWith('Stubbed Error.'));
 
-    it('should catch any error from the external execution', () => expect(MediaFile._readMovieInfo('bad_filename.mkv'))
-      .to.be.rejectedWith('Stubbed Error.'));
+    it('should call callback with correctly formatted object', () => 
+      expect(MediaFile._readMovieInfo('good_filename.mkv')).to.eventually.eql(this.movie));
 
-    it('should call callback with correctly formatted object', () => expect(MediaFile._readMovieInfo('good_filename.mkv'))
-      .to.eventually.eql(this.movie));
+    it('should return an error of JSON cannot be read', () => 
+      expect(MediaFile._readMovieInfo('bad_JSON.mkv')).to.eventually.be.rejected);
   });
 
   describe('#_generateInfoCommand', () => {
