@@ -135,8 +135,17 @@ const wlog = winston.createLogger({
 });
 
 if (!process.env.NODE_ENV) process.env.NODE_ENV = 'development';
+
 if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV.toLowerCase() !== 'test') {
   wlog.add(new winston.transports.Console({
+    level: 'debug',
+    format: logFormat,
+  }));
+}
+
+if (process.env.NODE_ENV.toLowerCase() === 'test') {
+  wlog.add(new winston.transports.File({
+    filename: 'test/logs/mocha.log',
     level: 'debug',
     format: logFormat,
   }));

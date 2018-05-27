@@ -152,7 +152,7 @@ describe('\'Media File\' service', () => {
       ]);
     });
 
-    it('should return [] if no files are found', () => {
+    it('should return [ ] if no files are found', () => {
       const params = {
         query: {
           filenames: [],
@@ -165,7 +165,7 @@ describe('\'Media File\' service', () => {
     });
   });
 
-  describe('#create', () => {
+  describe.skip('#create', () => {
     before((done) => {
       sinon.stub(glob, 'promise').resolves(['zathura1.mkv', 'zathura2.mkv']);
       done();
@@ -247,7 +247,7 @@ describe('\'Media File\' service', () => {
     it('should delete movie if the file no longer exists when all movies are reloaded');
   });
 
-  describe('#get', () => {
+  describe.skip('#get', () => {
     afterEach(() => MediaFile.Movie.remove(null));
 
     beforeEach(() =>
@@ -280,7 +280,7 @@ describe('\'Media File\' service', () => {
       MediaFile.get(this.badFileId).should.be.rejectedWith('Stubbed Error'));
   });
 
-  describe('#patch', () => {
+  describe.skip('#patch', () => {
     before((done) => {
       this.data = {
         title: 'Movie Title',
@@ -356,7 +356,7 @@ describe('\'Media File\' service', () => {
       expect(MediaFile._readMovieInfo('bad_JSON.mkv')).to.eventually.be.rejected);
   });
 
-  describe('#_generateInfoCommand', () => {
+  describe.skip('#_generateInfoCommand', () => {
     let data;
 
     before((done) => {
@@ -407,7 +407,7 @@ describe('\'Media File\' service', () => {
     });
   });
 
-  describe('#_generateMergeCommand', () => {
+  describe.skip('#_generateMergeCommand', () => {
     let mergeFixture;
 
     beforeEach(() => {
@@ -489,7 +489,7 @@ describe('\'Media File\' service', () => {
     });
   });
 
-  describe('#_update', () => {
+  describe.skip('#_update', () => {
     let mergeFixture;
 
     before((done) => {

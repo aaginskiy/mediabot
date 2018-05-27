@@ -9,6 +9,7 @@ const EventEmitter = require('events');
 // const Promise = require("bluebird");
 const fs = require('fs');
 const rename = util.promisify(fs.rename);
+const readdir = util.promisify(fs.readdir);
 // const rename = Promise.promisify
 
 class Service {
@@ -22,19 +23,58 @@ class Service {
     this.Job = app.service('jobs');
   }
 
+  /**
+   * MediaFileService#find
+   *
+   * Loads movie metadata, artowrk and directory files from disk.
+   *
+   * @param {any} params
+   * @returns Promise
+   * @memberof MediaFile
+   */
   async find(params) {
-    this.app.silly('Called MediaFile#find with:', { label: "MediaFileService"});
-    this.app.silly({ params: params }, { label: "MediaFileService"});
-    const _self = this;
+    this.app.info('Loading movies fromt the disk.', { label: "MediaFileService" });
+    this.app.debug(params.query.filenames, { label: "MediaFileService" });
+
     if (!params.query.filenames) return Promise.resolve([]);
     const { filenames } = params.query;
 
     return Promise.all(filenames.map(filename =>
-      _self._readMovieInfo(filename)
-        .catch(error => {
-          this.app.error(error, { label: "MediaFileService"});
-          return Promise.reject(error);
-        }))).then(res => _.compact(res));
+      this._readMovieInfo(filename)
+        .catch(err => {
+          this.app.warn(`Unable to find movie \"${filename}\".`, { label: "MediaFileService"});
+          this.app.warn(err.message, { label: "MediaFileService"});
+
+          return null;
+        })
+        .then(async movie => {
+          if (movie) {
+            let artworkType = [
+              'poster',
+              'fanart',
+              'landscape',
+              'banner',
+              'clearart',
+              'disc',
+              'logo',
+            ];
+            let filePath = path.parse(filename);
+
+
+            // Load all files
+            movie.files = await readdir(filePath.dir);
+
+            await Promise.all(artworkType.map(artwork => glob(`${filePath.dir}/*${artwork}*`)
+              .then(filename => {
+                if (filename) movie[artwork] = filename[0];
+                return filename;
+              })
+            ));
+          }
+
+          return movie;
+        })
+      )).then(res => _.compact(res));
   }
 
   /**

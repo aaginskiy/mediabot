@@ -227,4 +227,8 @@ img.poster {
     top: calc(50% - (1em / 2));
     position: absolute !important;
 }
+
+.media-content {
+  align-self: flex-end;
+}
 </style>

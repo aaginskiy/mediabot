@@ -8,6 +8,33 @@
     "filename": {
       "type": "string"
     },
+    "poster": {
+      "type": "string"
+    },
+    "fanart": {
+      "type": "string"
+    },
+    "landscape": {
+      "type": "string"
+    },
+    "banner": {
+      "type": "string"
+    },
+    "clearart": {
+      "type": "string"
+    },
+    "disc": {
+      "type": "string"
+    },
+    "logo": {
+      "type": "string"
+    },
+    "files": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
     "tracks": {
       "type": "array",
       "items": {

@@ -2,7 +2,7 @@ const assert = require('assert');
 const feathers = require('@feathersjs/feathers');
 const runJob = require('../../src/hooks/run-job');
 
-describe('\'runJob\' hook', () => {
+describe.skip('\'runJob\' hook', () => {
   let app;
 
   beforeEach(() => {

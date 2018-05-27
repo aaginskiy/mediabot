@@ -16,7 +16,7 @@ module.exports = {
     all: [],
     find: [],
     get: [],
-    create: [validateSchema(createSchema, ajv), populateMediaTags()],
+    create: [populateMediaTags()],
     update: [populateMediaTags()],
     patch: [disallow('external'), populateMediaTags()],
     remove: [disallow('external')]

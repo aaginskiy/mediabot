@@ -2,7 +2,7 @@ const assert = require('assert');
 const feathers = require('@feathersjs/feathers');
 const updateMediaFile = require('../../src/hooks/update-media-file');
 
-describe('\'updateMediaFile\' hook', () => {
+describe.skip('\'updateMediaFile\' hook', () => {
   let app;
 
   beforeEach(() => {
