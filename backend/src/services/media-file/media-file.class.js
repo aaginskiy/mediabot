@@ -21,24 +21,21 @@ class Service {
     if (!params.query.filenames) return Promise.resolve([]);
     filenames = params.query.filenames;
 
-    _.each(filenames, async function (filename) {
-      try {
-        let info = await _self._readMovieInfo(filename);
-        if (info) mediaInfo.push(info);
-      } catch (error) {}
-    })
-
-    return Promise.resolve(mediaInfo);
+    return Promise.all(filenames.map(filename => {
+        return _self._readMovieInfo(filename).catch(error => null);
+    })).then(res => {
+      return _.compact(res)
+    });
   }
 
   async create (data, params) {
-    this.app.debug('MediaFile#create');
+    this.app.info('Called MediaFile#create with:', data, params);
     var _self = this;
 
     // Load all media files in media directory if no filenames specified
     if (!params.query.filenames || params.query.filenames.length == 0) {
       let globString = this.app.get('movieDirectory') + '/**/*.mkv';
-      this.app.debug('[MediaFile#create]', globString)
+      this.app.debug(`MediaFile#create - loading filenames from ${globString}.`)
       params.query.filenames = await glob.promise(globString);
     }
 
@@ -51,26 +48,28 @@ class Service {
     var createFilenames = _.difference(params.query.filenames, existingFilenames);
     params.query.filenames = createFilenames;
 
+    this.app.debug('MediaFile#create - creating new movies from:', createFilenames);
+
     // Create new movies
     var createData = await _self.find(params);
-
-    // Create movies from new filenames
-    var created = await _self.Movie.create(createData);
-
-    // Patch movies from existing filenames
-    var patched = await Promise.all(existingMovies.map(async movie => {
-      let mediaInfo = await _self.find({ query: { filenames: [movie.filename] }});
-      if (!mediaInfo) return Promise.resolve({});
-      return _self.Movie.patch(movie._id, mediaInfo[0]);
-    }));
 
     // TODO delete orphaned movie enteries
     var deleted = [];
 
-    return Promise.resolve({
-      created: created,
-      patched: patched,
-      deleted: deleted
+    return Promise.all([
+      _self.Movie.create(createData),
+      Promise.all(existingMovies.map(async movie => {
+        let mediaInfo = await _self.find({ query: { filenames: [movie.filename] } });
+        
+        let data = (!mediaInfo[0]) ? {} : mediaInfo[0];
+
+        return _self.Movie.patch(movie._id, data);
+      }))
+    ]).then(res => {
+      return {
+        created: res[0],
+        patched: res[1]
+      }
     });
   }
 
@@ -95,19 +94,23 @@ class Service {
  * @memberof MediaFile
  */
 async patch (id, data, params) {
-    const exec = util.promisify(child_process.exec);
+  this.app.info('Called MediaFile#patch with:', id, data, params);
 
-    var movieData = await this.Movie.get(id);
-    return exec(`mkvpropedit -v ${movieData.filename} ${this._generateInfoCommand(data)}`);
-  }
+  const exec = util.promisify(child_process.exec);
+
+  var movieData = await this.Movie.get(id);
+  return exec(`mkvpropedit -v ${movieData.filename} ${this._generateInfoCommand(data)}`);
+}
 
   _readMovieInfo (filename) {
+    var _self = this;
     //logger.debug(`[Ruby Media Bot] Executing 'mkvmerge -i' to load information for ${filename}`);
     var escapedFilename = shellwords.escape(filename);
     const exec = util.promisify(child_process.exec);
-    return exec(`mkvmerge -i ${escapedFilename} -F json`)
-      .then(function(stdout, stderr) {
+    return exec(`mkvmerge -J ${escapedFilename}`)
+      .then(res => {
         var mediaInfo = new Object();
+        var stdout = JSON.parse(res.stdout);
         if (stdout) {
           // Set general movie information
           mediaInfo.title = stdout.container.properties.title;
@@ -118,7 +121,7 @@ async patch (id, data, params) {
           _.each(stdout.tracks, function (track) {
             var processedTrack = new Object();
 
-            processedTrack.trackName = track.properties.track_name;
+            processedTrack.name = track.properties.track_name;
             processedTrack.language = track.properties.language;
             processedTrack.number = track.properties.number;
             processedTrack.type = track.type;
@@ -132,9 +135,12 @@ async patch (id, data, params) {
               processedTrack.audioChannels = track.properties.audio_channels;
               processedTrack.bps = track.properties.tag_bps;
             }
-
+            
+            processedTrack = _.omitBy(processedTrack, _.isNil);
             mediaInfo.tracks.push(processedTrack);
           });
+
+          mediaInfo = _.omitBy(mediaInfo, _.isNil);
 
         } else {
           return Promise.reject(new Error('[Ruby Media Bot] \'mkvmerge -i\' could not be parse to json.'));

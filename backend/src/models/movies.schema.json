@@ -7,6 +7,45 @@
     },
     "filename": {
       "type": "string"
+    },
+    "tracks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "language": {
+            "type": "string"
+          },
+          "number": {
+            "type": "integer"
+          },
+          "type": {
+            "type": "string"
+          },
+          "codecType": {
+            "type": "string"
+          },
+          "isDefault": {
+            "type": "boolean"
+          },
+          "isEnabled": {
+            "type": "boolean"
+          },
+          "isForced": {
+            "type": "boolean"
+          },
+          "audioChannels": {
+            "type": "integer"
+          },
+          "bps": {
+            "type": "integer"
+          }
+        },
+        "additionalProperties": false
+      }
     }
   },
   "additionalProperties": false,

@@ -67,9 +67,42 @@ app.use(handler());
 
 app.hooks(appHooks);
 
+const wlog = winston.createLogger({
+  level: 'info',
+  format: winston.format.json(),
+  transports: [
+    //
+    // - Write to all logs with level `info` and below to `combined.log` 
+    // - Write all logs error (and below) to `error.log`.
+    //
+    new winston.transports.File({
+      filename: 'logs/error.log',
+      level: 'error'
+    }),
+    new winston.transports.File({
+      filename: 'logs/combined.log'
+    })
+  ]
+});
+
+//
+// If we're not in production then log to the `console` with the format:
+// `${info.level}: ${info.message} JSON.stringify({ ...rest }) `
+// 
+if (!process.env.NODE_ENV) process.env.NODE_ENV = 'development';
+if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV.toLowerCase() !== 'test') {
+  wlog.add(new winston.transports.Console({
+    level: 'debug',
+    format: winston.format.simple()
+  }));
+}
+
+app.configure(logger(wlog));
+
+
 if (app.settings.env === 'development') {
   app.seed().then(() => {
-    console.log('Seeded initial database.');
+    app.info('Seeded initial database.');
   });
 }
 
@@ -91,32 +124,9 @@ if (fs.existsSync(rmbConfigFile)) {
   });
 }
 
-const wlog = winston.createLogger({
-  level: 'info',
-  format: winston.format.json(),
-  transports: [
-    //
-    // - Write to all logs with level `info` and below to `combined.log` 
-    // - Write all logs error (and below) to `error.log`.
-    //
-    new winston.transports.File({ filename: 'logs/error.log', level: 'error' }),
-    new winston.transports.File({ filename: 'logs/combined.log' })
-  ]
+process.on('uncaughtException', function (err) {
+  console.error(err.stack);
+  process.exit();
 });
-
-//
-// If we're not in production then log to the `console` with the format:
-// `${info.level}: ${info.message} JSON.stringify({ ...rest }) `
-// 
-if (process.env.NODE_ENV !== 'production') {
-  wlog.add(new winston.transports.Console({
-    format: winston.format.combine(
-      winston.format.timestamp(),
-      winston.format.simple()
-    )
-  }));
-}
-
-app.configure(logger(wlog));
 
 module.exports = app;
