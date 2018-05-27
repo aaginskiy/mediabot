@@ -1,27 +1,27 @@
-const assert = require('assert');
-const feathers = require('@feathersjs/feathers');
-const runJob = require('../../src/hooks/run-job');
+const assert = require('assert')
+const feathers = require('@feathersjs/feathers')
+const runJob = require('../../src/hooks/run-job')
 
 describe.skip('\'runJob\' hook', () => {
-  let app;
+  let app
 
   beforeEach(() => {
-    app = feathers();
+    app = feathers()
 
     app.use('/dummy', {
-      async get(id) {
-        return { id };
+      async get (id) {
+        return { id }
       }
-    });
+    })
 
     app.service('dummy').hooks({
       before: runJob()
-    });
-  });
+    })
+  })
 
   it('runs the hook', async () => {
-    const result = await app.service('dummy').get('test');
-    
-    assert.deepEqual(result, { id: 'test' });
-  });
-});
+    const result = await app.service('dummy').get('test')
+
+    assert.deepEqual(result, { id: 'test' })
+  })
+})

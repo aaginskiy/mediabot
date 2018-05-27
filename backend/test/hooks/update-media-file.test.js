@@ -1,27 +1,27 @@
-const assert = require('assert');
-const feathers = require('@feathersjs/feathers');
-const updateMediaFile = require('../../src/hooks/update-media-file');
+const assert = require('assert')
+const feathers = require('@feathersjs/feathers')
+const updateMediaFile = require('../../src/hooks/update-media-file')
 
 describe.skip('\'updateMediaFile\' hook', () => {
-  let app;
+  let app
 
   beforeEach(() => {
-    app = feathers();
+    app = feathers()
 
     app.use('/dummy', {
-      async get(id) {
-        return { id };
+      async get (id) {
+        return { id }
       }
-    });
+    })
 
     app.service('dummy').hooks({
       before: updateMediaFile()
-    });
-  });
+    })
+  })
 
   it('runs the hook', async () => {
-    const result = await app.service('dummy').get('test');
-    
-    assert.deepEqual(result, { id: 'test' });
-  });
-});
+    const result = await app.service('dummy').get('test')
+
+    assert.deepEqual(result, { id: 'test' })
+  })
+})

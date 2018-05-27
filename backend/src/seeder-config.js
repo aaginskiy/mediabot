@@ -7,8 +7,8 @@ module.exports = {
       template: {
         title: '{{lorem.slug}}',
         filename: '{{system.commonFileName}}.mkv'
-        // type: '{{random.arrayElement(["audio", "video", "subtitles"])}}' 
+        // type: '{{random.arrayElement(["audio", "video", "subtitles"])}}'
       }
     }
   ]
-};
+}

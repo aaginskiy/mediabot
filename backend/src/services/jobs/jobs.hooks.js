@@ -1,6 +1,5 @@
 
-
-const runJob = require('../../hooks/run-job');
+// const runJob = require('../../hooks/run-job')
 
 module.exports = {
   before: {
@@ -32,4 +31,4 @@ module.exports = {
     patch: [],
     remove: []
   }
-};
+}

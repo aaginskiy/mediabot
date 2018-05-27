@@ -1,26 +1,28 @@
-const app = require('../src/app');
-const fs = require('fs');
+/* global before after beforeEach afterEach */
+const app = require('../src/app')
+const fs = require('fs')
+const path = require('path')
 
 before(function (done) {
-  this.server = app.listen(3434);
+  this.server = app.listen(3434)
   this.server.once('listening', () => {
     // Clear database
     app.service('media-file').Movie.remove(null).then(() => {
-      done();
-    });
-  });
-});
+      done()
+    })
+  })
+})
 
 after(function (done) {
-  this.server.close(done);
-});
+  this.server.close(done)
+})
 
-afterEach(function() {
-  if (this.currentTest.state !== 'failed') return;
-  console.log( fs.readFileSync(__dirname + '/logs/mocha.log').toString() );
-});
+afterEach(function () {
+  if (this.currentTest.state !== 'failed') return
+  console.log(fs.readFileSync(path.join(__dirname, '/logs/mocha.log')).toString())
+})
 
-beforeEach(function(done) {
-  try { fs.writeFileSync(__dirname + '/logs/mocha.log', ''); } catch(e) {}
-  done();
-});
+beforeEach(function (done) {
+  try { fs.writeFileSync(path.join(__dirname, '/logs/mocha.log'), '') } catch (e) {}
+  done()
+})
