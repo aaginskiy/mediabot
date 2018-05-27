@@ -61,10 +61,7 @@ class Service {
       _self.Movie.create(createData),
       Promise.all(existingMovies.map(async movie => {
         let mediaInfo = await _self.find({ query: { filenames: [movie.filename] } });
-        
-        let data = (!mediaInfo[0]) ? {} : mediaInfo[0];
-
-        return _self.Movie.update(movie._id, data);
+        return _self.Movie.update(movie._id, mediaInfo[0]);
       }))
     ]).then(res => {
       return {
@@ -79,9 +76,9 @@ class Service {
       .then(async data => this.Movie.update(id, await this._readMovieInfo(data.filename)));
   }
 
-  update (id, data, params) {
-    return Promise.resolve(data);
-  }
+  // update (id, data, params) {
+  //   return Promise.resolve(data);
+  // }
 
   /**
    * MediaFile#patch
@@ -115,7 +112,7 @@ class Service {
 
         // Set general movie information
         mediaInfo.title     = _.get(stdout, 'container.properties.title');
-        mediaInfo.filename  = stdout.file_name || filename;
+        mediaInfo.filename  = stdout.file_name;
         mediaInfo.tracks    = new Array();
 
         // Cycle through tracks and add updates

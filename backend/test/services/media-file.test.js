@@ -1,25 +1,24 @@
+const chai = require('chai');
+const sinon = require('sinon');
+
 const app = require('../../src/app');
 const MediaFile = app.service('media-file');
-const _ = require('lodash');
 const MediaFileService = require('../../src/services/media-file/media-file.class');
 
-var sinon = require('sinon');
-var child_process = require('child_process');
-var glob = require('glob-promise');
-var chai = require('chai');
-var expect = chai.expect;
-var should = chai.should();
+const child_process = require('child_process');
+const glob = require('glob-promise');
+const _ = require('lodash');
 
 chai.use(require('chai-things'));
 chai.use(require('chai-like'));
-
 chai.use(require('chai-string'));
+chai.use(require('sinon-chai'));
+chai.use(require('chai-as-promised'));
+
+var expect = chai.expect;
+chai.should();
 
 var fixture = {};
-
-chai.use(require('sinon-chai'));
-
-chai.use(require('chai-as-promised'));
 
 describe('\'Media File\' service', () => {
 
@@ -80,7 +79,7 @@ describe('\'Media File\' service', () => {
 
   it('should set options to {} if no options provided', () => {
     var service = new MediaFileService(null);
-    expect(service.options).to.be.eql({})
+    expect(service.options).to.be.eql({});
   });
 
   describe('#find', () => {
