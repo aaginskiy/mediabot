@@ -5,6 +5,7 @@ const glob = require('glob-promise');
 const shellwords = require('shellwords');
 const _ = require('lodash');
 const path = require('path');
+const EventEmitter = require('events');
 
 class Service {
   constructor(options) {
@@ -172,8 +173,8 @@ class Service {
       audioNumber: '',
       videoNumber: '',
       subtitlesNumber: '',
-      trackOrder: ' --track-order ',
-      command: `mkvmerge --output "${dir}/${base}.rmbtmp"`,
+      trackOrder: '',
+      command: ['mkvmerge', '--output', `"${dir}/${base}.rmbtmp"`],
     };
 
     // let command = 'mkvmerge --output "' + dir + '/' + base + '.rmbtmp"'
@@ -188,30 +189,37 @@ class Service {
     });
 
     if (commandObj.videoMerge) {
-      commandObj.command += ` -d ${commandObj.videoNumber.slice(0, -1)}`;
+      commandObj.command.push('-d');
+      commandObj.command.push(`${commandObj.videoNumber.slice(0, -1)}`);
     } else {
-      commandObj.command += ' -D';
+      commandObj.command.push('-D');
     }
 
     if (commandObj.audioMerge) {
-      commandObj.command += ` -a ${commandObj.audioNumber.slice(0, -1)}`;
+      commandObj.command.push('-a');
+      commandObj.command.push(`${commandObj.audioNumber.slice(0, -1)}`);
     } else {
-      commandObj.command += ' -A';
+      commandObj.command.push('-A');
     }
 
     if (commandObj.subtitlesMerge) {
-      commandObj.command += ` -s ${commandObj.subtitlesNumber.slice(0, -1)}`;
+      commandObj.command.push('-s');
+      commandObj.command.push(`${commandObj.subtitlesNumber.slice(0, -1)}`);
     } else {
-      commandObj.command += ' -S';
+      commandObj.command.push('-S');
     }
 
     // Remove attachments
     // TODO: make configurable
-    commandObj.command += ' -M';
+    commandObj.command.push('-M');
 
-    commandObj.command += ` "${data.filename}" --title "${data.title}" `;
+    commandObj.command.push(`"${data.filename}"`);
+    commandObj.command.push('--title');
+    commandObj.command.push(`"${data.title}"`);
 
-    commandObj.command += commandObj.trackOrder.slice(0, -1);
+    commandObj.command.push('--track-order');
+
+    commandObj.command.push(commandObj.trackOrder.slice(0, -1));
 
     this.app.debug('Executing \'mkvmerge\' command');
     this.app.debug(`    ${commandObj.command}`);
@@ -219,11 +227,32 @@ class Service {
     return commandObj.command;
   }
 
-  // _update () {
-  //   return new Promise((resolve, reject) => {
-  //     setTimeout(resolve, 10000);
-  //   })
-  // }
+  _update(id, data, progress) {
+    return new Promise((resolve, reject) => {
+      const command = this._generateMergeCommand(data);
+      const updateEvent = childProcess.spawn(command.shift(), command);
+      updateEvent.on('exit', (code) => {
+        if (code === 1 || code === 0) {
+          return resolve(code);
+        }
+
+        return reject(new Error(`Received 'exit' message with code '${code}' from mkvmerge on '${data.filename}'`));
+      });
+
+      updateEvent.on('error', err => reject(new Error(`Received 'error' message with '${err}' from mkvmerge on '${data.filename}'`)));
+
+      updateEvent.stdout.on('data', (res) => {
+        if (_.isFunction(progress)) {
+          const re = /(.*): (.*)/;
+          const result = re.exec(res.toString());
+
+          if (result[1] === 'Progress') {
+            progress(result[2]);
+          }
+        }
+      });
+    });
+  }
 }
 
 module.exports = function moduleExport(options) {
