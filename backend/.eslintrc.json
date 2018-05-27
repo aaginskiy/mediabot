@@ -5,9 +5,13 @@
     "mocha": true
   },
   "extends": [
-    "eslint:recommended"
+    "airbnb"
   ],
   "rules": {
+    "no-underscore-dangle": "off",
+    "class-methods-use-this": "off",
+    "no-param-reassign": "warn",
+    "max-len": "warn",
     "indent": [
       "error",
       2
