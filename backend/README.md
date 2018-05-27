@@ -1,6 +1,9 @@
 # ruby-media-bot
 
 > Media management automation suite.
+[![Build Status](https://travis-ci.org/aaginskiy/ruby-media-bot.svg?branch=master)](https://travis-ci.org/aaginskiy/ruby-media-bot)
+[![Coverage Status](https://coveralls.io/repos/github/aaginskiy/ruby-media-bot/badge.svg?branch=master)](https://coveralls.io/github/aaginskiy/ruby-media-bot?branch=master)
+
 
 ## About
 
