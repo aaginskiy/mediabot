@@ -24,6 +24,8 @@ const appHooks = require('./app.hooks');
 
 const app = feathers();
 
+const fs = require('fs');
+
 // Load app configuration
 app.configure(configuration());
 
@@ -44,13 +46,13 @@ app.configure(rest());
 app.configure(socketio());
 
 app.configure(swagger({
-    docsPath: '/docs',
-    info: {
-      title: 'A test',
-      description: 'A description'
-    },
-    uiIndex: true
-  }));
+  docsPath: '/docs',
+  info: {
+    title: 'A test',
+    description: 'A description'
+  },
+  uiIndex: true
+}));
 
 // Configure other middleware (see `middleware/index.js`)
 app.configure(middleware);
@@ -62,8 +64,28 @@ app.use(handler());
 
 app.hooks(appHooks);
 
-app.seed().then(() => {
-  console.log("Seeded initial database.");
-});
+if (app.settings.env === 'development') {
+  app.seed().then(() => {
+    console.log('Seeded initial database.');
+  });
+}
+
+const rmbConfigFile = path.join(__dirname, '../rmb.config.json');
+
+if (fs.existsSync(rmbConfigFile)) {
+  let settings = require('../rmb.config.json');
+
+  Object.keys(settings).forEach(key => app.set(key, settings[key]));
+} else {
+  var defaultConfig = {
+    'movieDirectory': '/default/movie/directory'
+  };
+
+  fs.writeFile(rmbConfigFile, JSON.stringify(defaultConfig), (err) => {
+    if (err) throw err;
+    console.log('Created new ruby-media-bot config file.');
+
+  });
+}
 
 module.exports = app;

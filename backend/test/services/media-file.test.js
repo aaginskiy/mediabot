@@ -268,16 +268,13 @@ describe('#get', () => {
   it('should return media info for the movie specified by ID', () => 
     expect(MediaFile.get(this.goodFileId)).to.eventually.have.property('title', 'Zathura: A Space Adventure (2005)'));
 
-  it('should return an error if movie does not exist', () => {
-    return expect(MediaFile.get(this.badFileId)).to.be.rejectedWith('Stubbed Error');
-  });
+  it('should return an error if movie does not exist', () => 
+    expect(MediaFile.get(this.badFileId)).to.be.rejectedWith('Stubbed Error'));
 });
 
-describe.skip('#patch', () => {
-  var data, dataCommand, execStub;
-
+describe('#patch', () => {
   before((done) => {
-    data = {
+    this.data = {
       title: 'Movie Title',
       filename: 'test_movie.mkv',
       tracks: [
@@ -291,18 +288,40 @@ describe.skip('#patch', () => {
       ]
     };
 
-    dataCommand = MediaFile._generateInfoCommand(data);
+    this.dataCommand = MediaFile._generateInfoCommand(this.data);
 
-    execStub = sinon.stub(child_process, 'exec')
-      .withArgs('mkvmerge -i existing_movie_1.mkv -F json')
-      .yields(null, newMovieFixture, null);
+    this.execStub = sinon.stub(child_process, 'exec')
+      .yields(null, {}, null);
 
+    this.dbMovieFixture = [{
+      title: 'Modified Existing Movie #1',
+      filename: 'existing_movie_1.mkv'
+    },
+    {
+      title: 'Existing Movie #2',
+      filename: 'existing_movie_2.mkv'
+    }];
       
     done();
   });
 
-  it('should call mkvpropedit with the right command', () => {
+  after((done) => {
+    child_process.exec.restore();
+    done();
+  });
 
+  afterEach(() => MediaFile.Movie.remove(null));
+
+  beforeEach(() => Promise.all([
+    MediaFile.Movie.create(this.dbMovieFixture[0]).then(res => this.goodFileId = res._id),
+    MediaFile.Movie.create(this.dbMovieFixture[1]).then(res => this.badFileId = res._id)
+  ]));
+
+  it('should call mkvpropedit with the right command', (done) => {
+    MediaFile.patch(this.goodFileId, this.data).then(() => {
+      expect(this.execStub).calledWithMatch('mkvpropedit');
+      done();
+    });
   });
 });
 
@@ -492,13 +511,13 @@ describe('#_generateInfoCommand', () => {
   });
 
   it('should set the media title', (done) => {
-    expect(MediaFile._generateInfoCommand(data)).to.contain('--edit info --set "title=Test Movie"');
+    expect(MediaFile._generateInfoCommand(data)).to.contain('--edit\\ info\\ --set\\ \\"title\\=Test\\ Movie\\"');
     done();
   });
 
   it('should delete track parameters when they are empty', (done) => {
     expect(MediaFile._generateInfoCommand(data))
-      .to.contain('--edit track:1 --delete name --delete language --delete flag-default --delete flag-enabled --delete flag-forced');
+      .to.contain('--edit\\ track:1\\ --delete\\ name\\ --delete\\ language\\ --delete\\ flag-default\\ --delete\\ flag-enabled\\ --delete\\ flag-forced');
     done();
   });
 
@@ -511,7 +530,7 @@ describe('#_generateInfoCommand', () => {
     instanceData.tracks[0].isEnabled = true;
     instanceData.tracks[0].isForced = true;
     expect(MediaFile._generateInfoCommand(instanceData))
-      .to.contain('--edit track:1 --set "name=Track Name" --set "language=en" --set "flag-default=1" --set "flag-enabled=1" --set "flag-forced=1"')
+      .to.contain('--edit\\ track:1\\ --set\\ \\"name\\=Track\\ Name\\"\\ --set\\ \\"language\\=en\\"\\ --set\\ \\"flag-default\\=1\\"\\ --set\\ \\"flag-enabled\\=1\\"\\ --set\\ \\"flag-forced\\=1\\"');
     done();
   });
 

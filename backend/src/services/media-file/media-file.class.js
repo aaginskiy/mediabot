@@ -36,7 +36,7 @@ class Service {
 
     // Load all media files in media directory if no filenames specified
     if (!params.query.filenames || params.query.filenames.length == 0) {
-      params.query.filenames = await glob.promise('default/directory/**/*.mkv');
+      params.query.filenames = await glob.promise(this.app.get('movieDirectory'));
     }
 
     // Load all movies
@@ -80,11 +80,22 @@ class Service {
     return Promise.resolve(data);
   }
 
-  async patch (id, data, params) {
-    var _self = this;
+/**
+ * MediaFile#patch
+ * 
+ * Updates mkv file properties with data.  If id is present, filename is extracted from that movie object.
+ * 
+ * @param {any} id 
+ * @param {any} data 
+ * @param {any} params 
+ * @returns Promise
+ * @memberof MediaFile
+ */
+async patch (id, data, params) {
+    const exec = util.promisify(child_process.exec);
 
-
-    return Promise.resolve(data);
+    var movieData = await this.Movie.get(id);
+    return exec(`mkvpropedit -v ${movieData.filename} ${this._generateInfoCommand(data)}`);
   }
 
   _readMovieInfo (filename) {
@@ -151,7 +162,7 @@ class Service {
       });
     });
 
-    return command;
+    return shellwords.escape(command);
   }
 }
 

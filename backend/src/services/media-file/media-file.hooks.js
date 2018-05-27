@@ -5,7 +5,7 @@ module.exports = {
     all: [],
     find: [],
     get: [],
-    create: [disallow('external')],
+    create: [],
     update: [],
     patch: [],
     remove: [disallow('external')]
