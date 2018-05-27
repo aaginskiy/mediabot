@@ -22,6 +22,9 @@
           "number": {
             "type": "integer"
           },
+          "newNumber": {
+            "type": "integer"
+          },
           "type": {
             "type": "string"
           },
@@ -42,6 +45,9 @@
           },
           "bps": {
             "type": "integer"
+          },
+          "isMuxed": {
+            "type": "boolean"
           }
         },
         "additionalProperties": false

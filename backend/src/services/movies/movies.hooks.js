@@ -5,7 +5,7 @@ const Ajv = require('ajv');
 const ajv = new Ajv({ allErrors: true, $data: true});
 
 const createSchema = require('../../models/movies.schema.json');
-// validateSchema(createSchema, Ajv)
+const checkMux = require('../../hooks/check-mux');
 
 module.exports = {
   before: {
@@ -14,7 +14,7 @@ module.exports = {
     get: [],
     create: [validateSchema(createSchema, ajv)],
     update: [],
-    patch: [],
+    patch: [disallow()],
     remove: [disallow('external')]
   },
 

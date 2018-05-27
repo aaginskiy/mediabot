@@ -4,6 +4,7 @@ var child_process = require('child_process');
 const glob = require('glob-promise');
 const shellwords = require('shellwords');
 const _ = require('lodash');
+const path = require('path');
 
 class Service {
   constructor (options) {
@@ -63,19 +64,19 @@ class Service {
         
         let data = (!mediaInfo[0]) ? {} : mediaInfo[0];
 
-        return _self.Movie.patch(movie._id, data);
+        return _self.Movie.update(movie._id, data);
       }))
     ]).then(res => {
       return {
         created: res[0],
-        patched: res[1]
+        updated: res[1]
       }
     });
   }
 
   get (id, params) {
     return this.Movie.get(id)
-      .then(async data => this.Movie.patch(id, await this._readMovieInfo(data.filename)));
+      .then(async data => this.Movie.update(id, await this._readMovieInfo(data.filename)));
   }
 
   update (id, data, params) {
@@ -124,11 +125,13 @@ async patch (id, data, params) {
             processedTrack.name = track.properties.track_name;
             processedTrack.language = track.properties.language;
             processedTrack.number = track.properties.number;
+            processedTrack.newNumber = track.properties.number;
             processedTrack.type = track.type;
             processedTrack.codecType = track.codec;
             processedTrack.isDefault = track.properties.default_track;
             processedTrack.isEnabled = track.properties.enabled_track;
             processedTrack.isForced = track.properties.forced_track;
+            processedTrack.isMuxed = true;
 
             // Additional parameters for audio tracks
             if (processedTrack.type == 'audio') {
@@ -172,6 +175,64 @@ async patch (id, data, params) {
     });
 
     return shellwords.escape(command);
+  }
+
+  _generateMergeCommand (data) {
+    let base = path.basename(data.filename, '.mkv');
+    let dir = path.dirname(data.filename);
+
+    let commandObj = {
+      audioMerge: false,
+      videoMerge: false,
+      subtitlesMerge: false,
+      audioNumber: '',
+      videoNumber: '',
+      subtitlesNumber: '',
+      trackOrder: ' --track-order ',
+      command: 'mkvmerge --output "' + dir + '/' + base + '.rmbtmp"'
+    }
+
+    // let command = 'mkvmerge --output "' + dir + '/' + base + '.rmbtmp"'
+
+    _.sortBy(data.tracks, 'newNumber').forEach(track => {
+      if (track.isMuxed) {
+        commandObj[track.type + 'Merge'] = true;
+
+        commandObj[track.type + 'Number'] += `${track.number-1},`
+      }
+      commandObj.trackOrder += `0:${track.number-1},`
+    });
+
+    if (commandObj.videoMerge) {
+      commandObj.command += ` -d ${commandObj.videoNumber.slice(0, -1)}`;
+    } else {
+      commandObj.command += ' -D';
+    }
+
+    if (commandObj.audioMerge) {
+      commandObj.command += ` -a ${commandObj.audioNumber.slice(0, -1)}`;
+    } else {
+      commandObj.command += ' -A';
+    }
+
+    if (commandObj.subtitlesMerge) {
+      commandObj.command += ` -s ${commandObj.subtitlesNumber.slice(0, -1)}`;
+    } else {
+      commandObj.command += ' -S';
+    }
+
+    // Remove attachments
+    // TODO: make configurable
+    commandObj.command += ' -M';
+
+    commandObj.command += ` "${data.filename}" --title "${data.title}" `
+
+    commandObj.command += commandObj.trackOrder.slice(0, -1);
+
+    this.app.debug('Executing \'mkvmerge\' command');
+    this.app.debug(`    ${commandObj.command}`)
+
+    return commandObj.command;
   }
 }
 

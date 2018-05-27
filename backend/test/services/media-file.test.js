@@ -1,6 +1,6 @@
-const assert = require('assert');
 const app = require('../../src/app');
 const MediaFile = app.service('media-file');
+const _ = require('lodash');
 
 var sinon = require('sinon');
 var child_process = require('child_process');
@@ -11,6 +11,8 @@ var should = chai.should();
 
 chai.use(require('chai-things'));
 chai.use(require('chai-like'));
+
+chai.use(require('chai-string'));
 
 var fixture = {};
 
@@ -195,7 +197,7 @@ describe('\'Media File\' service', () => {
         query: {
           filenames: ['zathura3.mkv']
         }
-      }).should.eventually.have.property('patched').that.is.an('Array').with.lengthOf(1)
+      }).should.eventually.have.property('updated').that.is.an('Array').with.lengthOf(1)
         .and.include.an.item.with.property('title', 'Zathura: A Space Adventure 3 (2005)');
     });
 
@@ -204,7 +206,7 @@ describe('\'Media File\' service', () => {
         query: {
           filenames: ['bad_filename.mkv']
         }
-      }).should.eventually.have.property('patched').that.is.an('Array').with.lengthOf(0);
+      }).should.eventually.have.property('updated').that.is.an('Array').with.lengthOf(0);
     });
 
     it('should delete movie if the file no longer exists when all movies are reloaded');
@@ -295,14 +297,11 @@ describe('\'Media File\' service', () => {
 
   describe('#_readMovieInfo', () => {
 
-    it('should catch any error from the external execution', () => {
+    it('should catch any error from the external execution', () => expect(MediaFile._readMovieInfo('bad_filename.mkv'))
+      .to.be.rejectedWith('Stubbed Error.'));
 
-      return expect(MediaFile._readMovieInfo('bad_filename.mkv')).to.be.rejectedWith('Stubbed Error.');
-    });
-
-    it('should call callback with correctly formatted object', () => {
-      return expect(MediaFile._readMovieInfo('good_filename.mkv')).to.eventually.eql(this.movie);
-    });
+    it('should call callback with correctly formatted object', () => expect(MediaFile._readMovieInfo('good_filename.mkv'))
+      .to.eventually.eql(this.movie));
   });
 
   describe('#_generateInfoCommand', () => {
@@ -336,6 +335,14 @@ describe('\'Media File\' service', () => {
       done();
     });
 
+    it('should not have track in command if no tracks present', (done) => {
+      MediaFile._generateInfoCommand({
+        title: 'Test Movie',
+        filename: 'test_movie.mkv'
+      }).should.not.contain('--edit track');
+      done();
+    });
+
     it('should set each track parameter when not empty', (done) => {
       var instanceData = data;
 
@@ -346,6 +353,77 @@ describe('\'Media File\' service', () => {
       instanceData.tracks[0].isForced = true;
       expect(MediaFile._generateInfoCommand(instanceData))
         .to.contain('--edit\\ track:1\\ --set\\ \\"name\\=Track\\ Name\\"\\ --set\\ \\"language\\=en\\"\\ --set\\ \\"flag-default\\=1\\"\\ --set\\ \\"flag-enabled\\=1\\"\\ --set\\ \\"flag-forced\\=1\\"');
+      done();
+    });
+
+  });
+
+  describe('#_generateMergeCommand', () => {
+    var mergeFixture;
+
+    beforeEach(() => {
+      mergeFixture = _.merge({}, this.movie);
+    });
+
+    it('should contain \' -D\' if no video tracks to mux', (done) => {
+      mergeFixture.tracks[0].isMuxed = false;
+      expect(MediaFile._generateMergeCommand(mergeFixture)).to.contain(' -D');
+      done();
+    });
+
+    it('should contain \' -A\' if no audio tracks to mux', (done) => {
+      mergeFixture.tracks[1].isMuxed = false;
+      expect(MediaFile._generateMergeCommand(mergeFixture)).to.contain(' -A');
+      done();
+    });
+
+    it('should contain \' -S\' if no subtitle tracks to mux', (done) => {
+      mergeFixture.tracks[2].isMuxed = false;
+      expect(MediaFile._generateMergeCommand(mergeFixture)).to.contain(' -S');
+      done();
+    });
+
+    it('should contain \' -d track.number\' if one video track to mux', (done) => {
+      expect(MediaFile._generateMergeCommand(mergeFixture)).to.contain(` -d ${mergeFixture.tracks[0].number - 1}`);
+      done();
+    });
+
+    it('should contain \' -a track.number\' if one audio track to mux', (done) => {
+      expect(MediaFile._generateMergeCommand(mergeFixture)).to.contain(` -a ${mergeFixture.tracks[1].number - 1}`);
+      done();
+    });
+
+    it('should contain \' -s track.number\' if one subtitles track to mux', (done) => {
+      expect(MediaFile._generateMergeCommand(mergeFixture)).to.contain(` -s ${mergeFixture.tracks[2].number - 1}`);
+      done();
+    });
+
+    it('should contain \' -M\' to remove attachments', (done) => {
+      expect(MediaFile._generateMergeCommand(mergeFixture)).to.contain(' -M');
+      done();
+    });
+
+    it('should reorder tracks by newNumber', (done) => {
+      mergeFixture.tracks[1].newNumber = 3;
+      mergeFixture.tracks[2].newNumber = 2;
+
+      expect(MediaFile._generateMergeCommand(mergeFixture)).to.contain(' --track-order 0:0,0:2,0:1');
+      done();
+    });
+
+    it('should output to temporary file', (done) => {
+      mergeFixture.filename = '/test/directory/filename.mkv';
+
+      expect(MediaFile._generateMergeCommand(mergeFixture))
+        .to.startWith('mkvmerge --output "/test/directory/filename.rmbtmp"');
+      done();
+    });
+
+    it('should set title', (done) => {
+      mergeFixture.title = 'Test Title';
+
+      expect(MediaFile._generateMergeCommand(mergeFixture))
+        .to.contain('--title "Test Title"');
       done();
     });
 
