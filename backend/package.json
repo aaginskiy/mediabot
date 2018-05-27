@@ -27,7 +27,8 @@
     "start": "nodemon src/",
     "mocha": "NODE_ENV=TEST mocha test/bootstrap.js test/**/*.test.js --watch",
     "check-coverage": "nyc check-coverage --lines 95 --functions 95 --branches 95",
-    "coverage": "nyc report --reporter=text-lcov | coveralls"
+    "coverage": "nyc report --reporter=text-lcov | coveralls",
+    "coverage-html": "NODE_ENV=TEST nyc --reporter=html mocha test/bootstrap.js test/**/*.test.js --exit"
   },
   "dependencies": {
     "@feathersjs/configuration": "^1.0.2",

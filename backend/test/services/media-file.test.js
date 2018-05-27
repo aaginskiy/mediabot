@@ -280,7 +280,7 @@ describe('\'Media File\' service', () => {
       MediaFile.get(this.badFileId).should.be.rejectedWith('Bad File'));
   });
 
-  describe.skip('#patch', () => {
+  describe('#patch', () => {
     before((done) => {
       this.data = {
         title: 'Movie Title',
@@ -296,7 +296,7 @@ describe('\'Media File\' service', () => {
         ],
       };
 
-      this.dataCommand = MediaFile._generateInfoCommand(this.data);
+      this.dataCommand = MediaFile.generateInfoCommand(this.data);
 
       this.execStub
         .withArgs(`mkvpropedit -v bad_filename.mkv ${this.dataCommand}`)
@@ -332,9 +332,8 @@ describe('\'Media File\' service', () => {
       ]));
 
     it('should call mkvpropedit with the right command', () =>
-      MediaFile.patch(this.goodFileId, this.data).then(() => {
-        expect(this.execStub).calledWithMatch('mkvpropedit');
-      }));
+      MediaFile.patch(this.goodFileId, this.data).then(() =>
+        expect(this.execStub).calledWithMatch('mkvpropedit')));
   });
 
   describe.skip('#update', () => {
@@ -345,7 +344,7 @@ describe('\'Media File\' service', () => {
     it('should not add mux job to queue when mux is not required');
   });
 
-  describe.skip('#_generateInfoCommand', () => {
+  describe('#generateInfoCommand', () => {
     let data;
 
     before((done) => {
@@ -366,17 +365,17 @@ describe('\'Media File\' service', () => {
     });
 
     it('should set the media title', (done) => {
-      expect(MediaFile._generateInfoCommand(data)).to.contain('--edit info --set "title=Test Movie"');
+      expect(MediaFile.generateInfoCommand(data)).to.contain('--edit info --set "title=Test Movie"');
       done();
     });
 
     it('should delete track parameters when they are empty', (done) => {
-      expect(MediaFile._generateInfoCommand(data)).to.contain('--edit track:1 --delete name --delete language --delete flag-default --delete flag-enabled --delete flag-forced');
+      expect(MediaFile.generateInfoCommand(data)).to.contain('--edit track:1 --delete name --delete language --set "flag-default=0" --set "flag-enabled=0" --set "flag-forced=0"');
       done();
     });
 
     it('should not have track in command if no tracks present', (done) => {
-      MediaFile._generateInfoCommand({
+      MediaFile.generateInfoCommand({
         title: 'Test Movie',
         filename: 'test_movie.mkv',
       }).should.not.contain('--edit track');
@@ -391,12 +390,12 @@ describe('\'Media File\' service', () => {
       instanceData.tracks[0].isDefault = true;
       instanceData.tracks[0].isEnabled = true;
       instanceData.tracks[0].isForced = true;
-      expect(MediaFile._generateInfoCommand(instanceData)).to.contain('--edit track:1 --set "name=Track Name" --set "language=en" --set "flag-default=1" --set "flag-enabled=1" --set "flag-forced=1"');
+      expect(MediaFile.generateInfoCommand(instanceData)).to.contain('--edit track:1 --set "name=Track Name" --set "language=en" --set "flag-default=1" --set "flag-enabled=1" --set "flag-forced=1"');
       done();
     });
   });
 
-  describe.skip('#_generateMergeCommand', () => {
+  describe('#generateMergeCommand', () => {
     let mergeFixture;
 
     beforeEach(() => {
@@ -404,51 +403,51 @@ describe('\'Media File\' service', () => {
     });
 
     it('should be an array', (done) => {
-      expect(MediaFile._generateMergeCommand(mergeFixture)).to.an('Array');
+      expect(MediaFile.generateMergeCommand(mergeFixture)).to.an('Array');
       done();
     });
 
     it('should contain \' -D\' if no video tracks to mux', (done) => {
       mergeFixture.tracks[0].isMuxed = false;
-      expect(MediaFile._generateMergeCommand(mergeFixture)).to.include.something.that.eql('-D');
+      expect(MediaFile.generateMergeCommand(mergeFixture)).to.include.something.that.eql('-D');
       done();
     });
 
     it('should contain \' -A\' if no audio tracks to mux', (done) => {
       mergeFixture.tracks[1].isMuxed = false;
-      expect(MediaFile._generateMergeCommand(mergeFixture)).to.include.something.that.eql('-A');
+      expect(MediaFile.generateMergeCommand(mergeFixture)).to.include.something.that.eql('-A');
       done();
     });
 
     it('should contain \' -S\' if no subtitle tracks to mux', (done) => {
       mergeFixture.tracks[2].isMuxed = false;
-      expect(MediaFile._generateMergeCommand(mergeFixture)).to.include.something.that.eql('-S');
+      expect(MediaFile.generateMergeCommand(mergeFixture)).to.include.something.that.eql('-S');
       done();
     });
 
     it('should contain \' -d track.number\' if one video track to mux', (done) => {
-      expect(MediaFile._generateMergeCommand(mergeFixture))
+      expect(MediaFile.generateMergeCommand(mergeFixture))
         .to.include.something.that.eql('-d')
-        .and.to.include.something.that.eql(`${mergeFixture.tracks[0].number - 1}`);
+        .and.to.include.something.that.eql(`${mergeFixture.tracks[0].number}`);
       done();
     });
 
     it('should contain \' -a track.number\' if one audio track to mux', (done) => {
-      expect(MediaFile._generateMergeCommand(mergeFixture))
+      expect(MediaFile.generateMergeCommand(mergeFixture))
         .to.include.something.that.eql('-a')
-        .and.to.include.something.that.eql(`${mergeFixture.tracks[1].number - 1}`);
+        .and.to.include.something.that.eql(`${mergeFixture.tracks[1].number}`);
       done();
     });
 
     it('should contain \' -s track.number\' if one subtitles track to mux', (done) => {
-      expect(MediaFile._generateMergeCommand(mergeFixture))
+      expect(MediaFile.generateMergeCommand(mergeFixture))
         .to.include.something.that.eql('-s')
-        .and.to.include.something.that.eql(`${mergeFixture.tracks[2].number - 1}`);
+        .and.to.include.something.that.eql(`${mergeFixture.tracks[2].number}`);
       done();
     });
 
     it('should contain \' -M\' to remove attachments', (done) => {
-      expect(MediaFile._generateMergeCommand(mergeFixture)).to.include.something.that.eql('-M');
+      expect(MediaFile.generateMergeCommand(mergeFixture)).to.include.something.that.eql('-M');
       done();
     });
 
@@ -456,7 +455,7 @@ describe('\'Media File\' service', () => {
       mergeFixture.tracks[1].newNumber = 3;
       mergeFixture.tracks[2].newNumber = 2;
 
-      expect(MediaFile._generateMergeCommand(mergeFixture))
+      expect(MediaFile.generateMergeCommand(mergeFixture))
         .to.include.something.that.eql('--track-order')
         .and.to.include.something.that.eql('0:0,0:2,0:1');
       done();
@@ -465,20 +464,20 @@ describe('\'Media File\' service', () => {
     it('should output to temporary file', (done) => {
       mergeFixture.filename = '/test/directory/filename.mkv';
 
-      expect(MediaFile._generateMergeCommand(mergeFixture)).to.contain.an.item('"/test/directory/filename.rmdddbtmp"');
+      expect(MediaFile.generateMergeCommand(mergeFixture)).to.contain.an.item('"/test/directory/filename.rmdddbtmp"');
       done();
     });
 
     it('should set title', (done) => {
       mergeFixture.title = 'Test Title';
-      expect(MediaFile._generateMergeCommand(mergeFixture))
+      expect(MediaFile.generateMergeCommand(mergeFixture))
         .to.include.something.that.eql('--title')
         .and.to.include.something.that.eql('"Test Title"');
       done();
     });
   });
 
-  describe.skip('#_update', () => {
+  describe('#mux', () => {
     let mergeFixture;
 
     before((done) => {
@@ -492,14 +491,14 @@ describe('\'Media File\' service', () => {
     });
 
     // it('should call mkvmerge through process.spawn', (done) => {
-    //   MediaFile._update(1, mergeFixture);
+    //   MediaFile.mux(1, mergeFixture);
     //   expect(this.spawnStub).to.be.calledWithMatch('mkvmerge');
     //   done();
     // });
 
     context('when \'data\' message is emitted', () => {
-      it('should aggregate error messages', () => {
-        const event = MediaFile._update(1, mergeFixture);
+      it.skip('should aggregate error messages', () => {
+        const event = MediaFile.mux(1, mergeFixture);
         this.eventStub.stdout.emit('data', Buffer.from('Error: Error #1'));
         this.eventStub.stdout.emit('data', Buffer.from('Error: Error #2'));
         this.eventStub.emit('exit', 2);
@@ -509,9 +508,9 @@ describe('\'Media File\' service', () => {
         );
       });
 
-      it('should call progress function on progress', (done) => {
+      it.skip('should call progress function on progress', (done) => {
         const progressSpy = sinon.spy();
-        MediaFile._update(1, mergeFixture, progressSpy);
+        MediaFile.mux(1, mergeFixture, progressSpy);
 
         this.eventStub.stdout.emit('data', Buffer.from('Progress: 10%'));
         this.eventStub.stdout.emit('data', Buffer.from('Progress: 100%'));
@@ -522,8 +521,8 @@ describe('\'Media File\' service', () => {
       });
     });
 
-    it('should reject when \'error\' message is emitted', () => {
-      const event = MediaFile._update(1, mergeFixture);
+    it.skip('should reject when \'error\' message is emitted', () => {
+      const event = MediaFile.mux(1, mergeFixture);
       this.eventStub.emit('error', 'Error');
       return expect(event).to.eventually.be.rejectedWith(
         Error,
@@ -531,20 +530,20 @@ describe('\'Media File\' service', () => {
       );
     });
 
-    it('should resolve when \'exit\' message is received with code 0', () => {
-      const event = MediaFile._update(1, mergeFixture);
+    it.skip('should resolve when \'exit\' message is received with code 0', () => {
+      const event = MediaFile.mux(1, mergeFixture);
       this.eventStub.emit('exit', 0);
       return expect(event).to.eventually.be.fulfilled;
     });
 
-    it('should resolve when \'exit\' message is received with code 1', () => {
-      const event = MediaFile._update(1, mergeFixture);
+    it.skip('should resolve when \'exit\' message is received with code 1', () => {
+      const event = MediaFile.mux(1, mergeFixture);
       this.eventStub.emit('exit', 1);
       return expect(event).to.eventually.be.fulfilled;
     });
 
-    it('should resolve when \'exit\' message is received with code 2', () => {
-      const event = MediaFile._update(1, mergeFixture);
+    it.skip('should resolve when \'exit\' message is received with code 2', () => {
+      const event = MediaFile.mux(1, mergeFixture);
       this.eventStub.emit('exit', 2);
       return expect(event).to.eventually.be.rejectedWith(
         Error,

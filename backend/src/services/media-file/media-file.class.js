@@ -189,7 +189,7 @@ class Service {
     const exec = util.promisify(childProcess.exec);
 
     const movieData = await this.Movie.get(id);
-    return exec(`mkvpropedit -v ${shellwords.escape(movieData.filename)} ${this._generateInfoCommand(data)}`)
+    return exec(`mkvpropedit -v ${shellwords.escape(movieData.filename)} ${this.generateInfoCommand(data)}`)
       .catch(err => {
         this.app.error(err, { label: "MediaFileService"});
         return Promise.reject(err);
@@ -250,7 +250,7 @@ class Service {
       });
   }
 
-  _generateInfoCommand(data) {
+  generateInfoCommand(data) {
     let command = `--edit info --set "title=${data.title}"`;
 
     if (!data.tracks) return command;
@@ -263,7 +263,7 @@ class Service {
           if (field[1]) {
             command += ` --set \"${field[0]}=${field[1]}\"`;
           } else {
-            command += ` --delete \"${field[0]}\"`;
+            command += ` --delete ${field[0]}`;
           }
       });
 
@@ -277,7 +277,7 @@ class Service {
     return command;
   }
 
-  _generateMergeCommand(data) {
+  generateMergeCommand(data) {
     const base = path.basename(data.filename, '.mkv');
     const dir = path.dirname(data.filename);
 
@@ -346,7 +346,7 @@ class Service {
     this.app.silly({ id: id, data: data }, { label: "MediaFileService"});
 
     const muxEvent = new EventEmitter();
-    const command = this._generateMergeCommand(data);
+    const command = this.generateMergeCommand(data);
     const updateEvent = childProcess.spawn(command.shift(), command, {shell: true});
     updateEvent.stdout.on('data', (res) => {
       const re = /(.*): (.*)/;
