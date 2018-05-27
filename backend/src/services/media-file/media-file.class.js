@@ -8,7 +8,6 @@ const path = require('path');
 const EventEmitter = require('events');
 // const Promise = require("bluebird");
 const fs = require('fs');
-const rename = util.promisify(fs.rename);
 // const rename = Promise.promisify
 
 class Service {
@@ -362,6 +361,9 @@ class Service {
     this.app.silly('Called MediaFile#mux with:', { label: "MediaFileService"});
     this.app.silly({ id: id, data: data }, { label: "MediaFileService"});
 
+
+    const rename = util.promisify(fs.rename);
+
     const muxEvent = new EventEmitter();
     const command = this.generateMergeCommand(data);
     const updateEvent = childProcess.spawn(command.shift(), command, {shell: true});
@@ -369,7 +371,7 @@ class Service {
       const re = /(.*): (.*)/;
       const result = re.exec(res.toString());
       if (result && result[1] === 'Progress') {
-        muxEvent.emit('progress', result[2].slice(0,-1));
+        muxEvent.emit('progress', parseInt(result[2].slice(0,-1)));
       }
     });
 

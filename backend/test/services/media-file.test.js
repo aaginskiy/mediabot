@@ -494,6 +494,7 @@ describe('\'Media File\' service', () => {
 
     before((done) => {
       mergeFixture = _.merge({}, this.movie);
+      this.renameStub = sinon.stub(fs, 'rename').resolves('Rename worked!');
       done();
     });
 
@@ -502,11 +503,16 @@ describe('\'Media File\' service', () => {
       done();
     });
 
-    // it('should call mkvmerge through process.spawn', (done) => {
-    //   MediaFile.mux(1, mergeFixture);
-    //   expect(this.spawnStub).to.be.calledWithMatch('mkvmerge');
-    //   done();
-    // });
+    after(done => {
+      fs.rename.restore();
+      done();
+    });
+
+    it('should call mkvmerge through process.spawn', (done) => {
+      MediaFile.mux(1, mergeFixture);
+      expect(this.spawnStub).to.be.calledWithMatch('mkvmerge');
+      done();
+    });
 
     context('when \'data\' message is emitted', () => {
       it.skip('should aggregate error messages', () => {
@@ -520,15 +526,18 @@ describe('\'Media File\' service', () => {
         );
       });
 
-      it.skip('should call progress function on progress', (done) => {
+      it('should call progress function with integer percent on progress', (done) => {
         const progressSpy = sinon.spy();
-        MediaFile.mux(1, mergeFixture, progressSpy);
+        let muxEvent = MediaFile.mux(1, mergeFixture);
+
+        muxEvent.on('progress', progressSpy);
 
         this.eventStub.stdout.emit('data', Buffer.from('Progress: 10%'));
         this.eventStub.stdout.emit('data', Buffer.from('Progress: 100%'));
-        this.eventStub.emit('exit', 0);
 
         expect(progressSpy).to.be.calledTwice; // eslint-disable-line no-unused-expressions
+        expect(progressSpy.firstCall).to.be.calledWithExactly(10);
+        expect(progressSpy.secondCall).to.be.calledWithExactly(100);
         done();
       });
     });

@@ -9,6 +9,10 @@ const jobScheduler = require('./job-scheduler/job-scheduler.service.js');
 
 const autofixRules = require('./autofix-rules/autofix-rules.service.js');
 
+const scrape = require('./scrape/scrape.service.js');
+
+const webhook = require('./webhook/webhook.service.js');
+
 module.exports = function () {
   const app = this; // eslint-disable-line no-unused-vars
   app.configure(movies);
@@ -17,4 +21,6 @@ module.exports = function () {
   app.configure(image);
   app.configure(jobScheduler);
   app.configure(autofixRules);
+  app.configure(scrape);
+  app.configure(webhook);
 };
