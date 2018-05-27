@@ -1,5 +1,6 @@
 /* eslint-disable no-unused-vars */
 const path = require('path');
+const request = require('request-promise');
 class Service {
   constructor (options) {
     this.options = options || {};
@@ -10,44 +11,56 @@ class Service {
     this.ScrapeService = app.service('scrape');
   }
 
-  // async find (params) {
-  //   return [];
-  // }
-
-  // async get (id, params) {
-  //   return {
-  //     id, text: `A new message with ID: ${id}!`
-  //   };
-  // }
-
   async create (data, params) {
+    this.app.info(`Received webhook request - ${data.eventType}.`, { label: "WebhookService" });
+    this.app.debug(data, { label: "WebhookService" });
+
     // Check for radarr webhook
-    if (data.movie && data.movieFile && data.eventType === 'Download') {
-      let filename = path.parse(data.movieFile.path);
+    if (data.movie && data.eventType === 'Download') {
+      this.app.info(`Processing 'Download' webhook from Radarr.`, { label: "WebhookService" });
       let name = data.remoteMovie.title;
       let year = data.remoteMovie.year;
-
-      filename.ext = '.nfo';
-      delete filename.base;
-
-      filename = path.format(filename);
-
-      return this.ScrapeService.autoScrapeMovie(name, year, filename);
+      return this.getFilenameFromRadarr(data.movie.id)
+        .then(filename => this.ScrapeService.autoScrapeMovie(name, year, filename))
+        .then(() => data)
+        .catch((err) => {
+          this.app.error(`Processing 'Download' webhook from Radarr failed.`, { label: "WebhookService" });
+          this.app.error(err.message, { label: "WebhookService" });
+          this.app.debug(err.stack, { label: "WebhookService" });
+          throw err;
+        });
     }
-    return data;
+
+    return Promise.resolve(data);
   }
 
-  // async update (id, data, params) {
-  //   return data;
-  // }
+  getFilenameFromRadarr(id) {
+    this.app.debug(`Loading filename from Radarr by id: ${id}.`, { label: "WebhookService" });
+    let { hostname, apikey } = this.app.get('radarr');
+    let uri = `${hostname}/api/movie/${id}?apikey=${apikey}`
+    this.app.debug(uri, { label: "WebhookService" });
+    return request(uri)
+      .then((res) => {
+        let json;
 
-  // async patch (id, data, params) {
-  //   return data;
-  // }
+        this.app.debug(res, { label: "WebhookService" });
 
-  // async remove (id, params) {
-  //   return { id };
-  // }
+        try {
+          json = JSON.parse(res);
+        } catch (e) {
+          throw e;
+        }
+
+        let { dir, name } = path.parse(`${json.path}/${json.movieFile.relativePath}`);
+
+        return `${dir}/${name}.nfo`
+      })
+      .catch(err => {
+        this.app.error(err.message, { label: "WebhookService" });
+        this.app.debug(err.stack, { label: "WebhookService" });
+        throw err;
+      });
+  }
 }
 
 module.exports = function (options) {

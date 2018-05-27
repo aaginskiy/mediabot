@@ -66,7 +66,7 @@ class Service {
   }
 
   autoScrapeMovie(name, year, filename) {
-    this.app.info(`Auto scraping TMDB for movie ${name} (${year}).`, { label: "ScrapeService" });
+    this.app.debug(`Auto scraping movie with name: ${name}, year: ${year}, filename: ${filename}.`, { label: "ScrapeService" });
     const writeFile = util.promisify(fs.writeFile);
 
     return this.autoSearchMovie(name, year)
@@ -77,7 +77,6 @@ class Service {
         this.downloadImage(movie.poster, `${dir}/${name}-poster.jpg`);
         return writeFile(filename, this.buildXmlNfo(movie))
       })
-      .then(() => true)
       .catch(err => {
         this.app.error(err.message, { label: "ScrapeService" });
         this.app.debug(err.stack, { label: "ScrapeService" });
@@ -86,12 +85,17 @@ class Service {
   }
 
   downloadImage(uri, filename){
-    request
+    return request
       .get(`https://image.tmdb.org/t/p/original/${uri}`)
       .on('error', function(err) {
         this.app.error(err.message, { label: "ScrapeService" });
+        this.app.debug(err.stack, { label: "ScrapeService" });
       })
-      .pipe(fs.createWriteStream(filename));
+      .pipe(fs.createWriteStream(filename)
+        .on('error', err => {
+          this.app.error(err.message, { label: "ScrapeService" });
+          this.app.debug(err.stack, { label: "ScrapeService" });
+        }));
   };
 }
 

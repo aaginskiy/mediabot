@@ -6,7 +6,7 @@ const shellwords = require('shellwords');
 const _ = require('lodash');
 const path = require('path');
 const EventEmitter = require('events');
-// const Promise = require("bluebird");
+const Promise = require("bluebird");
 const fs = require('fs');
 // const rename = Promise.promisify
 
@@ -50,6 +50,7 @@ class Service {
 
     return this.parseMkvmergeInfo(filename)
       .then(async movie => {
+        this.app.debug('done parsing');
         const readdir = util.promisify(fs.readdir);
 
         let filePath = path.parse(filename);
@@ -122,12 +123,12 @@ class Service {
     this.app.debug(existingFilenames, { label: "MediaFileService"});
 
     return Promise.all([
-      Promise.all(createFilenames.map((filename) => this.loadFromFile(filename).then((movie) => {
+      Promise.map(createFilenames, (filename) => this.loadFromFile(filename).then((movie) => {
         return this.Movie.create(movie)
           .catch((err) => {
             this.app.error(err);
           });
-      }))),
+      }), {concurrency: 1}),
       Promise.all(existingMovies.map(async (movie) => {
         const mediaInfo = await this.loadFromFile(movie.filename);
 
@@ -224,11 +225,13 @@ class Service {
    * @returns Promise Promise to resolve metadata from file by mkvmerge.
    */
   parseMkvmergeInfo(filename) {
+    this.app.info(`Parsing movie metadata from file ${filename}.`, { label: "MediaFileService"});
     const _self = this;
     const escapedFilename = shellwords.escape(filename);
     const exec = util.promisify(childProcess.exec);
     return exec(`mkvmerge -J ${escapedFilename}`)
       .then((res) => {
+        this.app.debug('tttt');
         let mediaInfo = {};
         const stdout = JSON.parse(res.stdout);
 

@@ -67,7 +67,7 @@ describe('\'Scrape\' service', () => {
 </movie>`
 
       this.fileWriteStub = sinon.stub(fs, 'writeFile').yields(new Error('fs.writeFile File note found Stubbed Error.'));
-      this.fileWriteStub.withArgs('/good/filename.nfo', this.xmlMovieFixture).yields(null, 'success');
+      this.fileWriteStub.withArgs('/good/filename.nfo').yields(null, 'success');
 
       done();
     });
