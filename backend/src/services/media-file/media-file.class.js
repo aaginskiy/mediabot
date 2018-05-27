@@ -83,25 +83,25 @@ class Service {
     return Promise.resolve(data);
   }
 
-/**
- * MediaFile#patch
- * 
- * Updates mkv file properties with data.  If id is present, filename is extracted from that movie object.
- * 
- * @param {any} id 
- * @param {any} data 
- * @param {any} params 
- * @returns Promise
- * @memberof MediaFile
- */
-async patch (id, data, params) {
-  this.app.info('Called MediaFile#patch with:', id, data, params);
+  /**
+   * MediaFile#patch
+   * 
+   * Updates mkv file properties with data.  If id is present, filename is extracted from that movie object.
+   * 
+   * @param {any} id 
+   * @param {any} data 
+   * @param {any} params 
+   * @returns Promise
+   * @memberof MediaFile
+   */
+  async patch (id, data, params) {
+    this.app.info('Called MediaFile#patch with:', id, data, params);
 
-  const exec = util.promisify(child_process.exec);
+    const exec = util.promisify(child_process.exec);
 
-  var movieData = await this.Movie.get(id);
-  return exec(`mkvpropedit -v ${movieData.filename} ${this._generateInfoCommand(data)}`);
-}
+    var movieData = await this.Movie.get(id);
+    return exec(`mkvpropedit -v ${movieData.filename} ${this._generateInfoCommand(data)}`);
+  }
 
   _readMovieInfo (filename) {
     var _self = this;
@@ -234,6 +234,12 @@ async patch (id, data, params) {
 
     return commandObj.command;
   }
+
+  // _update () {
+  //   return new Promise((resolve, reject) => {
+  //     setTimeout(resolve, 10000);
+  //   })
+  // }
 }
 
 module.exports = function (options) {

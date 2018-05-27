@@ -1,6 +1,7 @@
 const app = require('../../src/app');
 const MediaFile = app.service('media-file');
 const _ = require('lodash');
+const MediaFileService = require('../../src/services/media-file/media-file.class');
 
 var sinon = require('sinon');
 var child_process = require('child_process');
@@ -71,8 +72,12 @@ describe('\'Media File\' service', () => {
   });
 
   it('registered the service', () => {
-
     expect(MediaFile, 'Registered the service').to.be.ok;
+  });
+
+  it('should set options to {} if no options provided', () => {
+    var service = new MediaFileService(null);
+    expect(service.options).to.be.eql({})
   });
 
   describe('#find', () => {
@@ -427,5 +432,11 @@ describe('\'Media File\' service', () => {
       done();
     });
 
+  });
+
+  describe.skip('#_update', () => {
+    it('should resolve', () => {
+      return expect(MediaFile._update()).to.eventually.be.fulfilled;
+    });
   });
 });
