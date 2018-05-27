@@ -3,3 +3,4 @@ node_js:
   - "node"
   - 8
 before_install: cd backend
+after_success: npm run coverage

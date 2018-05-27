@@ -16,7 +16,7 @@ describe('\'Media File\' service', () => {
   it('registered the service', () => {
     const service = app.service('media-file');
 
-    assert.ok(service, 'Registered the service');
+    expect(service, 'Registered the service').to.be.ok;
   });
 });
 
@@ -247,7 +247,7 @@ describe('#get', () => {
       .yields(null, newMovieFixture, null);
 
     execStub.withArgs('mkvmerge -i existing_movie_2.mkv -F json')
-      .yields(new Error('Stub Error'), newMovieFixture, null);
+      .yields(new Error('Stubbed Error.'), newMovieFixture, null);
 
     done();
   });
@@ -258,27 +258,23 @@ describe('#get', () => {
     done();
   });
 
-  afterEach((done) => {
-    // Clear database again to be on the same side.
-    MediaFile.Movie.remove(null).then(() => {
-      done();
-    });
-  });
+  afterEach(() => MediaFile.Movie.remove(null));
 
-  it('should return media info for the movie specified by ID', () => {
-    return MediaFile.Movie.create(dbMovieFixture[0])
-      .then(res => expect(MediaFile.get(res._id))
-        .to.eventually.have.property('title', 'Zathura: A Space Adventure (2005)'));
-  });
+  beforeEach(() => Promise.all([
+    MediaFile.Movie.create(dbMovieFixture[0]).then(res => this.goodFileId = res._id),
+    MediaFile.Movie.create(dbMovieFixture[1]).then(res => this.badFileId = res._id)
+  ]));
+
+  it('should return media info for the movie specified by ID', () => 
+    expect(MediaFile.get(this.goodFileId)).to.eventually.have.property('title', 'Zathura: A Space Adventure (2005)'));
 
   it('should return an error if movie does not exist', () => {
-    return MediaFile.Movie.create(dbMovieFixture[1])
-      .then(res => expect(MediaFile.get(res._id)).to.be.rejected);
+    return expect(MediaFile.get(this.badFileId)).to.be.rejectedWith('Stubbed Error');
   });
 });
 
 describe.skip('#patch', () => {
-  var data, dataCommand;
+  var data, dataCommand, execStub;
 
   before((done) => {
     data = {
@@ -296,6 +292,12 @@ describe.skip('#patch', () => {
     };
 
     dataCommand = MediaFile._generateInfoCommand(data);
+
+    execStub = sinon.stub(child_process, 'exec')
+      .withArgs('mkvmerge -i existing_movie_1.mkv -F json')
+      .yields(null, newMovieFixture, null);
+
+      
     done();
   });
 

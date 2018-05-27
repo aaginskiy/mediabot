@@ -23,7 +23,7 @@ module.exports = {
   },
 
   error: {
-    all: [ logger() ],
+    all: [ ],
     find: [],
     get: [],
     create: [],

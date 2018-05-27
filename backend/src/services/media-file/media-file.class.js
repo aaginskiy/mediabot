@@ -72,11 +72,8 @@ class Service {
   }
 
   get (id, params) {
-    var _self = this;
-    return _self.Movie.get(id)
-      .then(async data => {
-        return _self.Movie.patch(id, await _self._readMovieInfo(data.filename));
-      });
+    return this.Movie.get(id)
+      .then(async data => this.Movie.patch(id, await this._readMovieInfo(data.filename)));
   }
 
   update (id, data, params) {
@@ -85,6 +82,7 @@ class Service {
 
   async patch (id, data, params) {
     var _self = this;
+
 
     return Promise.resolve(data);
   }

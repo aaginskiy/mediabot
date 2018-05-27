@@ -22,10 +22,12 @@
     "yarn": ">= 0.18.0"
   },
   "scripts": {
-    "test": "NODE_ENV=TEST mocha test/bootstrap.js test/**/*.test.js",
+    "test": "NODE_ENV=TEST nyc mocha test/bootstrap.js test/**/*.test.js",
     "eslint": "eslint src/. test/. --config .eslintrc.json",
     "start": "nodemon src/",
-    "mocha": "NODE_ENV=TEST mocha test/bootstrap.js test/**/*.test.js --watch"
+    "mocha": "NODE_ENV=TEST mocha test/bootstrap.js test/**/*.test.js --watch",
+    "check-coverage": "nyc check-coverage --lines 95 --functions 95 --branches 95",
+    "coverage": "nyc report --reporter=text-lcov | coveralls"
   },
   "dependencies": {
     "body-parser": "^1.18.2",
