@@ -22,7 +22,7 @@
     "yarn": ">= 0.18.0"
   },
   "scripts": {
-    "test": "NODE_ENV=TEST nyc mocha test/bootstrap.js test/**/*.test.js",
+    "test": "NODE_ENV=TEST nyc mocha test/bootstrap.js test/**/*.test.js --exit",
     "eslint": "eslint src/. test/. --config .eslintrc.json",
     "start": "nodemon src/",
     "mocha": "NODE_ENV=TEST mocha test/bootstrap.js test/**/*.test.js --watch",
