@@ -1,3 +1,4 @@
+/* global describe it */
 const assert = require('assert')
 const rp = require('request-promise')
 // const app = require('../src/app')

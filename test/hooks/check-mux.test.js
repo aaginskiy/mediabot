@@ -1,4 +1,4 @@
-/* global describe it context beforeEach before after */
+/* global describe it context beforeEach before */
 const chai = require('chai')
 const expect = chai.expect
 

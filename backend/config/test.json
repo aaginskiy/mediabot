@@ -1,7 +1,0 @@
-{
-  "host": "localhost",
-  "port": 3434,
-  "public": "../public/",
-  "paginate": false,
-  "nedb": "../test/data"
-}

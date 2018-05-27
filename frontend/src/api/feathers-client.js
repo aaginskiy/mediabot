@@ -1,11 +1,11 @@
-import feathers from '@feathersjs/feathers';
-import socketio from '@feathersjs/socketio-client';
-import io from 'socket.io-client';
+import feathers from '@feathersjs/feathers'
+import socketio from '@feathersjs/socketio-client'
+import io from 'socket.io-client'
 
-const socket = io('http://localhost:3030', { transports: ['websocket'] });
+const socket = io('http://localhost:3030', { transports: ['websocket'] })
 
-const feathersClient = feathers();
+const feathersClient = feathers()
 
-feathersClient.configure(socketio(socket));
+feathersClient.configure(socketio(socket))
 
-export default feathersClient;
+export default feathersClient

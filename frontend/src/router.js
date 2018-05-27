@@ -1,31 +1,31 @@
-import Vue from 'vue';
-import Router from 'vue-router';
-import Movies from './views/Movies.vue';
-import Jobs from './views/Jobs.vue';
+import Vue from 'vue'
+import Router from 'vue-router'
+import Movies from './views/Movies.vue'
+import Jobs from './views/Jobs.vue'
 
-Vue.use(Router);
+Vue.use(Router)
 
 export default new Router({
   routes: [
     {
       path: '/movies',
-      component: Movies,
+      component: Movies
     },
     {
       path: '/movies/:id',
       name: 'movies',
       component: Movies,
-      props: true,
+      props: true
     },
     {
       path: '/jobs',
-      component: Jobs,
+      component: Jobs
     },
     {
       path: '/jobs/:id',
       name: 'jobs',
       component: Jobs,
-      props: true,
-    },
-  ],
-});
+      props: true
+    }
+  ]
+})

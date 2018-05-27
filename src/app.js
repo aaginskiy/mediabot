@@ -63,7 +63,7 @@ const socketio = require('@feathersjs/socketio')
 // const swagger = require('feathers-swagger');
 
 const handler = require('@feathersjs/express/errors')
-const notFound = require('feathers-errors/not-found')
+const notFound = require('@feathersjs/errors/not-found')
 
 const middleware = require('./middleware')
 const services = require('./services')
