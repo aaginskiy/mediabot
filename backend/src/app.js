@@ -30,6 +30,10 @@ if (fs.existsSync(configFile)) {
     'movieDirectory': '/default/movie/directory'
   };
 
+  if (fs.existsSync(configLocation)===false) {
+    fs.mkdirSync(configLocation,0775);
+  }
+
   fs.writeFile(configFile, JSON.stringify(defaultConfig), (err) => {
     if (err) throw err;
     console.log('Created new ruby-media-bot config file.');
