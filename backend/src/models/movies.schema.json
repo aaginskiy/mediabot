@@ -1,0 +1,13 @@
+{
+  "title": "Movie",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "filename": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false
+}

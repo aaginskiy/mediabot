@@ -1,6 +1,7 @@
 /* eslint-disable no-unused-vars */
 const util = require('util');
 var child_process = require('child_process');
+const glob = require('glob-promise');
 const shellwords = require('shellwords');
 const _ = require('lodash');
 
@@ -9,21 +10,82 @@ class Service {
     this.options = options || {};
   }
 
-  find (params) {
-    return Promise.resolve([]);
+  setup(app) {
+    this.app = app;
+    this.Movie = app.service('movies');
+  }
+
+  async find (params) {
+    var filenames, mediaInfo = [];
+    var _self = this;
+    if (!params.query.filenames) return Promise.resolve([]);
+    filenames = params.query.filenames;
+
+    _.each(filenames, async function (filename) {
+      try {
+        let info = await _self._readMovieInfo(filename);
+        if (info) mediaInfo.push(info);
+      } catch (error) {}
+    })
+
+    return Promise.resolve(mediaInfo);
+  }
+
+  async create (data, params) {
+    var _self = this;
+
+    // Load all media files in media directory if no filenames specified
+    if (!params.query.filenames || params.query.filenames.length == 0) {
+      params.query.filenames = await glob.promise('default/directory/**/*.mkv');
+    }
+
+    // Load all movies
+    var movies = await _self.Movie.find();
+    var existingMovies = movies.filter(movie => params.query.filenames.includes(movie.filename));
+    var existingFilenames = existingMovies.map(movie => movie.filename);
+
+    // Filter out existing movies
+    var createFilenames = _.difference(params.query.filenames, existingFilenames);
+    params.query.filenames = createFilenames;
+
+    // Create new movies
+    var createData = await _self.find(params);
+
+    // Create movies from new filenames
+    var created = await _self.Movie.create(createData);
+
+    // Patch movies from existing filenames
+    var patched = await Promise.all(existingMovies.map(async movie => {
+      let mediaInfo = await _self.find({ query: { filenames: [movie.filename] }});
+      if (!mediaInfo) return Promise.resolve({});
+      return _self.Movie.patch(movie._id, mediaInfo[0]);
+    }));
+
+    // TODO delete orphaned movie enteries
+    var deleted = [];
+
+    return Promise.resolve({
+      created: created,
+      patched: patched,
+      deleted: deleted
+    });
   }
 
   get (id, params) {
-    return Promise.resolve({
-      id, text: `A new message with ID: ${id}!`
-    });
+    var _self = this;
+    return _self.Movie.get(id)
+      .then(async data => {
+        return _self.Movie.patch(id, await _self._readMovieInfo(data.filename));
+      });
   }
 
   update (id, data, params) {
     return Promise.resolve(data);
   }
 
-  patch (id, data, params) {
+  async patch (id, data, params) {
+    var _self = this;
+
     return Promise.resolve(data);
   }
 
@@ -34,7 +96,6 @@ class Service {
     return exec(`mkvmerge -i ${escapedFilename} -F json`)
       .then(function(stdout, stderr) {
         var mediaInfo = new Object();
-
         if (stdout) {
           // Set general movie information
           mediaInfo.title = stdout.container.properties.title;
@@ -66,12 +127,33 @@ class Service {
         } else {
           return Promise.reject(new Error('[Ruby Media Bot] \'mkvmerge -i\' could not be parse to json.'));
         }
-
         return Promise.resolve(mediaInfo);
       })
-      .catch(function(error){
-        return Promise.reject(error);
+      .catch(error => Promise.reject(error));
+  }
+
+  _generateInfoCommand (data) {
+    var command = `--edit info --set "title=${data.title}"`;
+
+    if (!data.tracks) return command;
+
+    data.tracks.forEach(track => {
+      command += ` --edit track:${track.number}`;
+
+      [["name", track.name],
+      ["language", track.language],
+      ["flag-default", track.isDefault ? 1 : 0],
+      ["flag-enabled", track.isEnabled ? 1 : 0],
+      ["flag-forced", track.isForced ? 1 : 0]].forEach(field => {
+        if (!field[1]) {
+          command += ` --delete ${field[0]}`;
+        } else {
+          command += ` --set "${field[0]}=${field[1]}"`;
+        }
       });
+    });
+
+    return command;
   }
 }
 

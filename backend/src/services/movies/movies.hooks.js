@@ -1,27 +1,22 @@
-const { disallow, populate } = require('feathers-hooks-common');
+const { disallow, validateSchema } = require('feathers-hooks-common');
+const logger = require('../../hooks/logger');
 
-const movieTracksSchema = {
-  include: {
-    service: 'tracks',
-    nameAs: 'tracks',
-    parentField: '_id',
-    childField: 'movieId'
-  }
-};
+const Ajv = require('ajv');
+const createSchema = require('../../models/movies.schema.json');
 
 module.exports = {
   before: {
     all: [],
     find: [],
     get: [],
-    create: [disallow('external')],
+    create: [validateSchema(createSchema, Ajv)],
     update: [],
     patch: [],
     remove: [disallow('external')]
   },
 
   after: {
-    all: [populate({ schema: movieTracksSchema })],
+    all: [logger()],
     find: [],
     get: [],
     create: [],

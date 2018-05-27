@@ -4,9 +4,12 @@ const MediaFile = app.service('media-file');
 
 var sinon = require('sinon');
 var child_process = require('child_process');
-
+var glob = require('glob-promise');
 var chai = require('chai');
 var expect = chai.expect;
+
+chai.use(require('sinon-chai'));
+
 chai.use(require('chai-as-promised'));
 
 describe('\'Media File\' service', () => {
@@ -17,74 +20,301 @@ describe('\'Media File\' service', () => {
   });
 });
 
-describe.skip('#find', () => {
-  it('should return all media files in directory when arg is null', () => {
-    // sinon.stub(MediaFile, '_readMovieInfo');
-    // sinon.stub(glob, 'glob')
+describe('#find', () => {
+  var mediaArrayFixture;
+  var _readMovieInfoStub;
 
-    var mediaArrayFixture = require('../fixtures/triple-zathura.json');
-    var mediaArray = MediaFile.find(null);
+  before(function (done) {
+    sinon.stub(glob, 'promise').resolves(['filename1.mkv', 'filename2.mkv', 'filenam3.mkv']);
 
-    // MediaFile._readMovieInfo.restore();
-    // glob.glob.restore();
-    return expect(mediaArray).to.eventually.be.eql(mediaArrayFixture);
+    mediaArrayFixture = require('../fixtures/triple-zathura.json');
+    done();
   });
 
-  it('should return media info for specific file when arg is string', () => {
-    // sinon.stub(MediaFile, '_readMovieInfo');
-    // sinon.stub(glob, 'glob')
+  after(function (done){
+    glob.promise.restore();
+    done();
+  });
 
-    var mediaArrayFixture = require('../fixtures/triple-zathura.json');
-    var mediaArray = MediaFile.find('some/random/filename');
+  beforeEach((done) => {
+    _readMovieInfoStub = sinon.stub(MediaFile, '_readMovieInfo')
+      .onFirstCall().resolves(mediaArrayFixture[0])
+      .onSecondCall().resolves(mediaArrayFixture[1])
+      .onThirdCall().resolves(mediaArrayFixture[2])
+      .resolves(mediaArrayFixture[0]);
 
-    // MediaFile._readMovieInfo.restore();
-    // glob.glob.restore();
-    return expect(mediaArray).to.eventually.be.eql(mediaArrayFixture);
+    _readMovieInfoStub.withArgs('bad_filename.mkv').rejects('Error');
+    done();
+  });
+
+  afterEach((done) => {
+    MediaFile._readMovieInfo.restore();
+    done();
+  });
+
+  it('should return no media file info when no filenames is supplied', () => {
+    var params = {
+      query: {}
+    };
+
+    var mediaArray = MediaFile.find(params);
+    
+    return expect(mediaArray).to.eventually.be.eql([]);
   });
 
   it('should return media info for each file when arg is array', () => {
-    
+    var params = {
+      query: {
+        filenames: ['filename.mkv']
+      }
+    };
+
+    var mediaArray = MediaFile.find(params);
+
+    return expect(mediaArray).to.eventually.be.eql([mediaArrayFixture[0]]);
   });
 
-  it('should return null if no files are found', () => {
-    // sinon.stub(MediaFile, '_readMovieInfo');
-    // sinon.stub(glob, 'glob')
+  it('should not return movie if filename is not found', () => {
+    var params = {
+      query: {
+        filenames: ['filename.mkv', 'bad_filename.mkv', 'filename2.mkv']
+      }
+    };
 
-    var mediaArray = MediaFile.find('some/random/wrong/filename');
+    var mediaArray = MediaFile.find(params);
 
-    // MediaFile._readMovieInfo.restore();
-    // glob.glob.restore();
-    return expect(mediaArray).to.eventually.be.null;
+    return expect(mediaArray).to.eventually.be.eql([mediaArrayFixture[0], mediaArrayFixture[2]]);
+  });
+
+  it('should return [] if no files are found', () => {
+    var params = {
+      query: {
+        filenames: []
+      }
+    };
+
+    var mediaArray = MediaFile.find(params);
+
+    return expect(mediaArray).to.eventually.be.eql([]);
   });
 });
 
-describe.skip('#get', () => {
-  it('should return media info for the movie specified by ID', () => {
+describe('#create', () => {
+  var newMovieFixture, existingMovieFixture, dbMovieFixture;
+
+  before(function (done) {
+    // Set up fixtures
+    newMovieFixture = [{
+      title: 'New Movie #1',
+      filename: 'new_movie_1.mkv'
+    },
+    {
+      title: 'New Movie #2',
+      filename: 'new_movie_2.mkv'
+    }];
+
+    existingMovieFixture = [{
+      title: 'Modified Existing Movie #1',
+      filename: 'existing_movie_1.mkv'
+    },
+    {
+      title: 'Existing Movie #2',
+      filename: 'existing_movie_2.mkv'
+    }];
+
+    dbMovieFixture = [{
+      title: 'Modified Existing Movie #1',
+      filename: 'existing_movie_1.mkv'
+    },
+    {
+      title: 'Existing Movie #2',
+      filename: 'existing_movie_2.mkv'
+    }];
+
+    var movieInfoStub = sinon.stub(MediaFile, '_readMovieInfo')
+      .withArgs('new_movie_1.mkv')
+      .resolves(newMovieFixture[0]);
+
+    movieInfoStub.withArgs('new_movie_2.mkv')
+      .resolves(newMovieFixture[1]);
+
+    movieInfoStub.withArgs('existing_movie_1.mkv')
+      .resolves(existingMovieFixture[0]);
+
+    movieInfoStub.withArgs('existing_movie_2.mkv')
+      .resolves(existingMovieFixture[1]);
+
+    sinon.stub(glob, 'promise').resolves(['new_movie_1.mkv', 'new_movie_2.mkv']);
+      
+    done();
+  });
+
+  after((done) => {
+    MediaFile._readMovieInfo.restore();
+    glob.promise.restore();
+
+    done();
+  });
+
+  afterEach((done) => {
+    // Clear database again to be on the same side.
+    MediaFile.Movie.remove(null).then(() => {
+      done();
+    });
+  });
+
+  beforeEach((done) => {
+    // Set up existing movies
+    MediaFile.Movie.create(dbMovieFixture).then(() => {
+      done();
+    });
+  });
+
+  it('should reload all files from directory if no filenames provided', () => {
+    var params = {
+      query: {
+        filenames: []
+      }
+    };
+
+    return MediaFile.create(null, params).then(res => {
+      expect(res.created.length).to.eql(2);
+      expect(res.created[0].title).to.eql('New Movie #1');
+      expect(res.created[0].filename).to.eql('new_movie_1.mkv');
+    });
+  });
+
+  it('should create new movie if it does not exist', () => {
+    var params = {
+      query: {
+        filenames: ['new_movie_1.mkv']
+      }
+    };
+
+    return MediaFile.create(null, params).then(res => {
+      expect(res.created[0].title).to.eql('New Movie #1');
+      expect(res.created[0].filename).to.eql('new_movie_1.mkv');
+    });
+  });
+
+  it('should not create new movie if it exists', () => {
+    var params = {
+      query: {
+        filenames: ['existing_movie_2.mkv']
+      }
+    };
+
+    return MediaFile.create(null, params).then(res => {
+      expect(res.created).to.eql([]);
+    });
+  });
+
+  it('should patch movie if it exists', () => {
+    var params = {
+      query: {
+        filenames: ['existing_movie_1.mkv']
+      }
+    };
+
+    return MediaFile.create(null, params).then(res => {
+      expect(res.patched[0].title).to.eql('Modified Existing Movie #1');
+    });
+  });
+
+  it.skip('should delete movie if the file no longer exists when all movies are reloaded', () => {
     
+  });
+});
+
+describe('#get', () => {
+  var newMovieFixture, dbMovieFixture;
+
+  before(function (done) {
+    // Set up fixtures
+    dbMovieFixture = [{
+      title: 'Modified Existing Movie #1',
+      filename: 'existing_movie_1.mkv'
+    },
+    {
+      title: 'Existing Movie #2',
+      filename: 'existing_movie_2.mkv'
+    }];
+
+    newMovieFixture = require('../fixtures/zathura.json');
+
+    var execStub = sinon.stub(child_process, 'exec')
+      .withArgs('mkvmerge -i existing_movie_1.mkv -F json')
+      .yields(null, newMovieFixture, null);
+
+    execStub.withArgs('mkvmerge -i existing_movie_2.mkv -F json')
+      .yields(new Error('Stub Error'), newMovieFixture, null);
+
+    done();
+  });
+
+  after((done) => {
+    child_process.exec.restore();
+
+    done();
+  });
+
+  afterEach((done) => {
+    // Clear database again to be on the same side.
+    MediaFile.Movie.remove(null).then(() => {
+      done();
+    });
+  });
+
+  it('should return media info for the movie specified by ID', () => {
+    return MediaFile.Movie.create(dbMovieFixture[0])
+      .then(res => expect(MediaFile.get(res._id))
+        .to.eventually.have.property('title', 'Zathura: A Space Adventure (2005)'));
   });
 
   it('should return an error if movie does not exist', () => {
-    
+    return MediaFile.Movie.create(dbMovieFixture[1])
+      .then(res => expect(MediaFile.get(res._id)).to.be.rejected);
   });
 });
 
 describe.skip('#patch', () => {
-  it('should update the file media info with new metadata', () => {
-    
+  var data, dataCommand;
+
+  before((done) => {
+    data = {
+      title: 'Movie Title',
+      filename: 'test_movie.mkv',
+      tracks: [
+        {
+          name: 'Track Name',
+          language: 'en',
+          isDefault: true,
+          isEnabled: true,
+          isForced: true
+        }
+      ]
+    };
+
+    dataCommand = MediaFile._generateInfoCommand(data);
+    done();
+  });
+
+  it('should call mkvpropedit with the right command', () => {
+
   });
 });
 
 describe.skip('#update', () => {
   it('should update the file media info with new metadata', () => {
-    
+
   });
 
   it('should add mux job to queue when mux is required', () => {
-    
+
   });
 
   it('should not add mux job to queue when mux is not required', () => {
-    
+
   });
 });
 
@@ -131,7 +361,7 @@ describe('#_readMovieInfo()', function () {
         }
       ]
     };
-    
+
     this.fixture = {
       'attachments': [],
       'chapters': [
@@ -239,3 +469,48 @@ describe('#_readMovieInfo()', function () {
   });
 });
 
+describe('#_generateInfoCommand', () => {
+  var data;
+
+  before((done) => {
+    data = {
+      title: 'Test Movie',
+      filename: 'test_movie.mkv',
+      tracks: [
+        {
+          number: 1
+        },
+        {
+          number: 2
+        }
+      ]
+    };
+    
+    done();
+  });
+
+  it('should set the media title', (done) => {
+    expect(MediaFile._generateInfoCommand(data)).to.contain('--edit info --set "title=Test Movie"');
+    done();
+  });
+
+  it('should delete track parameters when they are empty', (done) => {
+    expect(MediaFile._generateInfoCommand(data))
+      .to.contain('--edit track:1 --delete name --delete language --delete flag-default --delete flag-enabled --delete flag-forced');
+    done();
+  });
+
+  it('should set each track parameter when not empty', (done) => {
+    var instanceData = data;
+
+    instanceData.tracks[0].name = "Track Name";
+    instanceData.tracks[0].language = "en";
+    instanceData.tracks[0].isDefault = true;
+    instanceData.tracks[0].isEnabled = true;
+    instanceData.tracks[0].isForced = true;
+    expect(MediaFile._generateInfoCommand(instanceData))
+      .to.contain('--edit track:1 --set "name=Track Name" --set "language=en" --set "flag-default=1" --set "flag-enabled=1" --set "flag-forced=1"')
+    done();
+  });
+
+});

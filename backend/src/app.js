@@ -13,6 +13,8 @@ const hooks = require('feathers-hooks');
 const rest = require('feathers-rest');
 const socketio = require('feathers-socketio');
 
+const swagger = require('feathers-swagger');
+
 const handler = require('feathers-errors/handler');
 const notFound = require('feathers-errors/not-found');
 
@@ -40,6 +42,15 @@ app.use('/', feathers.static(app.get('public')));
 app.configure(hooks());
 app.configure(rest());
 app.configure(socketio());
+
+app.configure(swagger({
+    docsPath: '/docs',
+    info: {
+      title: 'A test',
+      description: 'A description'
+    },
+    uiIndex: true
+  }));
 
 // Configure other middleware (see `middleware/index.js`)
 app.configure(middleware);

@@ -1,6 +1,7 @@
 --require chai
 --require sinon
 --require chai-as-promised
+--require sinon-chai
 --report spec
 --ui bdd
 --colors
