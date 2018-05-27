@@ -17,9 +17,5 @@ module.exports = function () {
   // Get our initialized service so that we can register hooks and filters
   const service = app.service('media-file');
 
-  service.on('created', (message) => {
-    console.log('wow', message);
-  });
-
   service.hooks(hooks);
 };

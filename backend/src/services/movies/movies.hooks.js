@@ -7,14 +7,16 @@ const ajv = new Ajv({ allErrors: true, $data: true});
 const createSchema = require('../../models/movies.schema.json');
 const checkMux = require('../../hooks/check-mux');
 
+const updateMediaFile = require('../../hooks/update-media-file');
+
 module.exports = {
   before: {
     all: [],
     find: [],
     get: [],
     create: [validateSchema(createSchema, ajv)],
-    update: [],
-    patch: [disallow()],
+    update: [updateMediaFile()],
+    patch: [disallow('external')],
     remove: [disallow('external')]
   },
 

@@ -10,9 +10,11 @@ module.exports = function () {
 
   const options = {
     name: 'movies',
+    id: 'id',
     Model,
     paginate
   };
+  
 
   // Initialize our service with any options it requires
   app.use('/movies', createService(options));

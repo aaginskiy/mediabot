@@ -1,10 +1,10 @@
 <template>
   <main class="columns is-gapless">
-    <div class="movie-list column is-one-third">
+    <div class="movie-list column is-one-quarter">
       <MovieList />
     </div>
     <div class="movie-content column">
-      <SingleMovie :id="id" v-if="id"/>
+      <SingleMovie :id="id" v-if="id" :key="$route.fullPath"/>
       <div v-else class="level">
         <p class="level-item has-text-centered">
           Please choose a movie on the left.

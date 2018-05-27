@@ -28,4 +28,9 @@ module.exports = function(app) {
     // Publish all service events to all authenticated users
     return app.channel('anonymous');
   });
+
+  app.on('updated', (data, hook) => { // eslint-disable-line no-unused-vars
+    // Publish all service events to all authenticated users
+    console.log(date, hook);
+  });
 };

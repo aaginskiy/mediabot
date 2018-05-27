@@ -6,11 +6,11 @@ Vue.use(Router);
 
 export default new Router({
   routes: [
-    {
-      path: '/',
-      name: 'home',
-      component: Movies,
-    },
+    // {
+    //   path: '/',
+    //   name: 'home',
+    //   component: Movies,
+    // },
     {
       path: '/movie',
       component: Movies,

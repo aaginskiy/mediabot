@@ -26,6 +26,17 @@ class Service {
       _self._readMovieInfo(filename).catch(error => null))).then(res => _.compact(res));
   }
 
+  /**
+   * MediaFile#create
+   *
+   * Loads all movies media directory. Existing movies are refreshed,
+   * new movies are added, and missing moves are removed.
+   *
+   * @param {any} id
+   * @param {any} params
+   * @returns Promise
+   * @memberof MediaFile
+   */
   async create(data, params) {
     this.app.info('Called MediaFile#create with:', data, params);
     const _self = this;
@@ -61,7 +72,7 @@ class Service {
       _self.Movie.create(createData),
       Promise.all(existingMovies.map(async (movie) => {
         const mediaInfo = await _self.find({ query: { filenames: [movie.filename] } });
-        return _self.Movie.update(movie._id, mediaInfo[0]);
+        return _self.Movie.patch(movie.id, mediaInfo[0]);
       })),
     ]).then(res => ({
       created: res[0],
@@ -96,7 +107,7 @@ class Service {
     const exec = util.promisify(childProcess.exec);
 
     const movieData = await this.Movie.get(id);
-    return exec(`mkvpropedit -v ${movieData.filename} ${this._generateInfoCommand(data)}`);
+    return exec(`mkvpropedit -v ${shellwords.escape(movieData.filename)} ${this._generateInfoCommand(data)}`);
   }
 
   _readMovieInfo(filename) {
@@ -155,15 +166,15 @@ class Service {
         ['flag-default', track.isDefault ? 1 : 0],
         ['flag-enabled', track.isEnabled ? 1 : 0],
         ['flag-forced', track.isForced ? 1 : 0]].forEach((field) => {
-        if (!field[1]) {
-          command += ` --delete ${field[0]}`;
-        } else {
-          command += ` --set "${field[0]}=${field[1]}"`;
-        }
+        // if (!field[1]) {
+          // command += ` --delete ${field[0]}`;
+        // } else {
+          command += ` --set \"${field[0]}=${field[1]}\"`;
+        // }
       });
     });
 
-    return shellwords.escape(command);
+    return command;
   }
 
   _generateMergeCommand(data) {

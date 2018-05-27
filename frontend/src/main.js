@@ -14,6 +14,9 @@ Vue.use(Buefy);
 new Vue({
   router,
   store,
+  data: {
+    movieFilter: '',
+  },
   vueLoading: new VueLoading({ useVuex: true, moduleName: 'loading-states' }),
   render: h => h(App),
 }).$mount('#app');
