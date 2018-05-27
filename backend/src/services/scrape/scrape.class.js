@@ -8,7 +8,7 @@ const tmdb = require('../../lib/tmdb')('9cc56c731a06623343d19ce2f7a3c982');
 xml2js = require('xml2js');
 class Service {
   constructor (options) {
-    this.options = options || {};
+    this.options = {};
   }
 
   setup(app) {

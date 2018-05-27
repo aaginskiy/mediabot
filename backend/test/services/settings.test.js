@@ -20,6 +20,7 @@ describe('\'Settings\' service', () => {
   it('registered the service', () => 
     expect(SettingsService, 'Registered the service')
       .to.be.ok);
+
   before(done => {
     const settingsJSON = JSON.stringify({
       movieDirectory: '/dev/test'

@@ -87,9 +87,17 @@ describe('\'Scrape\' service', () => {
         .get('/3/movie/550?api_key=9cc56c731a06623343d19ce2f7a3c982')
         .reply(200, movieResponse);
 
+      nock('https://api.themoviedb.org')
+        .get('/3/movie/12?api_key=9cc56c731a06623343d19ce2f7a3c982')
+        .reply(404);
+
       nock('https://api.themoviedb.org/3')
         .get('/search/movie?api_key=9cc56c731a06623343d19ce2f7a3c982&query=Fight%20Club&year=1999')
         .reply(200, searchResponse);
+
+      nock('https://api.themoviedb.org/3')
+        .get('/search/movie?api_key=9cc56c731a06623343d19ce2f7a3c982&query=Fight%20Club&year=2005')
+        .reply(404);
 
       done();
     });
@@ -102,6 +110,10 @@ describe('\'Scrape\' service', () => {
     it('should auto search for movie', () =>
       expect(Scraper.autoSearchMovie('Fight Club', 1999))
         .to.eventually.eq(550));
+
+    it('should return an error if auto search fails', () =>
+      expect(Scraper.autoSearchMovie('Fight Club', 2005))
+        .to.eventually.be.rejected);
 
     it('should set id to imdb_id', () =>
       expect(Scraper.scrapeTmdbMovie(550))
@@ -172,6 +184,10 @@ describe('\'Scrape\' service', () => {
     it.skip('should set movieset', () =>
       expect(Scraper.scrapeTmdbMovie(550))
         .to.eventually.have.property('movieset', 550));
+
+    it('should return an error if scrape fails', () =>
+      expect(Scraper.scrapeTmdbMovie(12))
+        .to.eventually.be.rejected);
 
     it('should build Kodi NFO', () =>
       expect(Scraper.buildXmlNfo(this.movieFixture))

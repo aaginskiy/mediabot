@@ -6,7 +6,7 @@ const { get, set } = require('lodash');
 
 class Service {
   constructor (options) {
-    this.options = options || {};
+    this.options = {};
   }
 
   setup(app) {
