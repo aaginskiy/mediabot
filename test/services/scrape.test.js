@@ -17,7 +17,7 @@ const fs = require('fs')
 const app = require('../../src/app')
 const Scraper = app.service('scrape')
 
-describe('\'Scrape\' service', () => {
+describe.skip('\'Scrape\' service', () => {
   it('registered the service', () =>
     expect(Scraper, 'Registered the service').to.be.ok)
 

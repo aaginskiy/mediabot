@@ -22,10 +22,10 @@
     "yarn": ">= 0.18.0"
   },
   "scripts": {
-    "test": "standard && NODE_ENV=TEST nyc mocha test/bootstrap.js test/**/*.test.js --exit",
+    "test": "standard && NODE_ENV=test nyc mocha test/bootstrap.js test/**/*.test.js --exit",
     "lint": "standard",
     "start": "nodemon src/",
-    "mocha": "NODE_ENV=TEST mocha test/bootstrap.js test/**/*.test.js --watch",
+    "mocha": "NODE_ENV=test mocha test/bootstrap.js test/**/*.test.js --watch",
     "check-coverage": "nyc check-coverage --lines 95 --functions 95 --branches 95",
     "coverage": "nyc report --reporter=text-lcov | coveralls",
     "coverage-html": "NODE_ENV=TEST nyc --reporter=html mocha test/bootstrap.js test/**/*.test.js --exit"
@@ -36,6 +36,7 @@
     "@feathersjs/express": "^1.1.2",
     "@feathersjs/feathers": "^3.1.0",
     "@feathersjs/socketio": "^3.1.0",
+    "@mediabot/tmdb": "aaginskiy/tmdb",
     "body-parser": "^1.18.2",
     "compression": "^1.7.1",
     "cors": "^2.8.4",
@@ -46,9 +47,7 @@
     "glob": "^7.1.2",
     "glob-promise": "^3.2.0",
     "helmet": "^3.9.0",
-    "libtmdb": "aaginskiy/libtmdb",
     "lodash": "^4.17.4",
-    "mediabot-gui": "file:../frontend",
     "minimist": "^1.2.0",
     "mock-fs": "^4.4.2",
     "moment": "^2.21.0",

@@ -4,7 +4,8 @@ const request = require('request')
 const util = require('util')
 const path = require('path')
 const fs = require('fs')
-const tmdb = require('libtmdb')('9cc56c731a06623343d19ce2f7a3c982')
+const TmdbScraper = require('@mediabot/tmdb')
+const tmdb = new TmdbScraper('9cc56c731a06623343d19ce2f7a3c982')
 const xml2js = require('xml2js')
 class Service {
   constructor (options) {

@@ -15,29 +15,29 @@ var configLocation
 if (argv['config']) {
   configLocation = path.join(__dirname, argv['config'])
 } else {
-  configLocation = path.join(__dirname, '../../config/')
+  configLocation = path.join(__dirname, '../config/')
+}
+
+if (!process.env.NODE_ENV) process.env.NODE_ENV = 'development'
+
+let dataLocation
+
+if (process.env.NODE_ENV.toLowerCase() === 'test') {
+  dataLocation = path.join(__dirname, './test/data/')
+} else {
+  dataLocation = path.join(configLocation, './data/')
 }
 
 app.set('configLocation', configLocation)
 
-const configFile = path.join(configLocation, './config.json')
+app.set('dataLocation', dataLocation)
 
-if (fs.existsSync(configFile)) {
-  let settings = require(configFile)
-  Object.keys(settings).forEach(key => app.set(key, settings[key]))
-} else {
-  var defaultConfig = {
-    'movieDirectory': '/default/movie/directory'
-  }
+const configFile = path.join(configLocation, './default.json')
 
-  if (fs.existsSync(configLocation) === false) {
-    fs.mkdirSync(configLocation, '0775')
-  }
-
-  fs.writeFile(configFile, JSON.stringify(defaultConfig), (err) => {
-    if (err) throw err
-    console.log('Created new ruby-media-bot config file.')
-  })
+if (!fs.existsSync(configFile)) {
+  console.log(`No configuration found in ${configLocation}`)
+  console.log('Exiting...')
+  process.exit()
 }
 
 // Set global constants
@@ -137,8 +137,6 @@ const wlog = winston.createLogger({
     })
   ]
 })
-
-if (!process.env.NODE_ENV) process.env.NODE_ENV = 'development'
 
 if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV.toLowerCase() !== 'test') {
   wlog.add(new winston.transports.Console({
