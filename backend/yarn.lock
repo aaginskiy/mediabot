@@ -2,6 +2,60 @@
 # yarn lockfile v1
 
 
+"@feathersjs/commons@^1.2.0", "@feathersjs/commons@^1.4.0":
+  version "1.4.0"
+  resolved "https://registry.yarnpkg.com/@feathersjs/commons/-/commons-1.4.0.tgz#1407c79b690c755afd1087a70471feba6ab03fb0"
+
+"@feathersjs/configuration@^1.0.2":
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/@feathersjs/configuration/-/configuration-1.0.2.tgz#18da733e908fc39726233dbae867c6b0eb3920cd"
+  dependencies:
+    config "^1.27.0"
+    debug "^3.1.0"
+
+"@feathersjs/errors@^3.0.0", "@feathersjs/errors@^3.2.2":
+  version "3.2.2"
+  resolved "https://registry.yarnpkg.com/@feathersjs/errors/-/errors-3.2.2.tgz#2e59e2dbd4a077c0a71c2b795c4954446dc2179c"
+  dependencies:
+    debug "^3.1.0"
+
+"@feathersjs/express@^1.1.2":
+  version "1.1.2"
+  resolved "https://registry.yarnpkg.com/@feathersjs/express/-/express-1.1.2.tgz#37d830b1a448caabd2f767f833a4e6b60ea4ad7d"
+  dependencies:
+    "@feathersjs/commons" "^1.2.0"
+    "@feathersjs/errors" "^3.0.0"
+    debug "^3.1.0"
+    express "^4.16.2"
+    uberproto "^1.2.0"
+
+"@feathersjs/feathers@^3.1.0":
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/@feathersjs/feathers/-/feathers-3.1.0.tgz#920796bb629f8a5f8370036a62eaed519e555958"
+  dependencies:
+    "@feathersjs/commons" "^1.4.0"
+    debug "^3.1.0"
+    events "^1.1.1"
+    uberproto "^1.2.0"
+
+"@feathersjs/socketio@^3.1.0":
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/@feathersjs/socketio/-/socketio-3.1.0.tgz#4ee04a41bb27812f180a42b7ee29a5886cc62fd4"
+  dependencies:
+    "@feathersjs/transport-commons" "^3.2.0"
+    debug "^3.1.0"
+    socket.io "^2.0.3"
+
+"@feathersjs/transport-commons@^3.2.0":
+  version "3.2.0"
+  resolved "https://registry.yarnpkg.com/@feathersjs/transport-commons/-/transport-commons-3.2.0.tgz#81d202589213e9cb0477ce926f5eba690f6ef0ff"
+  dependencies:
+    "@feathersjs/commons" "^1.4.0"
+    "@feathersjs/errors" "^3.0.0"
+    debug "^3.1.0"
+    lodash "^4.17.4"
+    radix-router "^3.0.1"
+
 "@semantic-release/commit-analyzer@^3.0.1":
   version "3.0.7"
   resolved "https://registry.yarnpkg.com/@semantic-release/commit-analyzer/-/commit-analyzer-3.0.7.tgz#dc955444a6d3d2ae9b8e21f90c2c80c4e9142b2f"
@@ -46,16 +100,6 @@
     import-from "^2.1.0"
     lodash "^4.17.4"
     pify "^3.0.0"
-
-"@types/node@*":
-  version "8.0.46"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-8.0.46.tgz#6e1766b2d0ed06631d5b5f87bb8e72c8dbb6888e"
-
-"@types/socket.io@~1.4.27":
-  version "1.4.31"
-  resolved "https://registry.yarnpkg.com/@types/socket.io/-/socket.io-1.4.31.tgz#7a928518a35516fccd90431f94538ed3fddaba19"
-  dependencies:
-    "@types/node" "*"
 
 JSONStream@^1.0.4:
   version "1.3.1"
@@ -805,9 +849,9 @@ config-chain@~1.1.8:
     ini "^1.3.4"
     proto-list "~1.2.1"
 
-config@^1.21.0:
-  version "1.27.0"
-  resolved "https://registry.yarnpkg.com/config/-/config-1.27.0.tgz#3ab30d0080ff76f407c2f47ac1326adfd908af5f"
+config@^1.27.0:
+  version "1.29.4"
+  resolved "https://registry.yarnpkg.com/config/-/config-1.29.4.tgz#1b42752ed86b363fc4025960569fd74978862a92"
   dependencies:
     json5 "0.4.0"
     os-homedir "1.0.2"
@@ -916,9 +960,13 @@ core-js@^1.0.0:
   version "1.2.7"
   resolved "https://registry.yarnpkg.com/core-js/-/core-js-1.2.7.tgz#652294c14651db28fa93bd2d5ff2983a4f08c636"
 
-core-js@^2.0.0, core-js@^2.4.0:
+core-js@^2.0.0:
   version "2.5.1"
   resolved "https://registry.yarnpkg.com/core-js/-/core-js-2.5.1.tgz#ae6874dc66937789b80754ff5428df66819ca50b"
+
+core-js@^2.4.0:
+  version "2.5.3"
+  resolved "https://registry.yarnpkg.com/core-js/-/core-js-2.5.3.tgz#8acc38345824f16d8365b7c9b4259168e8ed603e"
 
 core-util-is@1.0.2, core-util-is@^1.0.1, core-util-is@~1.0.0:
   version "1.0.2"
@@ -1078,9 +1126,13 @@ delegates@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/delegates/-/delegates-1.0.0.tgz#84c6e159b81904fdca59a0ef44cd870d31250f9a"
 
-depd@1.1.1, depd@~1.1.1:
+depd@1.1.1:
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/depd/-/depd-1.1.1.tgz#5783b4e1c459f06fa5ca27f991f3d06e7a310359"
+
+depd@~1.1.1:
+  version "1.1.2"
+  resolved "https://registry.yarnpkg.com/depd/-/depd-1.1.2.tgz#9bcd52e14c097763e749b274c4346ed2e560b5a9"
 
 destroy@~1.0.4:
   version "1.0.4"
@@ -1161,8 +1213,8 @@ enabled@1.0.x:
     env-variable "0.0.x"
 
 encodeurl@~1.0.1:
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/encodeurl/-/encodeurl-1.0.1.tgz#79e3d58655346909fe6f0f45a5de68103b294d20"
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/encodeurl/-/encodeurl-1.0.2.tgz#ad3ff4c86ec2d029322f5a02c3a9a606c95b3f59"
 
 encoding@^0.1.11:
   version "0.1.12"
@@ -1586,7 +1638,7 @@ expect-ct@0.1.0:
   version "0.1.0"
   resolved "https://registry.yarnpkg.com/expect-ct/-/expect-ct-0.1.0.tgz#52735678de18530890d8d7b95f0ac63640958094"
 
-express@^4.16.1:
+express@^4.16.1, express@^4.16.2:
   version "4.16.2"
   resolved "https://registry.yarnpkg.com/express/-/express-4.16.2.tgz#e35c6dfe2d64b7dca0a5cd4f21781be3299e076c"
   dependencies:
@@ -1680,14 +1732,7 @@ feathers-commons@^0.8.0, feathers-commons@^0.8.1, feathers-commons@^0.8.6, feath
   version "0.8.7"
   resolved "https://registry.yarnpkg.com/feathers-commons/-/feathers-commons-0.8.7.tgz#11c6f25b537745a983e8d61552d7db8932d53782"
 
-feathers-configuration@^0.4.2:
-  version "0.4.2"
-  resolved "https://registry.yarnpkg.com/feathers-configuration/-/feathers-configuration-0.4.2.tgz#6171a558241bff105eeef279c5b4f76eb25d2c79"
-  dependencies:
-    config "^1.21.0"
-    debug "^3.0.1"
-
-feathers-errors@^2.0.1, feathers-errors@^2.2.0, feathers-errors@^2.4.0, feathers-errors@^2.5.0, feathers-errors@^2.9.2:
+feathers-errors@^2.0.1, feathers-errors@^2.4.0, feathers-errors@^2.5.0:
   version "2.9.2"
   resolved "https://registry.yarnpkg.com/feathers-errors/-/feathers-errors-2.9.2.tgz#96ca0e5fe50cc56f0eccc90ce3fa5e1f8840828d"
   dependencies:
@@ -1719,7 +1764,7 @@ feathers-hooks@^1.5.0:
     feathers-hooks-common "^2.0.3"
     uberproto "^1.2.0"
 
-feathers-hooks@^2.0.1, feathers-hooks@^2.1.1:
+feathers-hooks@^2.0.1:
   version "2.1.1"
   resolved "https://registry.yarnpkg.com/feathers-hooks/-/feathers-hooks-2.1.1.tgz#b2fe6df79aabc23516f880169e53093f75667e88"
   dependencies:
@@ -1748,15 +1793,6 @@ feathers-query-filters@^2.0.0:
   dependencies:
     feathers-commons "^0.8.0"
 
-feathers-rest@^1.8.0:
-  version "1.8.0"
-  resolved "https://registry.yarnpkg.com/feathers-rest/-/feathers-rest-1.8.0.tgz#3c03f1ea56adec940a8f9823d87a3aafeb9742a9"
-  dependencies:
-    debug "^2.2.0"
-    feathers-commons "^0.8.0"
-    feathers-errors "^2.0.1"
-    qs "^6.4.0"
-
 feathers-seeder@^1.0.10:
   version "1.0.10"
   resolved "https://registry.yarnpkg.com/feathers-seeder/-/feathers-seeder-1.0.10.tgz#3ab641f8dc7327ccc2d12c416303069aea65df17"
@@ -1767,24 +1803,6 @@ feathers-seeder@^1.0.10:
     feathers-hooks "^1.5.0"
     rimraf "^2.5.2"
 
-feathers-socket-commons@^2.0.0:
-  version "2.4.0"
-  resolved "https://registry.yarnpkg.com/feathers-socket-commons/-/feathers-socket-commons-2.4.0.tgz#062efd57f9a8716644145b993a5f72709969f1e1"
-  dependencies:
-    debug "^2.2.0"
-    feathers-commons "^0.8.0"
-    feathers-errors "^2.2.0"
-
-feathers-socketio@^2.0.0:
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/feathers-socketio/-/feathers-socketio-2.0.0.tgz#ce62e33627deaad53279e4f9b67cdac0f2cf49de"
-  dependencies:
-    "@types/socket.io" "~1.4.27"
-    debug "^2.2.0"
-    feathers-socket-commons "^2.0.0"
-    socket.io "^2.0.1"
-    uberproto "^1.2.0"
-
 feathers-swagger@^0.5.0:
   version "0.5.0"
   resolved "https://registry.yarnpkg.com/feathers-swagger/-/feathers-swagger-0.5.0.tgz#19fc35c34eaa0e643725f2ecc454fb1b62edcec9"
@@ -1794,7 +1812,7 @@ feathers-swagger@^0.5.0:
     serve-static "^1.11.1"
     swagger-ui "^2.2.6"
 
-feathers@^2.0.0, feathers@^2.2.3:
+feathers@^2.0.0:
   version "2.2.3"
   resolved "https://registry.yarnpkg.com/feathers/-/feathers-2.2.3.tgz#1b5294da47b912b3bdd927e4d2aeca351f3c3eeb"
   dependencies:
@@ -3689,7 +3707,7 @@ q@^1.4.1:
   version "1.5.1"
   resolved "https://registry.yarnpkg.com/q/-/q-1.5.1.tgz#7e32f75b41381291d04611f1bf14109ac00651d7"
 
-qs@6.5.1, qs@^6.4.0, qs@~6.5.1:
+qs@6.5.1, qs@~6.5.1:
   version "6.5.1"
   resolved "https://registry.yarnpkg.com/qs/-/qs-6.5.1.tgz#349cdf6eef89ec45c12d7d5eb3fc0c870343a6d8"
 
@@ -3700,6 +3718,10 @@ qs@~6.2.0:
 qs@~6.3.0:
   version "6.3.2"
   resolved "https://registry.yarnpkg.com/qs/-/qs-6.3.2.tgz#e75bd5f6e268122a2a0e0bda630b2550c166502c"
+
+radix-router@^3.0.1:
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/radix-router/-/radix-router-3.0.1.tgz#5522c829f7100e60c58fd1acf8803e0b2b312d97"
 
 ramda@^0.24.1:
   version "0.24.1"
@@ -3808,8 +3830,8 @@ referrer-policy@1.1.0:
   resolved "https://registry.yarnpkg.com/referrer-policy/-/referrer-policy-1.1.0.tgz#35774eb735bf50fb6c078e83334b472350207d79"
 
 regenerator-runtime@^0.11.0:
-  version "0.11.0"
-  resolved "https://registry.yarnpkg.com/regenerator-runtime/-/regenerator-runtime-0.11.0.tgz#7e54fe5b5ccd5d6624ea6255c3473be090b802e1"
+  version "0.11.1"
+  resolved "https://registry.yarnpkg.com/regenerator-runtime/-/regenerator-runtime-0.11.1.tgz#be05ad7f9bf7d22e056f9726cee5017fbf19e2e9"
 
 regex-cache@^0.4.2:
   version "0.4.4"
@@ -4199,7 +4221,7 @@ socket.io-parser@~3.1.1:
     has-binary2 "~1.0.2"
     isarray "2.0.1"
 
-socket.io@^2.0.1:
+socket.io@^2.0.3:
   version "2.0.4"
   resolved "https://registry.yarnpkg.com/socket.io/-/socket.io-2.0.4.tgz#c1a4590ceff87ecf13c72652f046f716b29e6014"
   dependencies:

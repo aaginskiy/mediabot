@@ -1,7 +1,6 @@
 // Initializes the `Media File` service on path `/media-file`
 const createService = require('./media-file.class.js');
 const hooks = require('./media-file.hooks');
-const filters = require('./media-file.filters');
 
 module.exports = function () {
   const app = this;
@@ -18,9 +17,9 @@ module.exports = function () {
   // Get our initialized service so that we can register hooks and filters
   const service = app.service('media-file');
 
-  service.hooks(hooks);
+  service.on('created', (message) => {
+    console.log('wow', message);
+  });
 
-  if (service.filter) {
-    service.filter(filters);
-  }
+  service.hooks(hooks);
 };

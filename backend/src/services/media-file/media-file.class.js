@@ -34,6 +34,10 @@ class Service {
     if (!params.query.filenames || params.query.filenames.length === 0) {
       const globString = `${this.app.get('movieDirectory')}/**/*.mkv`;
       this.app.debug(`MediaFile#create - loading filenames from ${globString}.`);
+      glob.promise(globString)
+        .then(function(contents) {
+          console.log(contents); //=> []
+        });
       params.query.filenames = await glob.promise(globString);
     }
 
