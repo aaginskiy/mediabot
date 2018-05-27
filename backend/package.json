@@ -22,10 +22,10 @@
     "yarn": ">= 0.18.0"
   },
   "scripts": {
-    "test": "npm run eslint && npm run mocha",
+    "test": "NODE_ENV=TEST mocha test/bootstrap.js test/**/*.test.js",
     "eslint": "eslint src/. test/. --config .eslintrc.json",
     "start": "nodemon src/",
-    "mocha": "NODE_ENV=TEST mocha test/bootstrap.js test/**/*.test.js"
+    "mocha": "NODE_ENV=TEST mocha test/bootstrap.js test/**/*.test.js --watch"
   },
   "dependencies": {
     "body-parser": "^1.18.2",
