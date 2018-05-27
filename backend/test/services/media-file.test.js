@@ -137,6 +137,18 @@ describe('\'Media File\' service', () => {
           .to.eventually.have.property(
             'fanart',
             'zathura1-fanart.jpg'));
+
+      it('should set \'videoTag\' to default video', () =>
+        expect(MediaFile.loadFromFile('/fake/system/zathura1/zathura1.mkv'))
+          .to.eventually.have.property(
+            'videoTag',
+            'MPEG-4p10/AVC/h.264'));
+
+      it('should set \'audioTag\' to default audio', () =>
+        expect(MediaFile.loadFromFile('/fake/system/zathura1/zathura1.mkv'))
+          .to.eventually.have.property(
+            'audioTag',
+            'DTS 6ch'));
     });
   });
 

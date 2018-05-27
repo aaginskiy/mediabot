@@ -9,16 +9,14 @@ const checkMux = require('../../hooks/check-mux');
 
 const updateMediaFile = require('../../hooks/update-media-file');
 
-const populateMediaTags = require('../../hooks/populate-media-tags');
-
 module.exports = {
   before: {
     all: [],
     find: [],
     get: [],
     create: [],
-    update: [populateMediaTags()],
-    patch: [disallow('external'), populateMediaTags()],
+    update: [],
+    patch: [disallow('external')],
     remove: [disallow('external')]
   },
 

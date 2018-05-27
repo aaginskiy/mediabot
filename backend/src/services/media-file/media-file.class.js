@@ -36,6 +36,17 @@ class Service {
     this.app.info('Loading requested movie from the disk.', { label: "MediaFileService" });
     this.app.debug(filename, { label: "MediaFileService" });
 
+    function legibleTag(tag) {
+      let legibleTag;
+
+      switch(tag) {
+        default:
+          legibleTag = tag;
+      }
+
+      return legibleTag;
+    }
+
     if (!filename) return Promise.resolve({});
 
     return this.parseMkvmergeInfo(filename)
@@ -51,6 +62,12 @@ class Service {
         if (movie.files.includes(filePath.name+"-poster.jpg")) movie.poster = filePath.name+"-poster.jpg";
 
         if (movie.files.includes(filePath.name+"-fanart.jpg")) movie.fanart = filePath.name+"-fanart.jpg";
+
+        let defaultVideoTracks = _.filter(movie.tracks, { type: 'video', isDefault: true });
+        let defaultAudioTracks = _.filter(movie.tracks, { type: 'audio', isDefault: true });
+
+        if (defaultVideoTracks[0]) movie.videoTag = legibleTag(defaultVideoTracks[0].codecType);
+        if (defaultAudioTracks[0]) movie.audioTag = `${legibleTag(defaultAudioTracks[0].codecType)} ${defaultAudioTracks[0].audioChannels}ch`;
 
         return movie;
       })
