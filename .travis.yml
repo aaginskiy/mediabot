@@ -1,16 +1,6 @@
-env:
-  global:
-    - CC_TEST_REPORTER_ID=255da54c4d8226414e4a5084593478b5089b7a6f270a0bbec610cbbdda1eed96
-    - MOVIEDB_API_KEY=9cc56c731a06623343d19ce2f7a3c982
 language: node_js
 node_js:
   - "node"
   - 9
   - 8
-before_script:
-  - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
-  - chmod +x ./cc-test-reporter
-  - ./cc-test-reporter before-build
-after_script:
-  - ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT
-after_success: npm run coverage
+script: yarn test:ci
