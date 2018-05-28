@@ -14,7 +14,7 @@ chai.should()
 
 const fs = require('fs')
 
-const app = require('../../src/app')
+const app = require('../../../src/api/app')
 const Scraper = app.service('scrape')
 
 describe.skip('\'Scrape\' service', () => {

@@ -2,7 +2,7 @@
 const chai = require('chai')
 const expect = chai.expect
 
-const checkMux = require('../../src/hooks/check-mux')
+const checkMux = require('../../../src/api/hooks/check-mux')
 
 // Initialize our hook with no options
 

@@ -15,7 +15,7 @@ var configLocation
 if (argv['config']) {
   configLocation = path.join(__dirname, argv['config'])
 } else {
-  configLocation = path.join(__dirname, '../config/')
+  configLocation = path.join(__dirname, '../../config/')
 }
 
 if (!process.env.NODE_ENV) process.env.NODE_ENV = 'development'

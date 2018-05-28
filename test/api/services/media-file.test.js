@@ -1,10 +1,10 @@
 /* global describe it context beforeEach afterEach before after */
 const chai = require('chai')
 const sinon = require('sinon')
-const app = require('../../src/app')
+const app = require('../../../src/api/app')
 
 const MediaFile = app.service('media-file')
-const MediaFileService = require('../../src/services/media-file/media-file.class')
+const MediaFileService = require('../../../src/api/services/media-file/media-file.class')
 
 const childProcess = require('child_process')
 const fs = require('fs')

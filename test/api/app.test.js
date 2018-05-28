@@ -5,7 +5,7 @@ const rp = require('request-promise')
 
 describe('Feathers application tests', () => {
   it('starts and shows the index page', () => {
-    return rp('http://localhost:3030').then(body =>
+    return rp('http://localhost:3434').then(body =>
       assert.ok(body.indexOf('<html>') !== -1)
     )
   })
@@ -13,7 +13,7 @@ describe('Feathers application tests', () => {
   describe('404', function () {
     it('shows a 404 HTML page', () => {
       return rp({
-        url: 'http://localhost:3030/path/to/nowhere',
+        url: 'http://localhost:3434/path/to/nowhere',
         headers: {
           'Accept': 'text/html'
         }
@@ -25,7 +25,7 @@ describe('Feathers application tests', () => {
 
     it('shows a 404 JSON error without stack trace', () => {
       return rp({
-        url: 'http://localhost:3030/path/to/nowhere',
+        url: 'http://localhost:3434/path/to/nowhere',
         json: true
       }).catch(res => {
         assert.equal(res.statusCode, 404)

@@ -1,9 +1,10 @@
 /* global describe it beforeEach */
+
 const assert = require('assert')
 const feathers = require('@feathersjs/feathers')
-const updateMediaFile = require('../../src/hooks/update-media-file')
+const runJob = require('../../../src/api/hooks/run-job')
 
-describe.skip('\'updateMediaFile\' hook', () => {
+describe.skip('\'runJob\' hook', () => {
   let app
 
   beforeEach(() => {
@@ -16,7 +17,7 @@ describe.skip('\'updateMediaFile\' hook', () => {
     })
 
     app.service('dummy').hooks({
-      before: updateMediaFile()
+      before: runJob()
     })
   })
 

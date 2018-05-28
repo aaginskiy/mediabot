@@ -1,10 +1,10 @@
 /* global describe it */
 const assert = require('assert')
-const app = require('../../src/app')
+const app = require('../../../src/api/app')
 
-describe('\'Movies\' service', () => {
+describe('\'image\' service', () => {
   it('registered the service', () => {
-    const service = app.service('movies')
+    const service = app.service('image')
 
     assert.ok(service, 'Registered the service')
   })

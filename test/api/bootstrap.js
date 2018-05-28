@@ -1,5 +1,5 @@
 /* global before after beforeEach afterEach */
-const app = require('../src/app')
+const app = require('../../src/api/app')
 const fs = require('fs')
 const path = require('path')
 

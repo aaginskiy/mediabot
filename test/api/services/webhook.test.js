@@ -11,7 +11,7 @@ chai.use(require('chai-as-promised'))
 const { expect } = chai
 chai.should()
 
-const app = require('../../src/app')
+const app = require('../../../src/api/app')
 const WebhookService = app.service('webhook')
 
 describe('\'Webhook\' service', () => {
