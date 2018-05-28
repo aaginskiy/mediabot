@@ -25,6 +25,7 @@
     "test": "standard --fix && NODE_ENV=test nyc mocha test/api/bootstrap.js test/api/**/*.test.js --exit",
     "test:watch": "NODE_ENV=test mocha test/api/bootstrap.js test/api/**/*.test.js --watch",
     "test:ci": "standard --fix && NODE_ENV=test nyc --reporter=text-lcov mocha test/api/bootstrap.js test/api/**/*.test.js --exit | coveralls",
+    "release": "standard-version",
     "lint": "standard --fix",
     "start": "nodemon src/api/"
   },
@@ -71,6 +72,7 @@
     "request-promise": "^4.2.2",
     "sinon": "^5.0.7",
     "sinon-chai": "^3.0.0",
-    "standard": "^11.0.1"
+    "standard": "^11.0.1",
+    "standard-version": "^4.4.0"
   }
 }
