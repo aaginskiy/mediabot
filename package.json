@@ -14,8 +14,8 @@
   "contributors": [],
   "bugs": {},
   "directories": {
-    "lib": "src",
-    "test": "test/"
+    "lib": "src/api/",
+    "test": "test/api/"
   },
   "engines": {
     "node": ">= 6.0.0",

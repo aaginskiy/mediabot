@@ -23,7 +23,7 @@ if (!process.env.NODE_ENV) process.env.NODE_ENV = 'development'
 let dataLocation
 
 if (process.env.NODE_ENV.toLowerCase() === 'test') {
-  dataLocation = path.join(__dirname, './test/data/')
+  dataLocation = path.join(__dirname, '../../test/data/')
 } else {
   dataLocation = path.join(configLocation, './data/')
 }
