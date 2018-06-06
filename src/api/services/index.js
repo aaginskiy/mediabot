@@ -7,8 +7,6 @@ const image = require('./image/image.service.js')
 
 const jobScheduler = require('./job-scheduler/job-scheduler.service.js')
 
-const scrape = require('./scrape/scrape.service.js')
-
 const webhook = require('./webhook/webhook.service.js')
 
 const settings = require('./settings/settings.service.js')
@@ -20,7 +18,6 @@ module.exports = function () {
   app.configure(jobs)
   app.configure(image)
   app.configure(jobScheduler)
-  app.configure(scrape)
   app.configure(webhook)
   app.configure(settings)
 }

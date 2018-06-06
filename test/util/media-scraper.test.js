@@ -14,14 +14,48 @@ chai.should()
 
 const fs = require('fs')
 
-const app = require('../../../src/api/app')
-const Scraper = app.service('scrape')
+var options = {
+  'movie': {
+    'include': {
+      'title': true,
+      'originalTitle': true,
+      'tagline': true,
+      'plot': true,
+      'rating': false,
+      'runtime': true,
+      'year': true,
+      'certification': true,
+      'cast': true,
+      'genres': true,
+      'artwork': true,
+      'trailer': true,
+      'movieset': true
+    },
+    'source': {
+      'title': 'tmdb',
+      'originalTitle': 'tmdb',
+      'tagline': 'tmdb',
+      'plot': 'tmdb',
+      'rating': 'tmdb',
+      'runtime': 'tmdb',
+      'year': 'tmdb',
+      'certification': 'tmdb',
+      'cast': 'tmdb',
+      'genres': 'tmdb',
+      'artwork': 'tmdb',
+      'trailer': 'tmdb',
+      'movieset': 'tmdb'
+    }
+  }
+}
 
-describe.skip('\'Scrape\' service', () => {
+var MediaScraper = require('../../src/util/media-scraper')(options)
+
+describe('\'Scrape\' service', () => {
   it('registered the service', () =>
-    expect(Scraper, 'Registered the service').to.be.ok)
+    expect(MediaScraper, 'Registered the service').to.be.ok)
 
-  context('when using TMDB scraper by id', () => {
+  context('when using TMDB MediaScraper by id', () => {
     before(done => {
       this.movieFixture = {
         id: 'tt0137523',
@@ -85,7 +119,8 @@ describe.skip('\'Scrape\' service', () => {
       const searchResponse = {'page': 1, 'total_results': 1, 'total_pages': 1, 'results': [{'vote_count': 12379, 'id': 550, 'video': false, 'vote_average': 8.3, 'title': 'Fight Club', 'popularity': 36.029108, 'poster_path': '/adw6Lq9FiC9zjYEpOqfq03ituwp.jpg', 'original_language': 'en', 'original_title': 'Fight Club', 'genre_ids': [18], 'backdrop_path': '/mMZRKb3NVo5ZeSPEIaNW9buLWQ0.jpg', 'adult': false, 'overview': 'A ticking-time-bomb insomniac and a slippery soap salesman channel primal male aggression into a shocking new form of therapy. Their concept catches on, with underground "fight clubs" forming in every town, until an eccentric gets in the way and ignites an out-of-control spiral toward oblivion.', 'release_date': '1999-10-15'}]}
 
       nock('https://api.themoviedb.org')
-        .get('/3/movie/550?api_key=9cc56c731a06623343d19ce2f7a3c982')
+        .get('/3/movie/550')
+        .query({api_key: '9cc56c731a06623343d19ce2f7a3c982'})
         .reply(200, movieResponse)
 
       nock('https://api.themoviedb.org')
@@ -93,11 +128,13 @@ describe.skip('\'Scrape\' service', () => {
         .reply(404)
 
       nock('https://api.themoviedb.org/3')
-        .get('/search/movie?api_key=9cc56c731a06623343d19ce2f7a3c982&query=Fight%20Club&year=1999')
+        .get('/search/movie')
+        .query({api_key: '9cc56c731a06623343d19ce2f7a3c982', query: 'Fight Club', year: '1999'})
         .reply(200, searchResponse)
 
       nock('https://api.themoviedb.org/3')
-        .get('/search/movie?api_key=9cc56c731a06623343d19ce2f7a3c982&query=Fight%20Club&year=2005')
+        .get('/search/movie')
+        .query({api_key: '9cc56c731a06623343d19ce2f7a3c982', query: 'Fight Club', year: '2005'})
         .reply(404)
 
       done()
@@ -109,97 +146,105 @@ describe.skip('\'Scrape\' service', () => {
     })
 
     it('should auto search for movie', () =>
-      expect(Scraper.autoSearchMovie('Fight Club', 1999))
+      expect(MediaScraper.autoSearchMovie('Fight Club', 1999))
         .to.eventually.eq(550))
 
     it('should return an error if auto search fails', () =>
-      expect(Scraper.autoSearchMovie('Fight Club', 2005))
+      expect(MediaScraper.autoSearchMovie('Fight Club', 2005))
         .to.eventually.be.rejected)
 
     it('should set id to imdb_id', () =>
-      expect(Scraper.scrapeTmdbMovie(550))
+      expect(MediaScraper.scrapeTmdbMovie(550))
         .to.eventually.have.property('id', 'tt0137523'))
 
     it('should set tmdb_id to id', () =>
-      expect(Scraper.scrapeTmdbMovie(550))
+      expect(MediaScraper.scrapeTmdbMovie(550))
         .to.eventually.have.property('tmdbid', 550))
 
     it('should set title', () =>
-      expect(Scraper.scrapeTmdbMovie(550))
+      expect(MediaScraper.scrapeTmdbMovie(550))
         .to.eventually.have.property('title', 'Fight Club'))
 
     it('should set original title', () =>
-      expect(Scraper.scrapeTmdbMovie(550))
+      expect(MediaScraper.scrapeTmdbMovie(550))
         .to.eventually.have.property('originaltitle', 'Fight Club'))
 
     it('should set tagline', () =>
-      expect(Scraper.scrapeTmdbMovie(550))
+      expect(MediaScraper.scrapeTmdbMovie(550))
         .to.eventually.have.property('tagline', 'Mischief. Mayhem. Soap.'))
 
     it('should set plot', () =>
-      expect(Scraper.scrapeTmdbMovie(550))
+      expect(MediaScraper.scrapeTmdbMovie(550))
         .to.eventually.have.property('plot', 'A ticking-time-bomb insomniac and a slippery soap salesman channel primal male aggression into a shocking new form of therapy. Their concept catches on, with underground "fight clubs" forming in every town, until an eccentric gets in the way and ignites an out-of-control spiral toward oblivion.'))
 
     it('should set rating', () =>
-      expect(Scraper.scrapeTmdbMovie(550))
+      expect(MediaScraper.scrapeTmdbMovie(550))
         .to.eventually.have.property('rating', 8.3))
 
     it('should set runtime', () =>
-      expect(Scraper.scrapeTmdbMovie(550))
+      expect(MediaScraper.scrapeTmdbMovie(550))
         .to.eventually.have.property('runtime', 139))
 
     it('should set year', () =>
-      expect(Scraper.scrapeTmdbMovie(550))
+      expect(MediaScraper.scrapeTmdbMovie(550))
         .to.eventually.have.property('year', '1999-10-15'))
 
     it.skip('should set certification', () =>
-      expect(Scraper.scrapeTmdbMovie(550))
+      expect(MediaScraper.scrapeTmdbMovie(550))
         .to.eventually.have.property('certification', 550))
 
     it.skip('should set cast', () =>
-      expect(Scraper.scrapeTmdbMovie(550))
+      expect(MediaScraper.scrapeTmdbMovie(550))
         .to.eventually.have.property('cast', 550))
 
     it('should set genres', () =>
-      expect(Scraper.scrapeTmdbMovie(550))
+      expect(MediaScraper.scrapeTmdbMovie(550))
         .to.eventually.have.property('genre')
         .that.is.an('Array')
         .with.lengthOf(1)
         .that.includes.members(['Drama']))
 
     it('should set studios', () =>
-      expect(Scraper.scrapeTmdbMovie(550))
+      expect(MediaScraper.scrapeTmdbMovie(550))
         .to.eventually.have.property('studio')
         .that.is.an('Array')
         .with.lengthOf(7)
         .that.includes.members(['Regency Enterprises', 'Fox 2000 Pictures']))
 
     it.skip('should set artwork', () =>
-      expect(Scraper.scrapeTmdbMovie(550))
+      expect(MediaScraper.scrapeTmdbMovie(550))
         .to.eventually.have.property('artwork', 550))
 
+    it('should set poster', () =>
+      expect(MediaScraper.scrapeTmdbMovie(550))
+        .to.eventually.have.property('poster', '/adw6Lq9FiC9zjYEpOqfq03ituwp.jpg'))
+
+    it('should set fanart', () =>
+      expect(MediaScraper.scrapeTmdbMovie(550))
+        .to.eventually.have.property('fanart', '/mMZRKb3NVo5ZeSPEIaNW9buLWQ0.jpg'))
+
     it.skip('should set trailer', () =>
-      expect(Scraper.scrapeTmdbMovie(550))
+      expect(MediaScraper.scrapeTmdbMovie(550))
         .to.eventually.have.property('trailer', 550))
 
     it.skip('should set movieset', () =>
-      expect(Scraper.scrapeTmdbMovie(550))
+      expect(MediaScraper.scrapeTmdbMovie(550))
         .to.eventually.have.property('movieset', 550))
 
     it('should return an error if scrape fails', () =>
-      expect(Scraper.scrapeTmdbMovie(12))
+      expect(MediaScraper.scrapeTmdbMovie(12))
         .to.eventually.be.rejected)
 
     it('should build Kodi NFO', () =>
-      expect(Scraper.buildXmlNfo(this.movieFixture))
+      expect(MediaScraper.buildXmlNfo(this.movieFixture))
         .to.eq(this.xmlMovieFixture))
 
     it('should reject autoscrape if steps fail', () =>
-      expect(Scraper.autoScrapeMovie('Fight Club', 1999, '/bad/filename.nfo'))
+      expect(MediaScraper.autoScrapeMovie('Fight Club', 1999, '/bad/filename.nfo'))
         .to.eventually.be.rejectedWith('fs.writeFile File note found Stubbed Error.'))
 
     it('should autoscrape if steps succeed', () =>
-      expect(Scraper.autoScrapeMovie('Fight Club', 1999, '/good/filename.nfo'))
+      expect(MediaScraper.autoScrapeMovie('Fight Club', 1999, '/good/filename.nfo'))
         .to.eventually.be.fulfilled)
   })
 })
