@@ -22,7 +22,7 @@
     "yarn": ">= 0.18.0"
   },
   "scripts": {
-    "test": "standard --fix && NODE_ENV=test nyc mocha test/api/bootstrap.js test/api/**/*.test.js --exit",
+    "test": "standard --fix && NODE_ENV=test nyc --reporter=text --reporter=html mocha test/api/bootstrap.js test/api/**/*.test.js --exit",
     "test:watch": "NODE_ENV=test mocha test/api/bootstrap.js test/api/**/*.test.js --watch",
     "test:ci": "standard --fix && NODE_ENV=test nyc --reporter=text-lcov mocha test/api/bootstrap.js test/api/**/*.test.js --exit | coveralls",
     "release": "standard-version",
