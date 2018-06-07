@@ -8,8 +8,8 @@ const TmdbScraper = require('@mediabot/tmdb')
 const tmdb = new TmdbScraper('9cc56c731a06623343d19ce2f7a3c982')
 const xml2js = require('xml2js')
 class MediaScraper {
-  constructor (options, logger) {
-    this.options = options || {}
+  constructor (options = {}, logger) {
+    this.options = options
     this.logger = logger || {
       info: () => null,
       debug: () => null,
@@ -71,8 +71,8 @@ class MediaScraper {
       .then(id => this.scrapeTmdbMovie(id))
       .then(movie => {
         let { dir, name } = path.parse(filename)
-        this.downloadImage(movie.fanart, `${dir}/${name}-fanart.jpg`)
-        this.downloadImage(movie.poster, `${dir}/${name}-poster.jpg`)
+        this.downloadImage(`https://image.tmdb.org/t/p/original${movie.fanart}`, `${dir}/${name}-fanart.jpg`)
+        this.downloadImage(`https://image.tmdb.org/t/p/original${movie.poster}`, `${dir}/${name}-poster.jpg`)
         return writeFile(filename, this.buildXmlNfo(movie))
       })
       .catch(err => {
@@ -84,8 +84,9 @@ class MediaScraper {
 
   downloadImage (uri, filename) {
     return request
-      .get(`https://image.tmdb.org/t/p/original/${uri}`)
-      .on('error', function (err) {
+      .get(uri)
+      .on('error', err => {
+        console.log(err)
         this.logger.error(err.message, { label: 'ScrapeService' })
         this.logger.debug(err.stack, { label: 'ScrapeService' })
       })
