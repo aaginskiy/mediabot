@@ -73,8 +73,10 @@ describe('\'Scrape\' service', () => {
         .get('/search/movie')
         .reply(404)
 
+      this.stream = new stream.PassThrough()
+
       this.createWriteStreamStub = sinon.stub(fs, 'createWriteStream').yields(new Error('fs.createWriteStream File note found Stubbed Error.'))
-      this.createWriteStreamStub.withArgs('/good/filename.nfo').returns(new stream.PassThrough())
+      this.createWriteStreamStub.withArgs('/good/filename.nfo').returns(this.stream)
 
       done()
     })
@@ -85,9 +87,21 @@ describe('\'Scrape\' service', () => {
       done()
     })
 
-    it('should write image to file if request is successful', async () => {
-      await MediaScraper.downloadImage('https://api.themoviedb.org/3/movie/550', '/good/filename.nfo')
-      return expect(fs.createWriteStream).to.be.calledWith('/good/filename.nfo')
+    it('should resolve if writing file is successful', () => {
+      setTimeout(() => this.stream.emit('close'), 10)
+      return expect(MediaScraper.downloadImage('https://api.themoviedb.org/3/movie/550', '/good/filename.nfo'))
+        .to.eventually.be.fulfilled
+    })
+
+    it('should reject if image stream has error', () => {
+      return expect(MediaScraper.downloadImage('https://api.themoviedb.org/3/search/movie', '/good/filename.nfo'))
+        .to.eventually.be.rejected
+    })
+
+    it('should reject if file write stream has error', () => {
+      setTimeout(() => this.stream.emit('error', new Error()), 10)
+      return expect(MediaScraper.downloadImage('https://api.themoviedb.org/3/movie/550', '/good/filename.nfo'))
+        .to.eventually.be.rejected
     })
   })
 
@@ -159,7 +173,8 @@ describe('\'Scrape\' service', () => {
         .reply(200, movieResponse)
 
       nock('https://api.themoviedb.org')
-        .get('/3/movie/12?api_key=9cc56c731a06623343d19ce2f7a3c982')
+        .get('/3/movie/12')
+        .query({api_key: '9cc56c731a06623343d19ce2f7a3c982'})
         .reply(404)
 
       nock('https://api.themoviedb.org/3')

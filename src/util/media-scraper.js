@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 const Promise = require('bluebird')
-const request = require('request')
+const got = require('got')
 const util = require('util')
 const path = require('path')
 const fs = require('fs')
@@ -63,7 +63,7 @@ class MediaScraper {
     return builder.buildObject(movie)
   }
 
-  autoScrapeMovie (name, year, filename) {
+  async autoScrapeMovie (name, year, filename) {
     this.logger.debug(`Auto scraping movie with name: ${name}, year: ${year}, filename: ${filename}.`, { label: 'ScrapeService' })
     const writeFile = util.promisify(fs.writeFile)
 
@@ -83,19 +83,25 @@ class MediaScraper {
   }
 
   downloadImage (uri, filename) {
-    return request
-      .get(uri)
-      .on('error', err => {
-        console.log(err)
-        this.logger.error(err.message, { label: 'ScrapeService' })
-        this.logger.debug(err.stack, { label: 'ScrapeService' })
-      })
-      .pipe(fs.createWriteStream(filename)
+    return new Promise((resolve, reject) => {
+      var file = fs.createWriteStream(filename)
+      got
+        .stream(uri)
         .on('error', err => {
           this.logger.error(err.message, { label: 'ScrapeService' })
           this.logger.debug(err.stack, { label: 'ScrapeService' })
-        }))
-  };
+          file.end()
+          reject(err)
+        })
+        .pipe(file
+          .on('error', err => {
+            this.logger.error(err.message, { label: 'ScrapeService' })
+            this.logger.debug(err.stack, { label: 'ScrapeService' })
+            reject(err)
+          })
+          .on('close', () => resolve()))
+    })
+  }
 }
 
 module.exports = function (options) {
