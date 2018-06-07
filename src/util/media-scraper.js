@@ -73,7 +73,7 @@ class MediaScraper {
         let { dir, name } = path.parse(filename)
         this.downloadImage(`https://image.tmdb.org/t/p/original${movie.fanart}`, `${dir}/${name}-fanart.jpg`)
         this.downloadImage(`https://image.tmdb.org/t/p/original${movie.poster}`, `${dir}/${name}-poster.jpg`)
-        return writeFile(filename, this.buildXmlNfo(movie))
+        return writeFile(`${dir}/${name}.nfo`, this.buildXmlNfo(movie))
       })
       .catch(err => {
         this.logger.error(err.message, { label: 'ScrapeService' })
