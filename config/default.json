@@ -4,36 +4,38 @@
   "public": "../public/",
   "paginate": false,
   "movieDirectory": "/dev/test",
-  "movieParser": {
-    "include": {
-      "title": true,
-      "originalTitle": true,
-      "tagline": true,
-      "plot": true,
-      "rating": false,
-      "runtime": true,
-      "year": true,
-      "certification": true,
-      "cast": true,
-      "genres": true,
-      "artwork":true,
-      "trailer":true,
-      "movieset":true
-    },
-    "source": {
-      "title": "tmdb",
-      "originalTitle":"tmdb",
-      "tagline":"tmdb",
-      "plot":"tmdb",
-      "rating":"tmdb",
-      "runtime":"tmdb",
-      "year":"tmdb",
-      "certification":"tmdb",
-      "cast":"tmdb",
-      "genres":"tmdb",
-      "artwork":"tmdb",
-      "trailer":"tmdb",
-      "movieset":"tmdb"
+  "mediaParser": {
+    "movie": {
+      "include": {
+        "title": true,
+        "originalTitle": true,
+        "tagline": true,
+        "plot": true,
+        "rating": false,
+        "runtime": true,
+        "year": true,
+        "certification": true,
+        "cast": true,
+        "genres": true,
+        "artwork":true,
+        "trailer":true,
+        "movieset":true
+      },
+      "source": {
+        "title": "tmdb",
+        "originalTitle":"tmdb",
+        "tagline":"tmdb",
+        "plot":"tmdb",
+        "rating":"tmdb",
+        "runtime":"tmdb",
+        "year":"tmdb",
+        "certification":"tmdb",
+        "cast":"tmdb",
+        "genres":"tmdb",
+        "artwork":"tmdb",
+        "trailer":"tmdb",
+        "movieset":"tmdb"
+      }
     }
   },
   "radarr": {
