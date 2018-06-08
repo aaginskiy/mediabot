@@ -43,7 +43,7 @@ class MediaScraper {
         movie.outline = res.overview
         movie.runtime = res.runtime
         movie.year = res.release_date
-        movie.rating = res.vote_average
+        // movie.rating = res.vote_average
         movie.genre = res.genres.map(genre => genre.name)
         movie.studio = res.production_companies.map(studio => studio.name)
         movie.fanart = res.backdrop_path
