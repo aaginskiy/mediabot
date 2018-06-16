@@ -1,5 +1,5 @@
 // Initializes the `Jobs` service on path `/jobs`
-const createService = require('./job.class')
+const createService = require('feathers-nedb')
 const createModel = require('../../models/job.model')
 const hooks = require('./job.hooks')
 
