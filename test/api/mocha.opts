@@ -7,3 +7,4 @@
 --report spec
 --ui bdd
 --colors
+--slow 5

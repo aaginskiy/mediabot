@@ -19,6 +19,11 @@ module.exports = function (options = {}) {
         context.data.service = 'movies'
         context.data.function = 'mux'
         break
+      case 'AutoScrapeMovie':
+        context.data.priority = 'high'
+        context.data.service = 'media-scraper'
+        context.data.function = 'autoScrapeMovie'
+        break
       default:
         throw new NotImplemented(`Command '${context.data.name}' is not implemented.`)
     }

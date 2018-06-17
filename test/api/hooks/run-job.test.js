@@ -12,15 +12,18 @@ chai.use(require('chai-as-promised'))
 const { expect } = chai
 
 const feathers = require('@feathersjs/feathers')
+const logger = require('feathers-logger')
 const runJob = require('../../../src/api/hooks/job/run-job')
+const MediaScraperClass = require('../../../src/util/media-scraper').MediaScraper
 
 describe('\'run-job\' hook', () => {
   let app
-  let stub
+  let stub, utilstub
   let spy
 
   beforeEach(() => {
     app = feathers()
+    app.configure(logger())
 
     app.use('/dummy', {
       async get (id) {
@@ -30,12 +33,18 @@ describe('\'run-job\' hook', () => {
 
     app.use('/job', {
       async patch (id, data, params) {
-        data.service = 'dummy'
-        data.function = 'get'
         if (id === 'completedJob') {
           data.args = ['completedArg']
+          data.service = 'dummy'
+          data.function = 'get'
+        } else if (id === 'MediaScraper') {
+          data.args = ['completedArg']
+          data.service = 'media-scraper'
+          data.function = 'autoScrapeMovie'
         } else {
           data.args = ['failedArg']
+          data.service = 'dummy'
+          data.function = 'get'
         }
         return data
       },
@@ -58,10 +67,16 @@ describe('\'run-job\' hook', () => {
     stub = sinon.stub(app.service('dummy'), 'get').resolves()
     stub.withArgs('failedArg').rejects('testreject')
 
+    utilstub = sinon.stub(MediaScraperClass.prototype, 'autoScrapeMovie').resolves()
+
     spy = sinon.spy(app.service('job'), 'patch')
   })
 
-  afterEach(() => stub.restore())
+  afterEach(() => {
+    stub.restore()
+    spy.restore()
+    utilstub.restore()
+  })
 
   it('should thow an error if method is not patch', () =>
     expect(app.service('job').get('test', {}))
@@ -80,4 +95,12 @@ describe('\'run-job\' hook', () => {
       { status: 'running' }
     ).then(() => expect(spy)
       .to.have.been.calledWith('completedJob', { args: ['completedArg'], function: 'get', service: 'dummy', progress: 100, status: 'completed' })))
+
+  it('should call MediaScraper utility if data.service is \'media-scraper\'', async () => {
+    await app.service('job').patch(
+      'MediaScraper',
+      { status: 'running' }
+    )
+    return expect(utilstub).to.have.been.calledOnce
+  })
 })

@@ -73,7 +73,7 @@ describe('\'parse-job-data\' hook', () => {
       done()
     })
 
-    it('should set priority to high', () =>
+    it('should set priority to normal', () =>
       expect(hook(this.mock).data)
         .to.have.property('priority', 'normal'))
 
@@ -84,5 +84,27 @@ describe('\'parse-job-data\' hook', () => {
     it('should set function to \'mux\'', () =>
       expect(hook(this.mock).data)
         .to.have.property('function', 'mux'))
+  })
+
+  describe('when command is \'AutoScrapeMovie\'', () => {
+    beforeEach((done) => {
+      this.mock.data = {
+        name: 'AutoScrapeMovie'
+      }
+
+      done()
+    })
+
+    it('should set priority to high', () =>
+      expect(hook(this.mock).data)
+        .to.have.property('priority', 'high'))
+
+    it('should set service to \'media-scraper\'', () =>
+      expect(hook(this.mock).data)
+        .to.have.property('service', 'media-scraper'))
+
+    it('should set function to \'autoScrapeMovie\'', () =>
+      expect(hook(this.mock).data)
+        .to.have.property('function', 'autoScrapeMovie'))
   })
 })
