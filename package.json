@@ -22,9 +22,9 @@
     "yarn": ">= 0.18.0"
   },
   "scripts": {
-    "test": "standard --fix && NODE_ENV=test nyc --reporter=text --reporter=html mocha test/api/bootstrap.js test/api/**/*.test.js --exit",
-    "test:watch": "NODE_ENV=test mocha test/api/bootstrap.js test/api/**/*.test.js --watch",
-    "test:ci": "standard --fix && NODE_ENV=test nyc --reporter=text-lcov mocha test/api/bootstrap.js test/api/**/*.test.js --exit | coveralls",
+    "test": "standard --fix && NODE_ENV=test nyc --reporter=text --reporter=html mocha test/api/bootstrap.js test/api/**/*.test.js test/util/**/*.test.js --exit",
+    "test:watch": "NODE_ENV=test mocha test/api/bootstrap.js test/api/**/*.test.js test/util/**/*.test.js --watch",
+    "test:ci": "standard --fix && NODE_ENV=test nyc --reporter=text-lcov mocha test/api/bootstrap.js test/api/**/*.test.js test/util/**/*.test.js --exit | coveralls",
     "release": "standard-version",
     "lint": "standard --fix",
     "start": "nodemon src/api/"
@@ -46,6 +46,7 @@
     "fluent-ffmpeg": "^2.1.2",
     "glob": "^7.1.2",
     "glob-promise": "^3.2.0",
+    "got": "^8.3.1",
     "helmet": "^3.9.0",
     "lodash": "^4.17.4",
     "minimist": "^1.2.0",
