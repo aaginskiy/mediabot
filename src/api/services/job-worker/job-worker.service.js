@@ -1,5 +1,5 @@
 // Initializes the `job-worker` service on path `/job-worker`
-const createService = require('feathers-memory')
+const createService = require('./job-worker.class')
 const hooks = require('./job-worker.hooks')
 
 module.exports = function (app) {

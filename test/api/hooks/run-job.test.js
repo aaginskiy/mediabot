@@ -1,6 +1,6 @@
-/* global describe it beforeEach */
+/* global describe it beforeEach afterEach */
 const chai = require('chai')
-// const sinon = require('sinon')
+const sinon = require('sinon')
 
 chai.use(require('chai-things'))
 chai.use(require('chai-like'))
@@ -16,13 +16,28 @@ const runJob = require('../../../src/api/hooks/job/run-job')
 
 describe('\'run-job\' hook', () => {
   let app
+  let stub
+  let spy
 
   beforeEach(() => {
     app = feathers()
 
     app.use('/dummy', {
+      async get (id) {
+        return Promise.resolve(id)
+      }
+    })
+
+    app.use('/job', {
       async patch (id, data, params) {
-        return { id }
+        data.service = 'dummy'
+        data.function = 'get'
+        if (id === 'completedJob') {
+          data.args = ['completedArg']
+        } else {
+          data.args = ['failedArg']
+        }
+        return data
       },
 
       async get (id) {
@@ -30,20 +45,39 @@ describe('\'run-job\' hook', () => {
       }
     })
 
-    app.service('dummy').hooks({
-      after: runJob()
+    app.service('job').hooks({
+      after: [
+        (context) => {
+          if (context.data.status === 'running') context.params.runJob = true
+          return context
+        },
+        runJob()
+      ]
     })
+
+    stub = sinon.stub(app.service('dummy'), 'get').resolves()
+    stub.withArgs('failedArg').rejects('testreject')
+
+    spy = sinon.spy(app.service('job'), 'patch')
   })
 
+  afterEach(() => stub.restore())
+
   it('should thow an error if method is not patch', () =>
-    expect(app.service('dummy').get('test', {}))
+    expect(app.service('job').get('test', {}))
       .to.eventually.be.rejected)
 
-  it('should not run if data.status is not \'running\'')
+  it('should set status to failed if is not successful', () =>
+    app.service('job').patch(
+      'failedJob',
+      { status: 'running' }
+    ).then(() => expect(spy)
+      .to.have.calledWith('failedJob', { args: ['failedArg'], function: 'get', service: 'dummy', progress: 0, status: 'failed', error: 'testreject' })))
 
-  it('should throw an error ')
-
-  // it('should not run if query param \`status\` is not \'running\'', () =>
-  //   expect(app.service('dummy').get('test', {}, { status: 'queued' }))
-  //     .to.eventually)
+  it('should set status to completed if run is successful', () =>
+    app.service('job').patch(
+      'completedJob',
+      { status: 'running' }
+    ).then(() => expect(spy)
+      .to.have.been.calledWith('completedJob', { args: ['completedArg'], function: 'get', service: 'dummy', progress: 100, status: 'completed' })))
 })

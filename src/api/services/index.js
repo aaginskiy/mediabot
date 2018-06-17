@@ -17,8 +17,14 @@ module.exports = function () {
   const app = this
   app.configure(movies)
   app.configure(mediaFile)
-  app.configure(jobWorker)
   app.configure(job)
+  app.configure(jobWorker)
+  app.service('job-worker').create([
+    { status: 'idle' },
+    { status: 'idle' },
+    { status: 'idle' },
+    { status: 'idle' }
+  ])
   app.configure(image)
   app.configure(scrape)
   app.configure(webhook)

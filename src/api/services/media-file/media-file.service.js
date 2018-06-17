@@ -10,8 +10,7 @@ module.exports = function () {
     name: 'media-file',
     paginate
   }
-  console.log(createService)
-  console.log(createService(options))
+
   // Initialize our service with any options it requires
   app.use('/media-file', createService(options))
 

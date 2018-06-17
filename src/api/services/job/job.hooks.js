@@ -11,14 +11,14 @@ module.exports = {
     find: [],
     get: [],
     create: [
-      keep('name'),
+      keep('name', 'args'),
       parseJobData()
     ],
     update: [disallow()],
     patch: [
       disallow('external'),
       stashBefore(),
-      keep('status'),
+      keep('status', 'progress', 'error'),
       checkJobStatus()
     ],
     remove: []

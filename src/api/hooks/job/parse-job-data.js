@@ -6,6 +6,7 @@ module.exports = function (options = {}) {
     checkContext(context, 'before', ['create', 'patch'], 'parseJobData')
 
     context.data.status = 'queued'
+    context.data.progress = 0
 
     switch (context.data.name) {
       case 'RescanMovies':
