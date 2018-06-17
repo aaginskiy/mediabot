@@ -1,15 +1,14 @@
-
-// const runJob = require('../../hooks/run-job')
+const { disallow } = require('feathers-hooks-common')
 
 module.exports = {
   before: {
     all: [],
-    find: [],
-    get: [],
-    create: [],
-    update: [],
-    patch: [],
-    remove: []
+    find: [disallow('external')],
+    get: [disallow('external')],
+    create: [disallow('external')],
+    update: [disallow()],
+    patch: [disallow('external')],
+    remove: [disallow('external')]
   },
 
   after: {

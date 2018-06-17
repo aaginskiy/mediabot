@@ -18,7 +18,7 @@ class Service {
   setup (app) {
     this.app = app
     this.Movie = app.service('movies')
-    this.Job = app.service('jobs')
+    this.Job = app.service('job')
   }
 
   /**

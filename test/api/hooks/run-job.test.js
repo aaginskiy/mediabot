@@ -1,29 +1,83 @@
-/* global describe it beforeEach */
+/* global describe it beforeEach afterEach */
+const chai = require('chai')
+const sinon = require('sinon')
 
-const assert = require('assert')
+chai.use(require('chai-things'))
+chai.use(require('chai-like'))
+chai.use(require('chai-string'))
+chai.use(require('sinon-chai'))
+chai.use(require('chai-as-promised'))
+// chai.use(require('dirty-chai'));
+
+const { expect } = chai
+
 const feathers = require('@feathersjs/feathers')
-const runJob = require('../../../src/api/hooks/run-job')
+const runJob = require('../../../src/api/hooks/job/run-job')
 
-describe.skip('\'runJob\' hook', () => {
+describe('\'run-job\' hook', () => {
   let app
+  let stub
+  let spy
 
   beforeEach(() => {
     app = feathers()
 
     app.use('/dummy', {
       async get (id) {
+        return Promise.resolve(id)
+      }
+    })
+
+    app.use('/job', {
+      async patch (id, data, params) {
+        data.service = 'dummy'
+        data.function = 'get'
+        if (id === 'completedJob') {
+          data.args = ['completedArg']
+        } else {
+          data.args = ['failedArg']
+        }
+        return data
+      },
+
+      async get (id) {
         return { id }
       }
     })
 
-    app.service('dummy').hooks({
-      before: runJob()
+    app.service('job').hooks({
+      after: [
+        (context) => {
+          if (context.data.status === 'running') context.params.runJob = true
+          return context
+        },
+        runJob()
+      ]
     })
+
+    stub = sinon.stub(app.service('dummy'), 'get').resolves()
+    stub.withArgs('failedArg').rejects('testreject')
+
+    spy = sinon.spy(app.service('job'), 'patch')
   })
 
-  it('runs the hook', async () => {
-    const result = await app.service('dummy').get('test')
+  afterEach(() => stub.restore())
 
-    assert.deepEqual(result, { id: 'test' })
-  })
+  it('should thow an error if method is not patch', () =>
+    expect(app.service('job').get('test', {}))
+      .to.eventually.be.rejected)
+
+  it('should set status to failed if is not successful', () =>
+    app.service('job').patch(
+      'failedJob',
+      { status: 'running' }
+    ).then(() => expect(spy)
+      .to.have.calledWith('failedJob', { args: ['failedArg'], function: 'get', service: 'dummy', progress: 0, status: 'failed', error: 'testreject' })))
+
+  it('should set status to completed if run is successful', () =>
+    app.service('job').patch(
+      'completedJob',
+      { status: 'running' }
+    ).then(() => expect(spy)
+      .to.have.been.calledWith('completedJob', { args: ['completedArg'], function: 'get', service: 'dummy', progress: 100, status: 'completed' })))
 })
