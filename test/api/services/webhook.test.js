@@ -1,23 +1,14 @@
-/* global describe it beforeEach afterEach */
-const chai = require('chai')
+/* global describe it beforeEach afterEach expect */
 const nock = require('nock')
 
-chai.use(require('chai-things'))
-chai.use(require('chai-like'))
-chai.use(require('chai-string'))
-chai.use(require('sinon-chai'))
-chai.use(require('chai-as-promised'))
-
-const { expect } = chai
-chai.should()
-
 const app = require('../../../src/api/app')
+app.setup()
 const WebhookService = app.service('webhook')
 
 describe('\'Webhook\' service', () => {
-  it('registered the service', () =>
-    expect(WebhookService, 'Registered the service')
-      .to.be.ok)
+  it('registers the service', () =>
+    expect(WebhookService)
+      .toBeTruthy())
 
   describe('#getFilenameFromRadarr', () => {
     beforeEach(done => {
@@ -49,6 +40,6 @@ describe('\'Webhook\' service', () => {
 
     it('should return correct filename', () =>
       expect(WebhookService.getFilenameFromRadarr(2))
-        .to.eventually.eq('/fake/Movies/Fight Club (1999)/Fight Club (1999).Bluray-1080p.nfo'))
+        .resolves.toBe('/fake/Movies/Fight Club (1999)/Fight Club (1999).Bluray-1080p.nfo'))
   })
 })

@@ -20,7 +20,7 @@ describe.skip('\'updateMediaFile\' hook', () => {
     })
   })
 
-  it('runs the hook', async () => {
+  test('runs the hook', async () => {
     const result = await app.service('dummy').get('test')
 
     assert.deepEqual(result, { id: 'test' })

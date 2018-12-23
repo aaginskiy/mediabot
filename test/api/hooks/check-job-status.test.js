@@ -1,14 +1,4 @@
-/* global describe it beforeEach */
-const chai = require('chai')
-
-chai.use(require('chai-things'))
-chai.use(require('chai-like'))
-chai.use(require('chai-string'))
-chai.use(require('sinon-chai'))
-chai.use(require('chai-as-promised'))
-
-const { expect } = chai
-
+/* global describe it beforeEach expect */
 const feathers = require('@feathersjs/feathers')
 const { stashBefore } = require('feathers-hooks-common')
 const { Conflict } = require('@feathersjs/errors')
@@ -50,9 +40,9 @@ describe('\'check-job-status\' hook', () => {
 
   it('should throw Conflict error if job is already running', () =>
     expect(app.service('dummy').patch('badtest', {status: 'running'}))
-      .to.eventually.be.rejectedWith(Conflict))
+      .rejects.toThrow(Conflict))
 
   it('should resolve successfully if job is not already running', () =>
     expect(app.service('dummy').patch('goodtest', {status: 'running'}))
-      .to.eventually.be.fulfilled)
+      .resolves.toMatchObject({'status': 'running'}))
 })

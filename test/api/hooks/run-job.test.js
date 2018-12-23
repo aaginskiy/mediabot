@@ -1,24 +1,17 @@
-/* global describe it beforeEach afterEach */
-const chai = require('chai')
-const sinon = require('sinon')
-
-chai.use(require('chai-things'))
-chai.use(require('chai-like'))
-chai.use(require('chai-string'))
-chai.use(require('sinon-chai'))
-chai.use(require('chai-as-promised'))
-// chai.use(require('dirty-chai'));
-
-const { expect } = chai
+/* global describe it beforeEach afterEach jest expect */
+const path = require('path')
 
 const feathers = require('@feathersjs/feathers')
 const logger = require('feathers-logger')
 const runJob = require('../../../src/api/hooks/job/run-job')
 const MediaScraperClass = require('../../../src/util/media-scraper').MediaScraper
 
+const logHelper = require('../../logHelper')
+const logfile = path.join(__dirname, '../../logs/run-job.mocha.log')
+const wlog = logHelper.createLogger(logfile)
+
 describe('\'run-job\' hook', () => {
   let app
-  let stub, utilstub
   let spy
 
   beforeEach(() => {
@@ -64,43 +57,51 @@ describe('\'run-job\' hook', () => {
       ]
     })
 
-    stub = sinon.stub(app.service('dummy'), 'get').resolves()
-    stub.withArgs('failedArg').rejects('testreject')
+    jest.spyOn(app.service('dummy'), 'get').mockImplementation((id, data) => {
+      if (id === 'failedArg') {
+        return Promise.reject(new Error('testreject'))
+      } else {
+        return Promise.resolve('')
+      }
+    })
 
-    utilstub = sinon.stub(MediaScraperClass.prototype, 'autoScrapeMovie').resolves()
+    jest.spyOn(MediaScraperClass.prototype, 'autoScrapeMovie').mockResolvedValue('')
 
-    spy = sinon.spy(app.service('job'), 'patch')
+    jest.spyOn(app.service('job'), 'patch')
   })
 
   afterEach(() => {
-    stub.restore()
-    spy.restore()
-    utilstub.restore()
+    app.service('dummy').get.mockRestore()
+    app.service('job').patch.mockRestore()
+    MediaScraperClass.prototype.autoScrapeMovie.mockRestore()
   })
 
   it('should thow an error if method is not patch', () =>
     expect(app.service('job').get('test', {}))
-      .to.eventually.be.rejected)
+      .rejects.toThrow(''))
 
   it('should set status to failed if is not successful', () =>
     app.service('job').patch(
       'failedJob',
       { status: 'running' }
-    ).then(() => expect(spy)
-      .to.have.calledWith('failedJob', { args: ['failedArg'], function: 'get', service: 'dummy', progress: 0, status: 'failed', error: 'testreject' })))
+    ).then(() => expect(app.service('job').patch)
+      .toBeCalledWith('failedJob', { args: ['failedArg'], function: 'get', service: 'dummy', progress: 0, status: 'failed', error: 'Error: testreject' })))
 
   it('should set status to completed if run is successful', () =>
     app.service('job').patch(
       'completedJob',
       { status: 'running' }
-    ).then(() => expect(spy)
-      .to.have.been.calledWith('completedJob', { args: ['completedArg'], function: 'get', service: 'dummy', progress: 100, status: 'completed' })))
+    ).then(() => expect(app.service('job').patch)
+      .toBeCalledWith('completedJob', { args: ['completedArg'], function: 'get', service: 'dummy', progress: 100, status: 'completed' })))
 
-  it('should call MediaScraper utility if data.service is \'media-scraper\'', async () => {
-    await app.service('job').patch(
-      'MediaScraper',
-      { status: 'running' }
-    )
-    return expect(utilstub).to.have.been.calledOnce
-  })
+  it(
+    'should call MediaScraper utility if data.service is \'media-scraper\'',
+    async () => {
+      await app.service('job').patch(
+        'MediaScraper',
+        { status: 'running' }
+      )
+      return expect(MediaScraperClass.prototype.autoScrapeMovie).toBeCalledTimes(1)
+    }
+  )
 })

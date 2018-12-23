@@ -1,13 +1,4 @@
-/* global describe it beforeEach */
-const chai = require('chai')
-
-chai.use(require('chai-things'))
-chai.use(require('chai-like'))
-chai.use(require('chai-string'))
-chai.use(require('sinon-chai'))
-chai.use(require('chai-as-promised'))
-
-const { expect } = chai
+/* global describe it beforeEach expect */
 const { NotImplemented } = require('@feathersjs/errors')
 
 const parseJobData = require('../../../src/api/hooks/job/parse-job-data')
@@ -24,14 +15,17 @@ describe('\'parse-job-data\' hook', () => {
     done()
   })
 
-  it('should throw a NotImplemented error if command name is not valid', () => {
-    this.mock.data = {
-      name: 'InvalidCommand'
-    }
+  it(
+    'should throw a NotImplemented error if command name is not valid',
+    () => {
+      this.mock.data = {
+        name: 'InvalidCommand'
+      }
 
-    expect(() => hook(this.mock))
-      .to.throw(NotImplemented)
-  })
+      expect(() => hook(this.mock))
+        .toThrow(NotImplemented)
+    }
+  )
 
   it('should set job status', () => {
     this.mock.data = {
@@ -39,7 +33,7 @@ describe('\'parse-job-data\' hook', () => {
     }
 
     expect(hook(this.mock).data)
-      .to.have.property('status', 'queued')
+      .toHaveProperty('status', 'queued')
   })
 
   describe('when command is \'RescanMovies\'', () => {
@@ -53,15 +47,15 @@ describe('\'parse-job-data\' hook', () => {
 
     it('should set priority to high', () =>
       expect(hook(this.mock).data)
-        .to.have.property('priority', 'high'))
+        .toHaveProperty('priority', 'high'))
 
     it('should set service to \'movies\'', () =>
       expect(hook(this.mock).data)
-        .to.have.property('service', 'movies'))
+        .toHaveProperty('service', 'movies'))
 
     it('should set function to \'rescan\'', () =>
       expect(hook(this.mock).data)
-        .to.have.property('function', 'rescan'))
+        .toHaveProperty('function', 'rescan'))
   })
 
   describe('when command is \'MuxMovie\'', () => {
@@ -75,15 +69,15 @@ describe('\'parse-job-data\' hook', () => {
 
     it('should set priority to normal', () =>
       expect(hook(this.mock).data)
-        .to.have.property('priority', 'normal'))
+        .toHaveProperty('priority', 'normal'))
 
     it('should set service to \'movies\'', () =>
       expect(hook(this.mock).data)
-        .to.have.property('service', 'movies'))
+        .toHaveProperty('service', 'movies'))
 
     it('should set function to \'mux\'', () =>
       expect(hook(this.mock).data)
-        .to.have.property('function', 'mux'))
+        .toHaveProperty('function', 'mux'))
   })
 
   describe('when command is \'AutoScrapeMovie\'', () => {
@@ -97,14 +91,14 @@ describe('\'parse-job-data\' hook', () => {
 
     it('should set priority to high', () =>
       expect(hook(this.mock).data)
-        .to.have.property('priority', 'high'))
+        .toHaveProperty('priority', 'high'))
 
     it('should set service to \'media-scraper\'', () =>
       expect(hook(this.mock).data)
-        .to.have.property('service', 'media-scraper'))
+        .toHaveProperty('service', 'media-scraper'))
 
     it('should set function to \'autoScrapeMovie\'', () =>
       expect(hook(this.mock).data)
-        .to.have.property('function', 'autoScrapeMovie'))
+        .toHaveProperty('function', 'autoScrapeMovie'))
   })
 })

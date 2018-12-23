@@ -70,6 +70,8 @@ class Service {
     let settings = this.app.get('settings')
 
     set(settings, id, get(data, id))
+    console.log('patch' + id)
+    console.log('patch' + data)
 
     return this.update(id, settings, params)
   }
