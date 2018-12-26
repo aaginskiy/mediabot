@@ -12,9 +12,8 @@ describe('\'check-mux\' hook', () => {
       mock.type = 'after'
     })
 
-    it('should throw an error', (done) => {
+    it('should throw an error', () => {
       expect(hook.bind(null, mock)).toThrowError()
-      done()
     })
   })
 
@@ -26,10 +25,9 @@ describe('\'check-mux\' hook', () => {
     let badVerbTypes = ['find', 'get', 'remove', 'patch']
 
     badVerbTypes.forEach(method => {
-      it(`should throw an error when 'method' is '${method}'`, (done) => {
+      it(`should throw an error when 'method' is '${method}'`, () => {
         mock.method = method
         expect(hook.bind(null, mock)).toThrowError()
-        done()
       })
     })
 
@@ -45,14 +43,13 @@ describe('\'check-mux\' hook', () => {
           mock.data = {}
         })
 
-        it('should not throw an error', (done) => {
+        it('should not throw an error', () => {
           expect(hook.bind(null, mock)).not.toThrowError()
-          done()
         })
 
         it(
           'should set \'isMuxed\' = true if all tracks are muxed and are in order',
-          (done) => {
+          () => {
             mock.data.tracks = [{
               isMuxed: true,
               newNumber: 1,
@@ -68,11 +65,10 @@ describe('\'check-mux\' hook', () => {
             }]
 
             expect(hook(mock).data).toHaveProperty('isMuxed', true)
-            done()
           }
         )
 
-        it('should set \'isMuxed\' = false if any tracks are not muxed', (done) => {
+        it('should set \'isMuxed\' = false if any tracks are not muxed', () => {
           mock.data.tracks = [{
             isMuxed: true,
             newNumber: 1,
@@ -88,12 +84,11 @@ describe('\'check-mux\' hook', () => {
           }]
 
           expect(hook(mock).data).toHaveProperty('isMuxed', false)
-          done()
         })
 
         it(
           'should set \'isMuxed\' = false if any tracks are not in order',
-          (done) => {
+          () => {
             mock.data.tracks = [{
               isMuxed: true,
               newNumber: 1,
@@ -109,11 +104,10 @@ describe('\'check-mux\' hook', () => {
             }]
 
             expect(hook(mock).data).toHaveProperty('isMuxed', false)
-            done()
           }
         )
 
-        it('should renumber newNumber if some tracks are not muxed', (done) => {
+        it('should renumber newNumber if some tracks are not muxed', () => {
           mock.data.tracks = [{
             isMuxed: true,
             newNumber: 1,
@@ -131,13 +125,11 @@ describe('\'check-mux\' hook', () => {
           expect(hook(mock).data.tracks[0]).toHaveProperty('newNumber', 1)
           expect(hook(mock).data.tracks[1]).toHaveProperty('newNumber', 3)
           expect(hook(mock).data.tracks[2]).toHaveProperty('newNumber', 2)
-          done()
         })
 
-        it('should set \'isMuxed\' = true if no tracks are present', (done) => {
+        it('should set \'isMuxed\' = true if no tracks are present', () => {
           delete mock.data.tracks
           expect(hook(mock).data).toHaveProperty('isMuxed', true)
-          done()
         })
       })
     })

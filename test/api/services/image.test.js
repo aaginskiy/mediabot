@@ -1,6 +1,10 @@
 /* global describe it */
 const assert = require('assert')
-const app = require('../../../src/api/app')
+const feathers = require('@feathersjs/feathers')
+const createService = require('../../../src/api/services/image/image.service')
+let app = feathers()
+app.configure(createService)
+app.setup()
 
 describe('\'image\' service', () => {
   it('registered the service', () => {

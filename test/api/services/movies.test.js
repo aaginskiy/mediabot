@@ -1,11 +1,14 @@
-/* global describe it */
-const assert = require('assert')
-const app = require('../../../src/api/app')
+/* global describe it expect */
+const path = require('path')
+const feathers = require('@feathersjs/feathers')
+const createService = require('../../../src/api/services/movies/movies.service')
+
+const app = feathers()
+app.set('dataLocation', path.join(__dirname, '../../test/data/'))
+app.configure(createService)
 
 describe('\'Movies\' service', () => {
   it('registered the service', () => {
-    const service = app.service('movies')
-
-    assert.ok(service, 'Registered the service')
+    expect(app.service('movies')).toBeTruthy()
   })
 })
