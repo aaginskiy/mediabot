@@ -1,14 +1,9 @@
 /* global describe it beforeAll afterAll afterEach expect jest */
 const fs = require('fs')
-const path = require('path')
 
 const feathers = require('@feathersjs/feathers')
 const logger = require('feathers-logger')
 const settings = require('../../../src/api/services/settings/settings.service.js')
-
-const logHelper = require('../../logHelper')
-const logfile = path.join(__dirname, '../../logs/settings.mocha.log')
-const wlog = logHelper.createLogger(logfile)
 
 describe('\'Settings\' service', () => {
   it('registers the service', async () =>

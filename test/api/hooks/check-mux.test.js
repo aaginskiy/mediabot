@@ -1,5 +1,5 @@
-/* global describe it context beforeEach before */
-const checkMux = require('../../../src/api/hooks/check-mux');
+/* global describe it expect beforeEach beforeAll */
+const checkMux = require('../../../src/api/hooks/check-mux')
 
 // Initialize our hook with no options
 
@@ -12,7 +12,7 @@ describe('\'check-mux\' hook', () => {
       mock.type = 'after'
     })
 
-    test('should throw an error', (done) => {
+    it('should throw an error', (done) => {
       expect(hook.bind(null, mock)).toThrowError()
       done()
     })
@@ -26,7 +26,7 @@ describe('\'check-mux\' hook', () => {
     let badVerbTypes = ['find', 'get', 'remove', 'patch']
 
     badVerbTypes.forEach(method => {
-      test(`should throw an error when 'method' is '${method}'`, (done) => {
+      it(`should throw an error when 'method' is '${method}'`, (done) => {
         mock.method = method
         expect(hook.bind(null, mock)).toThrowError()
         done()
@@ -45,12 +45,12 @@ describe('\'check-mux\' hook', () => {
           mock.data = {}
         })
 
-        test('should not throw an error', (done) => {
+        it('should not throw an error', (done) => {
           expect(hook.bind(null, mock)).not.toThrowError()
           done()
         })
 
-        test(
+        it(
           'should set \'isMuxed\' = true if all tracks are muxed and are in order',
           (done) => {
             mock.data.tracks = [{
@@ -72,7 +72,7 @@ describe('\'check-mux\' hook', () => {
           }
         )
 
-        test('should set \'isMuxed\' = false if any tracks are not muxed', (done) => {
+        it('should set \'isMuxed\' = false if any tracks are not muxed', (done) => {
           mock.data.tracks = [{
             isMuxed: true,
             newNumber: 1,
@@ -91,7 +91,7 @@ describe('\'check-mux\' hook', () => {
           done()
         })
 
-        test(
+        it(
           'should set \'isMuxed\' = false if any tracks are not in order',
           (done) => {
             mock.data.tracks = [{
@@ -113,7 +113,7 @@ describe('\'check-mux\' hook', () => {
           }
         )
 
-        test('should renumber newNumber if some tracks are not muxed', (done) => {
+        it('should renumber newNumber if some tracks are not muxed', (done) => {
           mock.data.tracks = [{
             isMuxed: true,
             newNumber: 1,
@@ -134,7 +134,7 @@ describe('\'check-mux\' hook', () => {
           done()
         })
 
-        test('should set \'isMuxed\' = true if no tracks are present', (done) => {
+        it('should set \'isMuxed\' = true if no tracks are present', (done) => {
           delete mock.data.tracks
           expect(hook(mock).data).toHaveProperty('isMuxed', true)
           done()

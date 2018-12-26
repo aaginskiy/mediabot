@@ -1,7 +1,7 @@
 /* global describe it beforeEach expect */
 const { NotImplemented } = require('@feathersjs/errors')
 
-const parseJobData = require('../../../src/api/hooks/job/parse-job-data')
+const parseJobData = require('../../../src/api/hooks/jobs/parse-job-data')
 const hook = parseJobData()
 
 describe('\'parse-job-data\' hook', () => {
@@ -29,17 +29,17 @@ describe('\'parse-job-data\' hook', () => {
 
   it('should set job status', () => {
     this.mock.data = {
-      name: 'RescanMovies'
+      name: 'ScanMediaLibrary'
     }
 
     expect(hook(this.mock).data)
       .toHaveProperty('status', 'queued')
   })
 
-  describe('when command is \'RescanMovies\'', () => {
+  describe('when command is \'ScanMediaLibrary\'', () => {
     beforeEach((done) => {
       this.mock.data = {
-        name: 'RescanMovies'
+        name: 'ScanMediaLibrary'
       }
 
       done()
@@ -51,11 +51,11 @@ describe('\'parse-job-data\' hook', () => {
 
     it('should set service to \'movies\'', () =>
       expect(hook(this.mock).data)
-        .toHaveProperty('service', 'movies'))
+        .toHaveProperty('service', 'disk-scanner'))
 
     it('should set function to \'rescan\'', () =>
       expect(hook(this.mock).data)
-        .toHaveProperty('function', 'rescan'))
+        .toHaveProperty('function', 'scanMediaLibrary'))
   })
 
   describe('when command is \'MuxMovie\'', () => {
@@ -80,7 +80,7 @@ describe('\'parse-job-data\' hook', () => {
         .toHaveProperty('function', 'mux'))
   })
 
-  describe('when command is \'AutoScrapeMovie\'', () => {
+  describe('when command is \'RefreshAllMediainfo\'', () => {
     beforeEach((done) => {
       this.mock.data = {
         name: 'AutoScrapeMovie'

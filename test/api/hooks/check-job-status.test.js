@@ -3,7 +3,7 @@ const feathers = require('@feathersjs/feathers')
 const { stashBefore } = require('feathers-hooks-common')
 const { Conflict } = require('@feathersjs/errors')
 
-const checkJobStatus = require('../../../src/api/hooks/job/check-job-status')
+const checkJobStatus = require('../../../src/api/hooks/jobs/check-job-status')
 
 describe('\'check-job-status\' hook', () => {
   let app

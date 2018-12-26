@@ -1,4 +1,4 @@
-/* global describe it beforeEach afterEach beforeAll afterAll expect jest */
+/* global describe it beforeEach afterEach expect jest */
 const nock = require('nock')
 const stream = require('stream')
 

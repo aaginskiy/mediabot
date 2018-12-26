@@ -1,18 +1,11 @@
 /* global describe it beforeEach afterEach jest expect */
-const path = require('path')
-
 const feathers = require('@feathersjs/feathers')
 const logger = require('feathers-logger')
-const runJob = require('../../../src/api/hooks/job/run-job')
+const runJob = require('../../../src/api/hooks/jobs/run-job')
 const MediaScraperClass = require('../../../src/util/media-scraper').MediaScraper
-
-const logHelper = require('../../logHelper')
-const logfile = path.join(__dirname, '../../logs/run-job.mocha.log')
-const wlog = logHelper.createLogger(logfile)
 
 describe('\'run-job\' hook', () => {
   let app
-  let spy
 
   beforeEach(() => {
     app = feathers()
@@ -24,7 +17,7 @@ describe('\'run-job\' hook', () => {
       }
     })
 
-    app.use('/job', {
+    app.use('/jobs', {
       async patch (id, data, params) {
         if (id === 'completedJob') {
           data.args = ['completedArg']
@@ -47,7 +40,7 @@ describe('\'run-job\' hook', () => {
       }
     })
 
-    app.service('job').hooks({
+    app.service('jobs').hooks({
       after: [
         (context) => {
           if (context.data.status === 'running') context.params.runJob = true
@@ -67,37 +60,37 @@ describe('\'run-job\' hook', () => {
 
     jest.spyOn(MediaScraperClass.prototype, 'autoScrapeMovie').mockResolvedValue('')
 
-    jest.spyOn(app.service('job'), 'patch')
+    jest.spyOn(app.service('jobs'), 'patch')
   })
 
   afterEach(() => {
     app.service('dummy').get.mockRestore()
-    app.service('job').patch.mockRestore()
+    app.service('jobs').patch.mockRestore()
     MediaScraperClass.prototype.autoScrapeMovie.mockRestore()
   })
 
   it('should thow an error if method is not patch', () =>
-    expect(app.service('job').get('test', {}))
+    expect(app.service('jobs').get('test', {}))
       .rejects.toThrow(''))
 
   it('should set status to failed if is not successful', () =>
-    app.service('job').patch(
+    app.service('jobs').patch(
       'failedJob',
       { status: 'running' }
-    ).then(() => expect(app.service('job').patch)
+    ).then(() => expect(app.service('jobs').patch)
       .toBeCalledWith('failedJob', { args: ['failedArg'], function: 'get', service: 'dummy', progress: 0, status: 'failed', error: 'Error: testreject' })))
 
   it('should set status to completed if run is successful', () =>
-    app.service('job').patch(
+    app.service('jobs').patch(
       'completedJob',
       { status: 'running' }
-    ).then(() => expect(app.service('job').patch)
+    ).then(() => expect(app.service('jobs').patch)
       .toBeCalledWith('completedJob', { args: ['completedArg'], function: 'get', service: 'dummy', progress: 100, status: 'completed' })))
 
   it(
     'should call MediaScraper utility if data.service is \'media-scraper\'',
     async () => {
-      await app.service('job').patch(
+      await app.service('jobs').patch(
         'MediaScraper',
         { status: 'running' }
       )
