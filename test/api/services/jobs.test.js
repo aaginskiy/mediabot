@@ -1,4 +1,4 @@
-/* global describe it */
+/* global describe it expect */
 const path = require('path')
 const feathers = require('@feathersjs/feathers')
 const createService = require('../../../src/api/services/jobs/jobs.service')
