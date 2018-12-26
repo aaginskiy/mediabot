@@ -1,25 +1,26 @@
 /* global describe it beforeAll beforeEach afterEach expect jest */
 const feathers = require('@feathersjs/feathers')
-const JobWorkerService = require('../../../src/api/services/job-worker/job-worker.service')
+const JobWorkerService = require('../../../src/api/services/job-workers/job-workers.service')
 const MemoryService = require('feathers-memory')
 
 const app = feathers()
-app.use('/job', MemoryService({ paginate: false }))
+app.use('/jobs', MemoryService({ paginate: false }))
 app.configure(JobWorkerService)
 app.setup()
 
-const jobworker = app.service('job-worker')
+const jobworker = app.service('job-workers')
+const jobs = app.service('jobs')
 
 describe('\'Job Worker\' service', () => {
   beforeAll(() => {
     return Promise.all([
-      app.service('job-worker').create([
+      jobworker.create([
         { status: 'active' },
         { status: 'active' },
         { status: 'active' },
         { status: 'active' }
       ]),
-      app.service('job').create([
+      jobs.create([
         { status: 'running' },
         { status: 'queued' }
       ])
@@ -27,11 +28,11 @@ describe('\'Job Worker\' service', () => {
   })
 
   it('register the service', () =>
-    expect(app.service('job-worker')).toBeTruthy())
+    expect(jobworker).toBeTruthy())
 
   it('should do nothing if no idle workers available', () =>
-    expect(app.service('job-worker').scheduleJobs()
-      .then(() => app.service('job-worker').find()))
+    expect(jobworker.scheduleJobs()
+      .then(() => jobworker.find()))
       .resolves.toMatchObject([
         {
           'id': 0,
@@ -53,36 +54,36 @@ describe('\'Job Worker\' service', () => {
 
   describe('worker is available', () => {
     beforeEach(() => Promise.all([
-      app.service('job-worker').patch(2, { status: 'idle', jobId: undefined }),
-      app.service('job').patch(1, { status: 'queued' })
+      jobworker.patch(2, { status: 'idle', jobId: undefined }),
+      jobs.patch(1, { status: 'queued' })
     ]))
 
     it('should change status to active', async () => {
-      await app.service('job-worker').scheduleJobs()
+      await jobworker.scheduleJobs()
 
-      return expect(app.service('job-worker').get(2))
+      return expect(jobworker.get(2))
         .resolves.toHaveProperty('status', 'active')
     })
 
     it('should change jobId to active', async () => {
-      await app.service('job-worker').scheduleJobs()
+      await jobworker.scheduleJobs()
 
-      return expect(app.service('job-worker').get(2))
+      return expect(jobworker.get(2))
         .resolves.toHaveProperty('jobId', 1)
     })
 
     it('should run job by jobId', async () => {
-      await app.service('job-worker').scheduleJobs()
+      await jobworker.scheduleJobs()
 
-      return expect(app.service('job').get(1))
+      return expect(jobs.get(1))
         .resolves.toHaveProperty('status', 'running')
     })
 
     it('should reset to idle after job is completed', (done) => {
-      app.service('job-worker').scheduleJobs()
-        .then(() => app.service('job').patch(1, { status: 'completed' }))
+      jobworker.scheduleJobs()
+        .then(() => jobs.patch(1, { status: 'completed' }))
         .then(() => setTimeout(() => {
-          app.service('job-worker').get(2)
+          jobworker.get(2)
             .then((data) => {
               expect(data.status).toBe('idle')
             })
@@ -91,10 +92,10 @@ describe('\'Job Worker\' service', () => {
     })
 
     it('should reset to idle after job is failed', (done) => {
-      app.service('job-worker').scheduleJobs()
-        .then(() => app.service('job').patch(1, { status: 'failed' }))
+      jobworker.scheduleJobs()
+        .then(() => jobs.patch(1, { status: 'failed' }))
         .then(() => setTimeout(() => {
-          app.service('job-worker').get(2)
+          jobworker.get(2)
             .then((data) => {
               expect(data.status).toBe('idle')
             })
@@ -125,9 +126,9 @@ describe('\'Job Worker\' service', () => {
     })
 
     it('should not run scheduleJobs after stop', () => {
-      app.service('job-worker').startJobs()
+      jobworker.startJobs()
       jest.advanceTimersByTime(260)
-      app.service('job-worker').stopJobs()
+      jobworker.stopJobs()
       jest.advanceTimersByTime(260)
       return expect(spy).toBeCalledTimes(2)
     })

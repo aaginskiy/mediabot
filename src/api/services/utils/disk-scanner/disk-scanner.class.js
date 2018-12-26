@@ -8,7 +8,6 @@ const path = require('path')
 const EventEmitter = require('events')
 const Promise = require('bluebird')
 const fs = require('fs')
-// const rename = Promise.promisify
 
 class Service {
   constructor (options) {
@@ -17,23 +16,160 @@ class Service {
 
   setup (app) {
     this.app = app
-    this.Movie = app.service('movies')
-    this.Job = app.service('job')
+    this.Movies = app.service('movies')
+    this.Jobs = app.service('jobs')
+
+    this.watcher = null
   }
 
   /**
-   * MediaFileService#loadFromFile
+   * DiskScannerService#refreshMediainfo
    *
-   * Loads movie metadata, artwork and directory files from disk.
+   * Refreshes media metadata, artwork and directory files from disk for one media file.
    *
-   * @since 0.1.0
-   * @memberof MediaFileService
+   * @since 0.2.0
+   * @memberof DiskScannerService
    * @param {String} filename Filename of the media to load.
-   * @returns Promise Promise to resolve metadata from file.
+   * @returns Promise Promise to resolve metadata from a file.
    */
-  loadFromFile (filename) {
-    this.app.info('Loading requested movie from the disk.', { label: 'MediaFileService' })
-    this.app.debug(filename, { label: 'MediaFileService' })
+  async refreshMediainfo (id, filename) {
+    return this._loadMediainfoFromFile(filename)
+      .then((metadata) => this.Movies.update(id, metadata, {}))
+  }
+
+  /**
+   * DiskScannerService#refreshAllMediainfo
+   *
+   * Loads all movies media directory. Existing movies are refreshed,
+   * new movies are added, and missing movies are removed.
+   *
+   * @since 0.2.0
+   * @memberof MediaFileService
+   * @param {Object} directory Root directory where to refresh movies
+   * @returns {Object} Promise Promise to queue jobs to update each movie
+   */
+  async refreshAllMediainfo (directory) {
+    let mediaFiles = await this._findAllMediaFiles(directory)
+
+    let existingMovies = await this.Movies.find({
+      query: {
+        filename: {
+          $in: mediaFiles.updated
+        },
+        $select: ['id', 'filename']
+      }
+    })
+
+    let createJobs = (filename) => this.Jobs.create({
+      args: [filename],
+      service: 'disk-scanner',
+      function: '_createMediaFromMediainfo'
+    }, {})
+
+    let updateJobs = (movie) => this.Jobs.create({
+      args: [movie.id, movie.filename],
+      service: 'disk-scanner',
+      function: 'refreshMediainfo'
+    }, {})
+
+    return Promise.all([
+      Promise.map(mediaFiles.created, createJobs, { concurrency: 1 }),
+      this.Movies.remove(null, { query: { filename: { $in: mediaFiles.removed } } }),
+      Promise.map(existingMovies, updateJobs, { concurrency: 1 })
+    ])
+  }
+
+  async scanMediaLibrary (directory) {
+    let mediaFiles = await this._findAllMediaFiles(directory)
+
+    let createJobs = (filename) => this.Jobs.create({
+      args: [filename],
+      service: 'disk-scanner',
+      function: '_createMediaFromMediainfo'
+    }, {})
+
+    return Promise.all([
+      Promise.map(mediaFiles.created, createJobs, { concurrency: 1 }),
+      this.Movies.remove(null, { query: { filename: { $in: mediaFiles.removed } } })
+    ])
+  }
+
+  startWatchingDirectories () {
+
+  }
+
+  stopWatchingDirectories () {
+
+  }
+
+  // Private functions
+
+  /**
+   * DiskScannerService#_findAllMediaFiles
+   *
+   * Scans directory recursively for any media files
+   *
+   * @since 0.2.0
+   * @memberof DiskScannerService
+   * @private
+   * @param {String} directory root directory to scan
+   * @returns Promise Promise to resolve to object of arrays containing media filenames { created: [...], updated: [...], removed [...] }
+   */
+  async _findAllMediaFiles (directory) {
+    const globString = `${directory}/**/*.mkv`
+
+    this.app.info(`Loading movies from ${this.app.get('movieDirectory')}.`, { label: 'DiskScannerService' })
+    const mediaOnDisk = await glob.promise(globString)
+
+    // Load all movies
+    const movies = await this.Movies.find()
+    const movieFilenames = movies.map(movie => movie.filename)
+
+    // Filter removed movies
+    const removedFilenames = _.difference(movieFilenames, mediaOnDisk)
+
+    this.app.debug('Found removed movies:', { label: 'DiskScannerService' })
+    this.app.debug(removedFilenames, { label: 'DiskScannerService' })
+
+    // Filter existing movies
+    const updatedMovies = movies.filter(movie => mediaOnDisk.includes(movie.filename))
+    const updatedFilenames = updatedMovies.map(movie => movie.filename)
+
+    // Filter new movies
+    const createdFilenames = _.difference(mediaOnDisk, updatedFilenames)
+
+    this.app.debug('Found new movies:', { label: 'DiskScannerService' })
+    this.app.debug(createdFilenames, { label: 'DiskScannerService' })
+
+    this.app.debug('Found existing movies:', { label: 'DiskScannerService' })
+    this.app.debug(updatedFilenames, { label: 'DiskScannerService' })
+
+    return {
+      'created': _.compact(createdFilenames),
+      'updated': _.compact(updatedFilenames),
+      'removed': _.compact(removedFilenames)
+    }
+  }
+
+  _createMediaFromMediainfo (filename) {
+    return this._loadMediainfoFromFile(filename).then((metadata) => this.Movies.create(metadata, {}))
+  }
+
+  /**
+   * DiskScannerService#_loadMediainfoFromFile
+   *
+   * Loads media metadata, artwork and directory files from disk.
+   *
+   * @since 0.2.0
+   * @memberof DiskScannerService
+   * @param {String} filename Filename of the media to load.
+   * @returns Promise Promise to resolve metadata from a file.
+   */
+  _loadMediainfoFromFile (filename) {
+    this.app.info('Loading requested movie metadata from the disk.', { label: 'DiskScannerService' })
+    this.app.debug(filename, { label: 'DiskScannerService' })
+
+    if (!filename) return Promise.reject(new TypeError('Filename must be defined and not empty.'))
 
     function legibleTag (tag) {
       let legibleTag
@@ -46,192 +182,11 @@ class Service {
       return legibleTag
     }
 
-    if (!filename) return Promise.resolve({})
-
-    return this.parseMkvmergeInfo(filename)
-      .then(async movie => {
-        this.app.debug('done parsing')
-        const readdir = util.promisify(fs.readdir)
-
-        let filePath = path.parse(filename)
-
-        movie.dir = filePath.dir
-
-        movie.files = await readdir(filePath.dir)
-
-        if (movie.files.includes(filePath.name + '-poster.jpg')) movie.poster = filePath.name + '-poster.jpg'
-
-        if (movie.files.includes(filePath.name + '-fanart.jpg')) movie.fanart = filePath.name + '-fanart.jpg'
-
-        let defaultVideoTracks = _.filter(movie.tracks, { type: 'video', isDefault: true })
-        let defaultAudioTracks = _.filter(movie.tracks, { type: 'audio', isDefault: true })
-
-        if (defaultVideoTracks[0]) movie.videoTag = legibleTag(defaultVideoTracks[0].codecType)
-        if (defaultAudioTracks[0]) movie.audioTag = `${legibleTag(defaultAudioTracks[0].codecType)} ${defaultAudioTracks[0].audioChannels}ch`
-
-        return movie
-      })
-      .catch(err => {
-        this.app.warn(`Unable to find movie "${filename}".`, { label: 'MediaFileService' })
-        this.app.warn(err.message, { label: 'MediaFileService' })
-        return {}
-      })
-  }
-
-  /**
-   * MediaFile#create
-   *
-   * Loads all movies media directory. Existing movies are refreshed,
-   * new movies are added, and missing movies are removed.
-   *
-   * @since 0.1.0
-   * @memberof MediaFileService
-   * @param {Object} data Unused. Compatibility with FeathersJS services #create signature.
-   * @param {Object} params Filenames in FeathersJS params structure: params.query.filenames.
-   * @returns {Object} res
-   */
-  async create (data, params) {
-    this.app.info('Reloading requested movies from the disk.', { label: 'MediaFileService' })
-
-    // Load all media files in media directory if no filenames specified
-    if (!params.query.filenames || params.query.filenames.length === 0) {
-      const globString = `${this.app.get('movieDirectory')}/**/*.mkv`
-
-      this.app.info(`Loading movies from ${this.app.get('movieDirectory')}.`, { label: 'MediaFileService' })
-      params.query.filenames = await glob.promise(globString)
-    }
-
-    // Load all movies
-    const movies = await this.Movie.find()
-    const movieFilenames = movies.map(movie => movie.filename)
-
-    const deleteFilenames = _.difference(movieFilenames, params.query.filenames)
-
-    this.app.debug('Deleting missing movies:', { label: 'MediaFileService' })
-    this.app.debug(deleteFilenames, { label: 'MediaFileService' })
-
-    const existingMovies = movies.filter(movie => params.query.filenames.includes(movie.filename))
-    const existingFilenames = existingMovies.map(movie => movie.filename)
-
-    // Filter out existing movies
-    const createFilenames = _.difference(params.query.filenames, existingFilenames)
-
-    this.app.debug('Loading new movies:', { label: 'MediaFileService' })
-    this.app.debug(createFilenames, { label: 'MediaFileService' })
-
-    this.app.debug('Refreshing existing movies:', { label: 'MediaFileService' })
-    this.app.debug(existingFilenames, { label: 'MediaFileService' })
-
-    return Promise.all([
-      Promise.map(createFilenames, (filename) => this.loadFromFile(filename).then((movie) => {
-        return this.Movie.create(movie)
-          .catch((err) => {
-            this.app.error(err)
-          })
-      }), {concurrency: 1}),
-      Promise.all(existingMovies.map(async (movie) => {
-        const mediaInfo = await this.loadFromFile(movie.filename)
-
-        if (_.isEmpty(mediaInfo)) {
-          return null
-        } else {
-          return this.Movie.update(movie._id, mediaInfo, { skipWrite: true })
-        }
-      })),
-      this.Movie.remove(null, { query: { filename: { $in: deleteFilenames } } })
-    ]).then((res) => {
-      return {
-        'created': _.compact(res[0]),
-        'updated': _.compact(res[1]),
-        'deleted': _.compact(res[2])
-      }
-    })
-  }
-
-  /**
-   * MediaFile#get
-   *
-   * Reload existing movie from file by ID.
-   *
-   * @since 0.1.0
-   * @memberof MediaFileService
-   * @param {Integer} id
-   * @param {Object} params Unused. Compatibility with FeathersJS services #get signature.
-   * @returns {Object} metadata Reloaded metadata from file.
-   */
-  get (id, params) {
-    this.app.info(`Loading movie #${id} metadata from file.`, { label: 'MediaFileService' })
-
-    return this.Movie.get(id)
-      .then(data =>
-        this.parseMkvmergeInfo(data.filename)
-          .then(movie => this.Movie.update(id, movie, { skipWrite: true })))
-      .catch(err => {
-        this.app.error(`Unable to load movie #${id} metadata from file.`)
-        this.app.error(err, { label: 'MediaFileService#get' })
-        throw err
-      })
-  }
-
-  update (id, data, params) {
-    const jobData = {
-      movieId: id,
-      title: data.title,
-      status: this.app.get('JOB_STATUS.NEW'),
-      args: [
-        id,
-        data
-      ],
-      service: 'media-file',
-      function: 'mux'
-    }
-    return this.Job.create(jobData, {})
-  }
-
-  /**
-   * MediaFile#patch
-   *
-   * Updates mkv file properties with data.  If id is present, filename is extracted from
-   * that movie object.
-   *
-   * @param {any} id
-   * @param {any} data
-   * @param {any} params
-   * @returns Promise
-   * @memberof MediaFile
-   */
-  async patch (id, data, params) {
-    this.app.info(`Patching movie #${id} metadata to file.`, {label: 'MediaFileService'})
-
-    const exec = util.promisify(childProcess.exec)
-
-    const movieData = await this.Movie.get(id)
-    return exec(`mkvpropedit -v ${shellwords.escape(movieData.filename)} ${this.generateInfoCommand(data)}`)
-      .catch(err => {
-        this.app.error(err, {label: 'MediaFileService'})
-        return Promise.reject(err)
-      })
-  }
-
-  /**
-   * MediaFileService#parseMkvmergeInfo
-   *
-   * Loads movie metadata, artwork and directory files from disk.
-   *
-   * @since 0.1.0
-   * @memberof MediaFileService
-   * @private
-   * @param {String} filename Filename of the media file to parse.
-   * @returns Promise Promise to resolve metadata from file by mkvmerge.
-   */
-  parseMkvmergeInfo (filename) {
-    this.app.info(`Parsing movie metadata from file ${filename}.`, {label: 'MediaFileService'})
     const _self = this
     const escapedFilename = shellwords.escape(filename)
     const exec = util.promisify(childProcess.exec)
     return exec(`mkvmerge -J ${escapedFilename}`)
       .then((res) => {
-        this.app.debug('tttt')
         let mediaInfo = {}
         const stdout = JSON.parse(res.stdout)
 
@@ -267,9 +222,69 @@ class Service {
         mediaInfo = _.omitBy(mediaInfo, _.isNil)
         return mediaInfo
       })
+      .then(async movie => {
+        const readdir = util.promisify(fs.readdir)
+
+        let filePath = path.parse(filename)
+
+        movie.dir = filePath.dir
+
+        movie.files = await readdir(filePath.dir)
+
+        if (movie.files.includes(filePath.name + '-poster.jpg')) movie.poster = filePath.name + '-poster.jpg'
+
+        if (movie.files.includes(filePath.name + '-fanart.jpg')) movie.fanart = filePath.name + '-fanart.jpg'
+
+        let defaultVideoTracks = _.filter(movie.tracks, {
+          type: 'video',
+          isDefault: true
+        })
+        let defaultAudioTracks = _.filter(movie.tracks, {
+          type: 'audio',
+          isDefault: true
+        })
+
+        if (defaultVideoTracks[0]) movie.videoTag = legibleTag(defaultVideoTracks[0].codecType)
+        if (defaultAudioTracks[0]) movie.audioTag = `${legibleTag(defaultAudioTracks[0].codecType)} ${defaultAudioTracks[0].audioChannels}ch`
+
+        return movie
+      })
+      .catch(err => {
+        this.app.warn(`Unable to find movie "${filename}".`, {
+          label: 'DiskScannerService'
+        })
+        this.app.warn(err.message, {
+          label: 'DiskScannerService'
+        })
+        throw err
+      })
   }
 
-  generateInfoCommand (data) {
+  /**
+   * DiskScannerService#_saveMediainfo
+   *
+   * Updates mkv file properties with data.  If id is present, filename is extracted from
+   * that movie object.
+   *
+   * @param {any} id
+   * @returns Promise
+   * @memberof DiskScannerService
+   */
+  async _saveMediainfo (id, mediainfo) {
+    console.log(id)
+    this.app.info(`Patching movie #${id} metadata to file.`, {label: 'MediaFileService'})
+
+    const exec = util.promisify(childProcess.exec)
+
+    const movieData = await this.Movies.get(id)
+    return exec(`mkvpropedit -v ${shellwords.escape(movieData.filename)} ${this._generateInfoCommand(mediainfo)}`)
+      .catch(err => {
+        this.app.error(err, {label: 'MediaFileService'})
+        return Promise.reject(err)
+      })
+  }
+
+  _generateInfoCommand (data) {
     let command = `--edit info --set "title=${data.title}"`
 
     if (!data.tracks) return command
@@ -296,7 +311,7 @@ class Service {
     return command
   }
 
-  generateMergeCommand (data) {
+  _generateMergeCommand (data) {
     const base = path.basename(data.filename, '.mkv')
     const dir = path.dirname(data.filename)
 
@@ -360,14 +375,14 @@ class Service {
     return commandObj.command
   }
 
-  mux (id, data) {
+  _mux (id, data) {
     this.app.silly('Called MediaFile#mux with:', {label: 'MediaFileService'})
     this.app.silly({ id: id, data: data }, {label: 'MediaFileService'})
 
     const rename = util.promisify(fs.rename)
 
     const muxEvent = new EventEmitter()
-    const command = this.generateMergeCommand(data)
+    const command = this._generateMergeCommand(data)
     const updateEvent = childProcess.spawn(command.shift(), command, {shell: true})
     updateEvent.stdout.on('data', (res) => {
       const re = /(.*): (.*)/

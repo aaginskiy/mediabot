@@ -1,9 +1,9 @@
 
-const parseJobData = require('../../hooks/job/parse-job-data')
+const parseJobData = require('../../hooks/jobs/parse-job-data')
 const { disallow, keep, stashBefore } = require('feathers-hooks-common')
-const runJob = require('../../hooks/job/run-job')
+const runJob = require('../../hooks/jobs/run-job')
 
-const checkJobStatus = require('../../hooks/job/check-job-status')
+const checkJobStatus = require('../../hooks/jobs/check-job-status')
 
 module.exports = {
   before: {

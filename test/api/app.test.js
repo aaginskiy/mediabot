@@ -7,7 +7,7 @@ describe('Feathers application tests', () => {
     this.server = app.listen(3434)
     this.server.once('listening', () => {
     // Clear database
-      app.service('media-file').Movie.remove(null).then(() => {
+      app.service('movies').remove(null).then(() => {
         done()
       })
     })

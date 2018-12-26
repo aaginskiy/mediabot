@@ -1,7 +1,7 @@
 const movies = require('./movies/movies.service.js')
-const mediaFile = require('./media-file/media-file.service.js')
+const diskScanner = require('./utils/disk-scanner/disk-scanner.service.js')
 
-const job = require('./job/job.service.js')
+const jobs = require('./jobs/jobs.service.js')
 
 const image = require('./image/image.service.js')
 
@@ -9,15 +9,15 @@ const webhook = require('./webhook/webhook.service.js')
 
 const settings = require('./settings/settings.service.js')
 
-const jobWorker = require('./job-worker/job-worker.service.js')
+const jobWorkers = require('./job-workers/job-workers.service.js')
 
 module.exports = function () {
   const app = this
   app.configure(movies)
-  app.configure(mediaFile)
-  app.configure(job)
-  app.configure(jobWorker)
-  app.service('job-worker').create([
+  app.configure(diskScanner)
+  app.configure(jobs)
+  app.configure(jobWorkers)
+  app.service('job-workers').create([
     { status: 'idle' },
     { status: 'idle' },
     { status: 'idle' },

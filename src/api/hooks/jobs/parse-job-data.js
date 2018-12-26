@@ -9,10 +9,20 @@ module.exports = function (options = {}) {
     context.data.progress = 0
 
     switch (context.data.name) {
-      case 'RescanMovies':
+      case 'ScanMediaLibrary':
         context.data.priority = 'high'
-        context.data.service = 'movies'
-        context.data.function = 'rescan'
+        context.data.service = 'disk-scanner'
+        context.data.function = 'scanMediaLibrary'
+        break
+      case 'RefreshAllMediainfo':
+        context.data.priority = 'high'
+        context.data.service = 'disk-scanner'
+        context.data.function = 'refreshAllMediainfo'
+        break
+      case 'RefreshMediainfo':
+        context.data.priority = 'high'
+        context.data.service = 'disk-scanner'
+        context.data.function = 'refreshMediainfo'
         break
       case 'MuxMovie':
         context.data.priority = 'normal'
