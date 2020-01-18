@@ -75,6 +75,7 @@
   },
   "jest": {
     "setupTestFrameworkScriptFile": "jest-extended",
-    "coverageReporters": ["text-summary", "lcov", "html"]
+    "coverageReporters": ["text-summary", "lcov", "html"],
+    "modulePathIgnorePatterns": [".*\\.fixture\\.js"]
   }
 }
