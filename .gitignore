@@ -7,6 +7,8 @@ yarn-error.log*
 .DS_Store
 *.db
 test/data
+config/config.json
+src/api/services/webhook/__tests__/
 
 
 # Runtime data
