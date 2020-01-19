@@ -34,7 +34,7 @@ class Service {
    */
   async refreshMediainfo (id, filename) {
     return this._loadMediainfoFromFile(filename)
-      .then((metadata) => this.Movies.update(id, metadata, {}))
+      .then((metadata) => { this.Movies.update(id, metadata, {skipWrite: true}) })
   }
 
   /**
@@ -56,40 +56,50 @@ class Service {
         filename: {
           $in: mediaFiles.updated
         },
-        $select: ['id', 'filename']
+        $select: ['_id', 'filename']
       }
     })
 
-    let createJobs = (filename) => this.Jobs.create({
-      args: [filename],
-      service: 'disk-scanner',
-      function: '_createMediaFromMediainfo'
-    }, {})
+    let createData = mediaFiles.created.map(filename => {
+      return {
+        filename: filename
+      }
+    })
 
-    let updateJobs = (movie) => this.Jobs.create({
-      args: [movie.id, movie.filename],
-      service: 'disk-scanner',
-      function: 'refreshMediainfo'
-    }, {})
+    let createdMovies = await this.Movies.create(createData, {})
+
+    let createJobs = (movie) => {
+      this.Jobs.create({
+        args: [movie._id, movie.filename],
+        name: 'RefreshMediainfo'
+      }, {})
+    }
 
     return Promise.all([
-      Promise.map(mediaFiles.created, createJobs, { concurrency: 1 }),
+      Promise.map(createdMovies, createJobs, { concurrency: 1 }),
       this.Movies.remove(null, { query: { filename: { $in: mediaFiles.removed } } }),
-      Promise.map(existingMovies, updateJobs, { concurrency: 1 })
+      Promise.map(existingMovies, createJobs, { concurrency: 1 })
     ])
   }
 
   async scanMediaLibrary (directory) {
     let mediaFiles = await this._findAllMediaFiles(directory)
 
-    let createJobs = (filename) => this.Jobs.create({
-      args: [filename],
-      service: 'disk-scanner',
-      function: '_createMediaFromMediainfo'
-    }, {})
+    let createData = mediaFiles.created.map(filename => {
+      return {filename: filename}
+    })
+
+    let movies = await this.Movies.create(createData, {})
+
+    let createJobs = (movie) => {
+      this.Jobs.create({
+        args: [movie._id, movie.filename],
+        name: 'RefreshMediainfo'
+      }, {})
+    }
 
     return Promise.all([
-      Promise.map(mediaFiles.created, createJobs, { concurrency: 1 }),
+      Promise.map(movies, createJobs, { concurrency: 1 }),
       this.Movies.remove(null, { query: { filename: { $in: mediaFiles.removed } } })
     ])
   }
@@ -118,7 +128,7 @@ class Service {
   async _findAllMediaFiles (directory) {
     const globString = `${directory}/**/*.mkv`
 
-    this.app.info(`Loading movies from ${this.app.get('movieDirectory')}.`, { label: 'DiskScannerService' })
+    this.app.info(`Loading movies from ${directory}.`, { label: 'DiskScannerService' })
     const mediaOnDisk = await glob.promise(globString)
 
     // Load all movies
