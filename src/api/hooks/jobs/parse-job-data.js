@@ -11,17 +11,19 @@ module.exports = function (options = {}) {
     switch (context.data.name) {
       case 'ScanMediaLibrary':
         context.data.priority = 'high'
-        context.data.service = 'disk-scanner'
+        context.data.service = 'utils/disk-scanner'
         context.data.function = 'scanMediaLibrary'
+        context.data.args = [context.app.get('settings').movieDirectory]
         break
       case 'RefreshAllMediainfo':
         context.data.priority = 'high'
-        context.data.service = 'disk-scanner'
+        context.data.service = 'utils/disk-scanner'
         context.data.function = 'refreshAllMediainfo'
+        context.data.args = [context.app.get('settings').movieDirectory]
         break
       case 'RefreshMediainfo':
         context.data.priority = 'high'
-        context.data.service = 'disk-scanner'
+        context.data.service = 'utils/disk-scanner'
         context.data.function = 'refreshMediainfo'
         break
       case 'MuxMovie':

@@ -23,6 +23,7 @@ module.exports = function () {
     { status: 'idle' },
     { status: 'idle' }
   ])
+  app.service('job-workers').startJobs()
   app.configure(image)
   app.configure(webhook)
   app.configure(settings)

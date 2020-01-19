@@ -3,6 +3,19 @@ const MemoryService = require('feathers-memory')
 class Service extends MemoryService.Service {
   setup (app) {
     this.app = app
+    this.app.service('jobs').on('patched', async job => {
+      if (job.status === 'completed' || job.status === 'failed') {
+        let data = await this.find({
+          query: {
+            jobId: job.id
+          }
+        })
+        await this.patch(data[0].id, {
+          status: 'idle',
+          jobId: undefined
+        })
+      }
+    })
   }
 
   async scheduleJobs () {
@@ -20,14 +33,6 @@ class Service extends MemoryService.Service {
         }
       })
     }
-
-    this.app.service('jobs').on('patched', async job => {
-      if (job.status === 'completed' || job.status === 'failed') {
-        let data = await this.find({ query: { jobId: job.id } })
-        await this.patch(data[0].id, { status: 'idle', jobId: undefined })
-      }
-    })
-
     return this.find()
   }
 
