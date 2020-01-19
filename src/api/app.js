@@ -32,7 +32,7 @@ app.set('configLocation', configLocation)
 
 app.set('dataLocation', dataLocation)
 
-const configFile = path.join(configLocation, './default.json')
+const configFile = path.join(configLocation, './config.json')
 
 if (!fs.existsSync(configFile)) {
   console.log(`No configuration found in ${configLocation}`)

@@ -18,7 +18,7 @@ class Service {
       .then(data => {
         let settings = JSON.parse(data)
         this.app.set('settings', settings)
-        console.log(this.app.get('settings'))
+
         this.app.info('Loaded settings from configuration file.', {
           label: 'SettingsService'
         })
