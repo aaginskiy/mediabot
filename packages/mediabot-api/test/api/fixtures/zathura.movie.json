@@ -1,0 +1,41 @@
+{
+  "title": "Zathura: A Space Adventure (2005)",
+  "filename": "Zathura A Space Adventure (2005).1080p.mkv",
+  "tracks": [
+    {
+      "name": "Zathura: A Space Adventure (2005)",
+      "language": "eng",
+      "number": 0,
+      "newNumber": 0,
+      "type": "video",
+      "codecType": "MPEG-4p10/AVC/h.264",
+      "isDefault": true,
+      "isEnabled": true,
+      "isForced": false,
+      "isMuxed": true
+    },
+    {
+      "language": "eng",
+      "number": 1,
+      "newNumber": 1,
+      "type": "audio",
+      "codecType": "DTS",
+      "audioChannels": 6,
+      "isDefault": true,
+      "isEnabled": true,
+      "isForced": false,
+      "isMuxed": true
+    },
+    {
+      "language": "dut",
+      "number": 2,
+      "newNumber": 2,
+      "type": "subtitles",
+      "codecType": "SubRip/SRT",
+      "isDefault": false,
+      "isEnabled": false,
+      "isForced": false,
+      "isMuxed": true
+    }
+  ]
+}

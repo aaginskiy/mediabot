@@ -1,0 +1,86 @@
+{
+  "title": "Movie",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "filename": {
+      "type": "string"
+    },
+    "poster": {
+      "type": "string"
+    },
+    "fanart": {
+      "type": "string"
+    },
+    "landscape": {
+      "type": "string"
+    },
+    "banner": {
+      "type": "string"
+    },
+    "clearart": {
+      "type": "string"
+    },
+    "disc": {
+      "type": "string"
+    },
+    "logo": {
+      "type": "string"
+    },
+    "files": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "tracks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "language": {
+            "type": "string"
+          },
+          "number": {
+            "type": "integer"
+          },
+          "newNumber": {
+            "type": "integer"
+          },
+          "type": {
+            "type": "string"
+          },
+          "codecType": {
+            "type": "string"
+          },
+          "isDefault": {
+            "type": "boolean"
+          },
+          "isEnabled": {
+            "type": "boolean"
+          },
+          "isForced": {
+            "type": "boolean"
+          },
+          "audioChannels": {
+            "type": "integer"
+          },
+          "bps": {
+            "type": "integer"
+          },
+          "isMuxed": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false,
+  "require": ["filename"]
+}

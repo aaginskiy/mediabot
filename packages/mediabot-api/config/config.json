@@ -1,0 +1,45 @@
+{
+  "host": "localhost",
+  "port": 3030,
+  "public": "../public/",
+  "paginate": false,
+  "movieDirectory": "/Volumes/MediaNAS/Movies/UHD/",
+  "mediaParser": {
+    "movie": {
+      "include": {
+        "title": true,
+        "originalTitle": true,
+        "tagline": true,
+        "plot": true,
+        "rating": false,
+        "runtime": true,
+        "year": true,
+        "certification": true,
+        "cast": true,
+        "genres": true,
+        "artwork":true,
+        "trailer":true,
+        "movieset":true
+      },
+      "source": {
+        "title": "tmdb",
+        "originalTitle":"tmdb",
+        "tagline":"tmdb",
+        "plot":"tmdb",
+        "rating":"tmdb",
+        "runtime":"tmdb",
+        "year":"tmdb",
+        "certification":"tmdb",
+        "cast":"tmdb",
+        "genres":"tmdb",
+        "artwork":"tmdb",
+        "trailer":"tmdb",
+        "movieset":"tmdb"
+      }
+    }
+  },
+  "radarr": {
+    "hostname": "http://radarr:7878",
+    "apikey":"5101db865a0d4de29d38f01b07d564fd"
+  }
+}
