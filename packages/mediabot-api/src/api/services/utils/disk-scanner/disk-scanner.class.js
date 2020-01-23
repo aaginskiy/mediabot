@@ -8,6 +8,8 @@ const path = require('path')
 const EventEmitter = require('events')
 const Promise = require('bluebird')
 const fs = require('fs')
+const readFile = util.promisify(fs.readFile)
+const xml2js = require('xml2js')
 
 class Service {
   constructor (options) {
@@ -34,6 +36,18 @@ class Service {
    */
   async refreshMediainfo (id, filename) {
     return this._loadMediainfoFromFile(filename)
+      .then(metadata => {
+        let nfoFilename = path.join(path.dirname(metadata.filename), path.basename(metadata.filename, path.extname(metadata.filename)) + '.nfo')
+        // console.log(nfoFilename)
+        return this._loadMetadataFromNfo(nfoFilename)
+          .then(nfo => {
+            metadata.localInfo = nfo
+            metadata.movieInfo = {}
+            metadata.movieInfo.title = nfo.title
+            metadata.movieInfo.year = nfo.year
+            return metadata
+          })
+      })
       .then((metadata) => { this.Movies.update(id, metadata, {skipWrite: true}) })
   }
 
@@ -44,7 +58,7 @@ class Service {
    * new movies are added, and missing movies are removed.
    *
    * @since 0.2.0
-   * @memberof MediaFileService
+   * @memberof DiskScannerService
    * @param {Object} directory Root directory where to refresh movies
    * @returns {Object} Promise Promise to queue jobs to update each movie
    */
@@ -243,7 +257,13 @@ class Service {
 
         if (movie.files.includes(filePath.name + '-poster.jpg')) movie.poster = filePath.name + '-poster.jpg'
 
-        if (movie.files.includes(filePath.name + '-fanart.jpg')) movie.fanart = filePath.name + '-fanart.jpg'
+        if (movie.files.includes(filePath.name + '-fanart.jpg')) {
+          movie.fanart = filePath.name + '-fanart.jpg'
+        } else if (movie.files.includes('fanart.jpg')) {
+          movie.fanart = 'fanart.jpg'
+        }
+
+        if (movie.files.includes(filePath.name + '-landscape.jpg')) movie.landscape = filePath.name + '-landscape.jpg'
 
         let defaultVideoTracks = _.filter(movie.tracks, {
           type: 'video',
@@ -267,6 +287,44 @@ class Service {
           label: 'DiskScannerService'
         })
         throw err
+      })
+  }
+
+  /**
+   * DiskScannerService#_loadMetadataFromNfo
+   *
+   * Loads media metadata from local nfo file
+   *
+   * @since 0.2.0
+   * @memberof DiskScannerService
+   * @param {String} filename Filename of the media to load.
+   * @returns Promise Promise to resolve metadata from a file.
+   */
+  async _loadMetadataFromNfo (filename) {
+    return readFile(filename)
+      .then(nfo => new xml2js.Parser({
+        explicitArray: false,
+        ignoreAttrs: true})
+        .parseStringPromise(nfo)
+      )
+      .then(nfo => {
+        nfo = nfo.movie
+
+        let uniqueid = nfo.uniqueid
+        nfo.uniqueid = {}
+
+        let imdbidIndex = _.findIndex(uniqueid, function (o) {
+          return o.startsWith('tt')
+        })
+
+        let tmdbidIndex = _.findIndex(uniqueid, function (o) {
+          return o.match(/^\d/)
+        })
+
+        nfo.uniqueid.imdbid = uniqueid[imdbidIndex]
+        nfo.uniqueid.tmdbid = uniqueid[tmdbidIndex]
+
+        return nfo
       })
   }
 
