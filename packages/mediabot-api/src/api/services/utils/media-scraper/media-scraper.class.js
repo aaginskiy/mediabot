@@ -7,30 +7,41 @@ const fs = require('fs')
 const TmdbScraper = require('@mediabot/tmdb')
 const tmdb = new TmdbScraper('9cc56c731a06623343d19ce2f7a3c982')
 const xml2js = require('xml2js')
-class MediaScraper {
-  constructor (options = {}, logger) {
-    this.options = options
-    this.logger = logger || {
-      info: () => null,
-      debug: () => null,
-      error: () => null
-    }
+
+class Service {
+  constructor (options) {
+    this.options = options || {}
+  }
+
+  setup (app) {
+    this.app = app
   }
 
   autoSearchMovie (name, year) {
-    // this.logger.info(`Searching TMDB for movie ${name} (${year}).`, { label: 'ScrapeService' })
-    return tmdb.search.movie({query: name, year: year})
+    // this.app.info(`Searching TMDB for movie ${name} (${year}).`, { label: 'MediaScrapeService' })
+    return tmdb.search.movie({
+      query: name,
+      year: year
+    })
       .then(res => res.results[0].id)
       .catch(err => {
-        this.logger.error(err.message, { label: 'ScrapeService' })
-        this.logger.debug(err.stack, { label: 'ScrapeService' })
+        this.app.error(err.message, {
+          label: 'MediaScrapeService'
+        })
+        this.app.debug(err.stack, {
+          label: 'MediaScrapeService'
+        })
         throw err
       })
   };
 
   scrapeTmdbMovie (id) {
-    this.logger.info(`Loading information for movie (TMDB ID: ${id}) from TMDB.`, { label: 'ScrapeService' })
-    return tmdb.movie({id})
+    this.app.info(`Loading information for movie (TMDB ID: ${id}) from TMDB.`, {
+      label: 'MediaScrapeService'
+    })
+    return tmdb.movie({
+      id
+    })
       .then(res => {
         const movie = {}
 
@@ -52,32 +63,47 @@ class MediaScraper {
         return movie
       })
       .catch(err => {
-        this.logger.error(err.message, { label: 'ScrapeService' })
-        this.logger.debug(err.stack, { label: 'ScrapeService' })
+        this.app.error(err.message, {
+          label: 'MediaScrapeService'
+        })
+        this.app.debug(err.stack, {
+          label: 'MediaScrapeService'
+        })
         throw err
       })
   }
 
   buildXmlNfo (movie) {
-    var builder = new xml2js.Builder({rootName: 'movie'})
+    var builder = new xml2js.Builder({
+      rootName: 'movie'
+    })
     return builder.buildObject(movie)
   }
 
   async autoScrapeMovie (name, year, filename) {
-    this.logger.debug(`Auto scraping movie with name: ${name}, year: ${year}, filename: ${filename}.`, { label: 'ScrapeService' })
+    this.app.debug(`Auto scraping movie with name: ${name}, year: ${year}, filename: ${filename}.`, {
+      label: 'MediaScrapeService'
+    })
     const writeFile = util.promisify(fs.writeFile)
 
     return this.autoSearchMovie(name, year)
       .then(id => this.scrapeTmdbMovie(id))
       .then(movie => {
-        let { dir, name } = path.parse(filename)
+        let {
+          dir,
+          name
+        } = path.parse(filename)
         this.downloadImage(`https://image.tmdb.org/t/p/original${movie.fanart}`, `${dir}/${name}-fanart.jpg`)
         this.downloadImage(`https://image.tmdb.org/t/p/original${movie.poster}`, `${dir}/${name}-poster.jpg`)
         return writeFile(`${dir}/${name}.nfo`, this.buildXmlNfo(movie))
       })
       .catch(err => {
-        this.logger.error(err.message, { label: 'ScrapeService' })
-        this.logger.debug(err.stack, { label: 'ScrapeService' })
+        this.app.error(err.message, {
+          label: 'MediaScrapeService'
+        })
+        this.app.debug(err.stack, {
+          label: 'MediaScrapeService'
+        })
         throw err
       })
   }
@@ -88,15 +114,23 @@ class MediaScraper {
       got
         .stream(uri)
         .on('error', err => {
-          this.logger.error(err.message, { label: 'ScrapeService' })
-          this.logger.debug(err.stack, { label: 'ScrapeService' })
+          this.app.error(err.message, {
+            label: 'MediaScrapeService'
+          })
+          this.app.debug(err.stack, {
+            label: 'MediaScrapeService'
+          })
           file.end()
           reject(err)
         })
         .pipe(file
           .on('error', err => {
-            this.logger.error(err.message, { label: 'ScrapeService' })
-            this.logger.debug(err.stack, { label: 'ScrapeService' })
+            this.app.error(err.message, {
+              label: 'MediaScrapeService'
+            })
+            this.app.debug(err.stack, {
+              label: 'MediaScrapeService'
+            })
             reject(err)
           })
           .on('close', () => resolve()))
@@ -104,8 +138,8 @@ class MediaScraper {
   }
 }
 
-module.exports = function (options) {
-  return new MediaScraper(options)
+module.exports = function moduleExport (options) {
+  return new Service(options)
 }
 
-module.exports.MediaScraper = MediaScraper
+module.exports.Service = Service

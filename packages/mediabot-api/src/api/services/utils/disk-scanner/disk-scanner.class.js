@@ -297,8 +297,8 @@ class Service {
    *
    * @since 0.2.0
    * @memberof DiskScannerService
-   * @param {String} filename Filename of the media to load.
-   * @returns Promise Promise to resolve metadata from a file.
+   * @param {String} filename Filename of the nfo file to load.
+   * @returns Promise Promise to resolve metadata from nfo.
    */
   async _loadMetadataFromNfo (filename) {
     return readFile(filename)
