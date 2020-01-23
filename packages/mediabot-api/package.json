@@ -14,7 +14,7 @@
   "contributors": [],
   "bugs": {},
   "directories": {
-    "lib": "src/api/",
+    "lib": "src/",
     "test": "test/api/"
   },
   "engines": {
@@ -29,7 +29,7 @@
     "jest:watch": "jest --watch --verbose false",
     "release": "standard-version",
     "lint": "standard --fix",
-    "start": "nodemon src/api/"
+    "start": "nodemon src/"
   },
   "dependencies": {
     "@feathersjs/configuration": "^1.0.2",
