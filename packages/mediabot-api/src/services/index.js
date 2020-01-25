@@ -16,6 +16,7 @@ const jobWorkers = require('./job-workers/job-workers.service.js')
 
 module.exports = function () {
   const app = this
+  app.configure(settings)
   app.configure(movies)
   app.configure(diskScanner)
   app.configure(mediaScraper)
@@ -30,5 +31,4 @@ module.exports = function () {
   app.service('job-workers').startJobs()
   app.configure(image)
   app.configure(webhook)
-  app.configure(settings)
 }

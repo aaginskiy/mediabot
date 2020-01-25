@@ -47,16 +47,15 @@ class Service {
         metadata.movieInfo.year = _.get(nfo, 'year')
         metadata.movieInfo.tmdbid = _.get(nfo, 'uniqueid.tmdbid')
 
-        let id
         if (metadata.movieInfo.tmdbid) {
-          id = metadata.movieInfo.tmdbid
+          metadata.tmdbInfo = await this.MediaScraper.scrapeMovieById(metadata.movieInfo.tmdbid)
+            .catch(e => ({}))
         } else if (metadata.movieInfo.title) {
-          id = await this.MediaScraper.autoSearchMovie(metadata.movieInfo.title, metadata.movieInfo.year)
+          metadata.tmdbInfo = await this.MediaScraper.scrapeMovieByName(metadata.movieInfo.title, metadata.movieInfo.year)
+            .catch(e => ({}))
         } else {
-          id = await this.MediaScraper.autoSearchMovie(metadata.movieInfo.title, metadata.movieInfo.year)
+          metadata.tmdbInfo = {}
         }
-
-        metadata.tmdbInfo = await this.MediaScraper.scrapeTmdbMovie(id)
 
         return metadata
       })
@@ -100,8 +99,6 @@ class Service {
         name: 'RefreshMediainfo'
       }))
     }
-
-    console.log(createJobsData(createdMovies))
 
     let createJobs = (movie) => {
       this.Jobs.create({

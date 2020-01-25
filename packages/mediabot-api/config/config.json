@@ -1,10 +1,7 @@
 {
-  "host": "localhost",
-  "port": 3030,
-  "public": "../public/",
-  "paginate": false,
   "movieDirectory": "/Volumes/MediaNAS/Movies/UHD/",
   "mediaParser": {
+    "tmdbKey": "9cc56c731a06623343d19ce2f7a3c982",
     "movie": {
       "include": {
         "title": true,

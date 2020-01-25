@@ -9,6 +9,7 @@ yarn-error.log*
 test/data
 config/config.json
 src/api/services/webhook/__tests__/
+.vscode
 
 
 # Runtime data

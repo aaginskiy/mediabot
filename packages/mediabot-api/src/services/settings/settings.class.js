@@ -11,31 +11,34 @@ class Service {
 
   setup (app) {
     this.app = app
-    const configFile = path.join(this.app.get('configLocation'), './config.json')
-    const readFile = util.promisify(fs.readFile)
+    // const configFile = path.join(this.app.get('configLocation'), './config.json')
+    // const readFile = util.promisify(fs.readFile)
 
-    return readFile(configFile)
-      .then(data => {
-        let settings = JSON.parse(data)
-        this.app.set('settings', settings)
+    // return readFile(configFile)
+    //   .then(data => {
+    //     let settings = JSON.parse(data)
+    //     Object.keys(settings).forEach(key => {
+    //       this.app.set(key, settings[key])
+    //       console.log(this.app.get(key))
+    //     })
 
-        this.app.info('Loaded settings from configuration file.', {
-          label: 'SettingsService'
-        })
-        return settings
-      })
-      .catch(err => {
-        this.app.error(`Unable to load settings from configuration file.`, {
-          label: 'SettingsService'
-        })
-        this.app.error(err.message, {
-          label: 'SettingsService'
-        })
-        this.app.debug(err.stack, {
-          label: 'SettingsService'
-        })
-        throw err
-      })
+    //     this.app.info('Loaded settings from configuration file.', {
+    //       label: 'SettingsService'
+    //     })
+    //     return settings
+    //   })
+    //   .catch(err => {
+    //     this.app.error(`Unable to load settings from configuration file.`, {
+    //       label: 'SettingsService'
+    //     })
+    //     this.app.error(err.message, {
+    //       label: 'SettingsService'
+    //     })
+    //     this.app.debug(err.stack, {
+    //       label: 'SettingsService'
+    //     })
+    //     throw err
+    //   })
   }
 
   async find (params) {
