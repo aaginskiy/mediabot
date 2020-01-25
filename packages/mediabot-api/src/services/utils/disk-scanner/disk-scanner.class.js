@@ -20,6 +20,7 @@ class Service {
     this.app = app
     this.Movies = app.service('movies')
     this.Jobs = app.service('jobs')
+    this.MediaScraper = app.service('utils/media-scraper')
 
     this.watcher = null
   }
@@ -36,17 +37,28 @@ class Service {
    */
   async refreshMediainfo (id, filename) {
     return this._loadMediainfoFromFile(filename)
-      .then(metadata => {
+      .then(async metadata => {
         let nfoFilename = path.join(path.dirname(metadata.filename), path.basename(metadata.filename, path.extname(metadata.filename)) + '.nfo')
-        // console.log(nfoFilename)
-        return this._loadMetadataFromNfo(nfoFilename)
-          .then(nfo => {
-            metadata.localInfo = nfo
-            metadata.movieInfo = {}
-            metadata.movieInfo.title = nfo.title
-            metadata.movieInfo.year = nfo.year
-            return metadata
-          })
+
+        let nfo = await this._loadMetadataFromNfo(nfoFilename)
+        metadata.localInfo = nfo
+        metadata.movieInfo = {}
+        metadata.movieInfo.title = _.get(nfo, 'title')
+        metadata.movieInfo.year = _.get(nfo, 'year')
+        metadata.movieInfo.tmdbid = _.get(nfo, 'uniqueid.tmdbid')
+
+        let id
+        if (metadata.movieInfo.tmdbid) {
+          id = metadata.movieInfo.tmdbid
+        } else if (metadata.movieInfo.title) {
+          id = await this.MediaScraper.autoSearchMovie(metadata.movieInfo.title, metadata.movieInfo.year)
+        } else {
+          id = await this.MediaScraper.autoSearchMovie(metadata.movieInfo.title, metadata.movieInfo.year)
+        }
+
+        metadata.tmdbInfo = await this.MediaScraper.scrapeTmdbMovie(id)
+
+        return metadata
       })
       .then((metadata) => { this.Movies.update(id, metadata, {skipWrite: true}) })
   }
@@ -82,6 +94,15 @@ class Service {
 
     let createdMovies = await this.Movies.create(createData, {})
 
+    let createJobsData = (movies) => {
+      return movies.map(movie => ({
+        args: [movie._id, movie.filename],
+        name: 'RefreshMediainfo'
+      }))
+    }
+
+    console.log(createJobsData(createdMovies))
+
     let createJobs = (movie) => {
       this.Jobs.create({
         args: [movie._id, movie.filename],
@@ -90,9 +111,9 @@ class Service {
     }
 
     return Promise.all([
-      Promise.map(createdMovies, createJobs, { concurrency: 1 }),
+      this.Jobs.create(createJobsData(createdMovies), {}),
       this.Movies.remove(null, { query: { filename: { $in: mediaFiles.removed } } }),
-      Promise.map(existingMovies, createJobs, { concurrency: 1 })
+      this.Jobs.create(createJobsData(existingMovies), {})
     ])
   }
 
@@ -325,6 +346,18 @@ class Service {
         nfo.uniqueid.tmdbid = uniqueid[tmdbidIndex]
 
         return nfo
+      })
+      .catch(e => {
+        this.app.warn(`Unable to read nfo @ ${filename}`, {
+          label: 'DiskFileService'
+        })
+        this.app.debug(e.message, {
+          label: 'DiskFileService'
+        })
+        this.app.debug(e.stack, {
+          label: 'DiskFileService'
+        })
+        return null
       })
   }
 

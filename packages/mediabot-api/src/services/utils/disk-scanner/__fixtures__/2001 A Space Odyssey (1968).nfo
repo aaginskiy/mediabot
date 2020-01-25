@@ -1,0 +1,41 @@
+<movie>
+  <title>2001: A Space Odyssey</title>
+  <rating>8.1</rating>
+  <plot>Humanity finds a mysterious object buried beneath the lunar surface and sets off to find its origins with the help of HAL 9000, the world's most advanced super computer.</plot>
+  <id>tt0062622</id>
+  <uniqueid type="imdb" default="true">tt0062622</uniqueid>
+  <uniqueid type="tmdb">62</uniqueid>
+  <year>1968</year>
+  <premiered>1968-04-09</premiered>
+  <studio>Stanley Kubrick Productions</studio>
+  <thumb />
+  <thumb aspect="poster">http://image.tmdb.org/t/p/original/90T7b2LIrL07ndYQBmSm09yqVEH.jpg</thumb>
+  <fanart>
+    <thumb>http://image.tmdb.org/t/p/original/rkaP7dnHenOr2n2IqMxip6rtT4W.jpg</thumb>
+  </fanart>
+  <watched>false</watched>
+  <fileinfo>
+    <streamdetails>
+      <video>
+        <aspect>2.19931269</aspect>
+        <bitrate>36391458</bitrate>
+        <codec>x265</codec>
+        <framerate>23.976</framerate>
+        <height>1746</height>
+        <scantype></scantype>
+        <width>3840</width>
+        <duration>148.82098333333334</duration>
+        <durationinseconds>8929.259</durationinseconds>
+      </video>
+      <audio>
+        <bitrate>2197142</bitrate>
+        <channels>6</channels>
+        <codec>DTS-HD MA</codec>
+        <language>English / English</language>
+      </audio>
+      <subtitle>
+        <language>English / English / Arabic / Chinese / Chinese / Croatian / Czech / Danish / Dutch / Finnish / French / German / German / Greek / Hebrew / Hungarian / Italian / Japanese / Korean / Norwegian / Polish / Portuguese / Portuguese / Romanian / Russian / Spanish</language>
+      </subtitle>
+    </streamdetails>
+  </fileinfo>
+</movie>

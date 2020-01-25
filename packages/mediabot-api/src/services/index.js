@@ -1,5 +1,8 @@
 const movies = require('./movies/movies.service.js')
+
 const diskScanner = require('./utils/disk-scanner/disk-scanner.service.js')
+
+const mediaScraper = require('./utils/media-scraper/media-scraper.service.js')
 
 const jobs = require('./jobs/jobs.service.js')
 
@@ -15,6 +18,7 @@ module.exports = function () {
   const app = this
   app.configure(movies)
   app.configure(diskScanner)
+  app.configure(mediaScraper)
   app.configure(jobs)
   app.configure(jobWorkers)
   app.service('job-workers').create([

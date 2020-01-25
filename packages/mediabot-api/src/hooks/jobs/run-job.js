@@ -1,5 +1,4 @@
 const { checkContext, getByDot } = require('feathers-hooks-common')
-const MediaScraper = require('../../../util/media-scraper')()
 
 module.exports = function (options = {}) {
   return async context => {
@@ -8,15 +7,7 @@ module.exports = function (options = {}) {
     if (context.params.runJob === true) {
       let result = getByDot(context, 'result')
 
-      let service
-
-      switch (context.data.service) {
-        case 'media-scraper':
-          service = MediaScraper
-          break
-        default:
-          service = context.app.service(result.service)
-      }
+      let service = context.app.service(result.service)
 
       context.app.info(`Running Job #${context.id} - ${service.options.name}#${result.function} with ${result.args}`, { label: 'JobService' })
       service[result.function](...result.args)

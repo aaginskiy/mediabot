@@ -22,9 +22,7 @@
     "yarn": ">= 0.18.0"
   },
   "scripts": {
-    "test": "standard --fix && NODE_ENV=test nyc --reporter=text --reporter=html mocha test/api/bootstrap.js test/api/**/*.test.js test/util/**/*.test.js --exit",
-    "test:watch": "NODE_ENV=test mocha test/api/bootstrap.js test/api/**/*.test.js test/util/**/*.test.js --watch",
-    "jest": "jest",
+    "jest": "jest --coverage",
     "test:ci": "standard --fix && NODE_ENV=test jest --verbose true --silent --detectOpenHandles --coverage && cat ./coverage/lcov.info | coveralls",
     "jest:watch": "jest --watch --verbose false",
     "release": "standard-version",

@@ -1,0 +1,248 @@
+[
+  {
+      "attachments": [],
+      "chapters": [
+      {
+          "num_entries": 16
+      }
+    ],
+      "container": {
+        "properties": {
+          "container_type": 17,
+          "duration": 6080074000000,
+          "is_providing_timecodes": true,
+          "segment_uid": "852d09864c829f0bb2fcfe4f7cec65b7",
+          "title": "Zathura: A Space Adventure (2005)"
+      },
+        "recognized": true,
+        "supported": true,
+        "type": "Matroska"
+    },
+      "errors": [],
+      "file_name": "zathura1.mkv",
+      "global_tags": [],
+      "identification_format_version": 2,
+      "track_tags": [],
+      "tracks": [
+      {
+          "codec": "MPEG-4p10/AVC/h.264",
+          "id": 0,
+          "properties": {
+            "codec_id": "V_MPEG4/ISO/AVC",
+            "codec_private_data": "01640029ffe1001867640029acc8501e0083fa8400000fa40002ee023c60c65801000668e9386cb22c",
+            "codec_private_length": 41,
+            "default_duration": 41708333,
+            "default_track": true,
+            "display_dimensions": "1920x1038",
+            "enabled_track": true,
+            "forced_track": false,
+            "language": "eng",
+            "number": 1,
+            "packetizer": "mpeg4_p10_video",
+            "pixel_dimensions": "1920x1038",
+            "track_name": "Zathura: A Space Adventure (2005)",
+            "uid": 651697575
+        },
+          "type": "video"
+      },
+      {
+          "codec": "DTS",
+          "id": 1,
+          "properties": {
+            "audio_channels": 6,
+            "audio_sampling_frequency": 48000,
+            "codec_id": "A_DTS",
+            "codec_private_length": 0,
+            "default_track": true,
+            "enabled_track": true,
+            "forced_track": false,
+            "language": "eng",
+            "number": 2,
+            "uid": 1785271955
+        },
+          "type": "audio"
+      },
+      {
+          "codec": "SubRip/SRT",
+          "id": 2,
+          "properties": {
+            "codec_id": "S_TEXT/UTF8",
+            "codec_private_length": 0,
+            "default_track": false,
+            "enabled_track": false,
+            "forced_track": false,
+            "language": "dut",
+            "number": 3,
+            "text_subtitles": true,
+            "uid": 1293880464
+        },
+          "type": "subtitles"
+      }
+    ],
+      "warnings": []
+  },
+  {
+      "attachments": [],
+      "chapters": [
+      {
+          "num_entries": 16
+      }
+    ],
+      "container": {
+        "properties": {
+          "container_type": 17,
+          "duration": 6080074000000,
+          "is_providing_timecodes": true,
+          "segment_uid": "852d09864c829f0bb2fcfe4f7cec65b7",
+          "title": "Zathura: A Space Adventure 2 (2005)"
+      },
+        "recognized": true,
+        "supported": true,
+        "type": "Matroska"
+    },
+      "errors": [],
+      "file_name": "zathura2.mkv",
+      "global_tags": [],
+      "identification_format_version": 2,
+      "track_tags": [],
+      "tracks": [
+      {
+          "codec": "MPEG-4p10/AVC/h.264",
+          "id": 0,
+          "properties": {
+            "codec_id": "V_MPEG4/ISO/AVC",
+            "codec_private_data": "01640029ffe1001867640029acc8501e0083fa8400000fa40002ee023c60c65801000668e9386cb22c",
+            "codec_private_length": 41,
+            "default_duration": 41708333,
+            "default_track": true,
+            "display_dimensions": "1920x1038",
+            "enabled_track": true,
+            "forced_track": false,
+            "language": "eng",
+            "number": 1,
+            "packetizer": "mpeg4_p10_video",
+            "pixel_dimensions": "1920x1038",
+            "track_name": "Zathura: A Space Adventure (2005)",
+            "uid": 651697575
+        },
+          "type": "video"
+      },
+      {
+          "codec": "DTS",
+          "id": 1,
+          "properties": {
+            "audio_channels": 6,
+            "audio_sampling_frequency": 48000,
+            "codec_id": "A_DTS",
+            "codec_private_length": 0,
+            "default_track": true,
+            "enabled_track": true,
+            "forced_track": false,
+            "language": "eng",
+            "number": 2,
+            "uid": 1785271955
+        },
+          "type": "audio"
+      },
+      {
+          "codec": "SubRip/SRT",
+          "id": 2,
+          "properties": {
+            "codec_id": "S_TEXT/UTF8",
+            "codec_private_length": 0,
+            "default_track": false,
+            "enabled_track": false,
+            "forced_track": false,
+            "language": "dut",
+            "number": 3,
+            "text_subtitles": true,
+            "uid": 1293880464
+        },
+          "type": "subtitles"
+      }
+    ],
+      "warnings": []
+  },
+  {
+      "attachments": [],
+      "chapters": [
+      {
+          "num_entries": 16
+      }
+    ],
+      "container": {
+        "properties": {
+          "container_type": 17,
+          "duration": 6080074000000,
+          "is_providing_timecodes": true,
+          "segment_uid": "852d09864c829f0bb2fcfe4f7cec65b7",
+          "title": "Zathura: A Space Adventure 3 (2005)"
+      },
+        "recognized": true,
+        "supported": true,
+        "type": "Matroska"
+    },
+      "errors": [],
+      "file_name": "zathura3.mkv",
+      "global_tags": [],
+      "identification_format_version": 2,
+      "track_tags": [],
+      "tracks": [
+      {
+          "codec": "MPEG-4p10/AVC/h.264",
+          "id": 0,
+          "properties": {
+            "codec_id": "V_MPEG4/ISO/AVC",
+            "codec_private_data": "01640029ffe1001867640029acc8501e0083fa8400000fa40002ee023c60c65801000668e9386cb22c",
+            "codec_private_length": 41,
+            "default_duration": 41708333,
+            "default_track": true,
+            "display_dimensions": "1920x1038",
+            "enabled_track": true,
+            "forced_track": false,
+            "language": "eng",
+            "number": 1,
+            "packetizer": "mpeg4_p10_video",
+            "pixel_dimensions": "1920x1038",
+            "track_name": "Zathura: A Space Adventure (2005)",
+            "uid": 651697575
+        },
+          "type": "video"
+      },
+      {
+          "codec": "DTS",
+          "id": 1,
+          "properties": {
+            "audio_channels": 6,
+            "audio_sampling_frequency": 48000,
+            "codec_id": "A_DTS",
+            "codec_private_length": 0,
+            "default_track": true,
+            "enabled_track": true,
+            "forced_track": false,
+            "language": "eng",
+            "number": 2,
+            "uid": 1785271955
+        },
+          "type": "audio"
+      },
+      {
+          "codec": "SubRip/SRT",
+          "id": 2,
+          "properties": {
+            "codec_id": "S_TEXT/UTF8",
+            "codec_private_length": 0,
+            "default_track": false,
+            "enabled_track": false,
+            "forced_track": false,
+            "language": "dut",
+            "number": 3,
+            "text_subtitles": true,
+            "uid": 1293880464
+        },
+          "type": "subtitles"
+      }
+    ],
+      "warnings": []
+  }
+]
