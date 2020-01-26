@@ -19,9 +19,9 @@ module.exports = function () {
   const app = this
   app.configure(settings)
   app.configure(movies)
-  app.configure(diskScanner)
   app.configure(mediaScraper)
   app.configure(metadataEditor)
+  app.configure(diskScanner)
   app.configure(jobs)
   app.configure(jobWorkers)
   app.service('job-workers').create([
