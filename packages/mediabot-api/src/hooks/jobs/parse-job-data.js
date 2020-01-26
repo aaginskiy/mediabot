@@ -1,43 +1,53 @@
 const { checkContext } = require('feathers-hooks-common')
 const { NotImplemented } = require('@feathersjs/errors')
 
+function updateContextData (data, app) {
+  data.status = 'queued'
+  data.progress = 0
+
+  switch (data.name) {
+    case 'ScanMediaLibrary':
+      data.priority = 'high'
+      data.service = 'utils/disk-scanner'
+      data.function = 'scanMediaLibrary'
+      data.args = [app.get('movieDirectory')]
+      break
+    case 'RefreshAllMediainfo':
+      data.priority = 'high'
+      data.service = 'utils/disk-scanner'
+      data.function = 'refreshAllMediainfo'
+      data.args = [app.get('movieDirectory')]
+      break
+    case 'RefreshMediainfo':
+      data.priority = 'high'
+      data.service = 'utils/disk-scanner'
+      data.function = 'refreshMediainfo'
+      break
+    case 'MuxMovie':
+      data.priority = 'normal'
+      data.service = 'movies'
+      data.function = 'mux'
+      break
+    case 'AutoScrapeMovie':
+      data.priority = 'high'
+      data.service = 'media-scraper'
+      data.function = 'autoScrapeMovie'
+      break
+    default:
+      throw new NotImplemented(`Command '${data.name}' is not implemented.`)
+  }
+
+  return data
+}
+
 module.exports = function (options = {}) {
   return context => {
     checkContext(context, 'before', ['create', 'patch'], 'parseJobData')
 
-    context.data.status = 'queued'
-    context.data.progress = 0
-
-    switch (context.data.name) {
-      case 'ScanMediaLibrary':
-        context.data.priority = 'high'
-        context.data.service = 'utils/disk-scanner'
-        context.data.function = 'scanMediaLibrary'
-        context.data.args = [context.app.get('settings').movieDirectory]
-        break
-      case 'RefreshAllMediainfo':
-        context.data.priority = 'high'
-        context.data.service = 'utils/disk-scanner'
-        context.data.function = 'refreshAllMediainfo'
-        context.data.args = [context.app.get('settings').movieDirectory]
-        break
-      case 'RefreshMediainfo':
-        context.data.priority = 'high'
-        context.data.service = 'utils/disk-scanner'
-        context.data.function = 'refreshMediainfo'
-        break
-      case 'MuxMovie':
-        context.data.priority = 'normal'
-        context.data.service = 'movies'
-        context.data.function = 'mux'
-        break
-      case 'AutoScrapeMovie':
-        context.data.priority = 'high'
-        context.data.service = 'media-scraper'
-        context.data.function = 'autoScrapeMovie'
-        break
-      default:
-        throw new NotImplemented(`Command '${context.data.name}' is not implemented.`)
+    if (!Array.isArray(context.data)) {
+      context.data = updateContextData(context.data, context.app)
+    } else {
+      context.data = context.data.map(item => updateContextData(item, context.app))
     }
 
     return context
