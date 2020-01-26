@@ -13,6 +13,70 @@ class Service {
     this.app = app
   }
 
+  executeTrackRule (track, rule) {
+    let isConditionMatched = rule.conditions.reduce((accumulater, condition) => {
+      return accumulater && this['match' + condition.matcher](get(track, condition.parameter), condition.value)
+    })
+    let modifiedTrack = track
+    if (isConditionMatched) {
+      rule.actions.forEach(action => {
+        modifiedTrack = this['execute' + action.type](modifiedTrack, action.parameter, action.value)
+      })
+    }
+
+    return modifiedTrack
+  }
+
+  checkRules (movie, rules, metadata) {
+    let checkStatus
+    rules.forEach(rule => {
+      if (rule.type === 'track') {
+        movie.tracks.forEach(track => {
+          checkStatus = checkStatus && this.checkTrackRule(track, rule)
+        })
+      }
+    })
+  }
+
+  checkTrackRule (track, rule) {
+    let isConditionMatched = rule.conditions.reduce((accumulater, condition) => {
+      return accumulater && this['match' + condition.matcher](get(track, condition.parameter), condition.value)
+    }, true)
+
+    let checkStatus = true
+
+    if (isConditionMatched) {
+      checkStatus = rule.actions.reduce((accumulater, rule) => {
+        return accumulater && this['check' + rule.type](track, rule.parameter, rule.value)
+      }, true)
+    }
+    return checkStatus
+  }
+
+  matchEql (actualVal, checkVal) {
+    return actualVal === checkVal
+  }
+
+  matchNotEql (actualVal, checkVal) {
+    return actualVal !== checkVal
+  }
+
+  executeSet (track, parameter, value) {
+    return set(track, parameter, value)
+  }
+
+  checkSet (track, parameter, value) {
+    return get(track, parameter) === value
+  }
+
+  executeRemove (track, parameter, value) {
+    return set(track, parameter, value)
+  }
+
+  checkRemove (track, parameter, value) {
+    return get(track, 'isMuxed') === false
+  }
+
   /**
    * DiskScannerService#refreshMediainfo
    *
