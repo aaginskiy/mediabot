@@ -3,6 +3,7 @@ const feathers = require('@feathersjs/feathers')
 const logger = require('feathers-logger')
 const MetadataEditorService = require('../metadata-editor.service')
 const {tracks, rules} = require('../__fixtures__/media-tracks.fixture')
+const movies = require('../__fixtures__/movies.fixture')
 
 describe('\'Metadata Editor\' service', () => {
   let app, MetadataEditor
@@ -42,5 +43,13 @@ describe('\'Metadata Editor\' service', () => {
       track.type = 'video'
       expect(MetadataEditor.checkTrackRule(track, rules.removeFrenchAudio)).toBe(true)
     })
+  })
+
+  describe('#checkRules', () => {
+    it('returns false if any rule is not followed', () =>
+      expect(MetadataEditor.checkRules(movies.withNonEngSubtitlesUnfixed, [rules.removeNonEngAudio])).toBe(false))
+
+    it('returns true if all rules are followed', () =>
+      expect(MetadataEditor.checkRules(movies.withNonEngSubtitlesFixed, [rules.removeNonEngAudio])).toBe(true))
   })
 })

@@ -28,7 +28,7 @@ class Service {
   }
 
   checkRules (movie, rules, metadata) {
-    let checkStatus
+    let checkStatus = true
     rules.forEach(rule => {
       if (rule.type === 'track') {
         movie.tracks.forEach(track => {
@@ -36,6 +36,7 @@ class Service {
         })
       }
     })
+    return checkStatus
   }
 
   checkTrackRule (track, rule) {

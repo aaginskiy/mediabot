@@ -27,4 +27,20 @@ rules.removeFrenchAudio = {
   }]
 }
 
+rules.removeNonEngAudio = {
+  type: 'track',
+  conditions: [{
+    matcher: 'Eql',
+    parameter: 'type',
+    value: 'audio'
+  }, {
+    matcher: 'NotEql',
+    parameter: 'language',
+    value: 'eng'
+  }],
+  actions: [{
+    type: 'Remove'
+  }]
+}
+
 module.exports = { tracks, rules }
