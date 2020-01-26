@@ -63,7 +63,8 @@ class Service {
         movie.id = res.imdb_id
         movie.tmdbid = res.id
         movie.title = res.title
-        movie.originaltitle = res.original_title
+        movie.originalTitle = res.original_title
+        movie.originalLanguage = res.original_language
         movie.tagline = res.tagline
         movie.plot = res.overview
         movie.outline = res.overview

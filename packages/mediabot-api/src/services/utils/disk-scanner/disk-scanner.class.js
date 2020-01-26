@@ -48,7 +48,7 @@ class Service {
         metadata.movieInfo.tmdbid = _.get(nfo, 'uniqueid.tmdbid')
 
         if (metadata.movieInfo.tmdbid) {
-          metadata.tmdbInfo = await this.MediaScraper.scrapeMovieById(metadata.movieInfo.tmdbid)
+          metadata.tmdbInfo = await this.MediaScraper.scrapeMoviebyTmdbId(metadata.movieInfo.tmdbid)
             .catch(e => ({}))
         } else if (metadata.movieInfo.title) {
           metadata.tmdbInfo = await this.MediaScraper.scrapeMovieByName(metadata.movieInfo.title, metadata.movieInfo.year)
@@ -56,7 +56,6 @@ class Service {
         } else {
           metadata.tmdbInfo = {}
         }
-
         return metadata
       })
       .then((metadata) => { this.Movies.update(id, metadata, {skipWrite: true}) })
