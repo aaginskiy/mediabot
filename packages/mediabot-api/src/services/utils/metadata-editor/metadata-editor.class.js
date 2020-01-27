@@ -13,10 +13,36 @@ class Service {
     this.app = app
   }
 
+  executeRules (movie, rules) {
+    rules.forEach(rule => {
+      rule.conditions = rule.conditions.map(condition => {
+        if (typeof condition.value === 'object') {
+          condition.value = get(movie, condition.value.location + '.' + condition.value.path)
+        }
+        return condition
+      })
+
+      rule.actions = rule.actions.map(action => {
+        if (typeof action.value === 'object') {
+          action.value = get(movie, action.value.location + '.' + action.value.path)
+        }
+        return action
+      })
+
+      if (rule.type === 'track') {
+        movie.tracks = movie.tracks.map(track => {
+          return this.executeTrackRule(track, rule)
+        })
+      }
+    })
+    return movie
+  }
+
   executeTrackRule (track, rule) {
     let isConditionMatched = rule.conditions.reduce((accumulater, condition) => {
       return accumulater && this['match' + condition.matcher](get(track, condition.parameter), condition.value)
-    })
+    }, true)
+
     let modifiedTrack = track
     if (isConditionMatched) {
       rule.actions.forEach(action => {
@@ -27,9 +53,23 @@ class Service {
     return modifiedTrack
   }
 
-  checkRules (movie, rules, metadata) {
+  checkRules (movie, rules) {
     let checkStatus = true
     rules.forEach(rule => {
+      rule.conditions = rule.conditions.map(condition => {
+        if (typeof condition.value === 'object') {
+          condition.value = get(movie, condition.value.location + '.' + condition.value.path)
+        }
+        return condition
+      })
+
+      rule.actions = rule.actions.map(action => {
+        if (typeof action.value === 'object') {
+          action.value = get(movie, action.value.location + '.' + action.value.path)
+        }
+        return action
+      })
+
       if (rule.type === 'track') {
         movie.tracks.forEach(track => {
           checkStatus = checkStatus && this.checkTrackRule(track, rule)
@@ -47,8 +87,8 @@ class Service {
     let checkStatus = true
 
     if (isConditionMatched) {
-      checkStatus = rule.actions.reduce((accumulater, rule) => {
-        return accumulater && this['check' + rule.type](track, rule.parameter, rule.value)
+      checkStatus = rule.actions.reduce((accumulater, action) => {
+        return accumulater && this['check' + action.type](track, action.parameter, action.value)
       }, true)
     }
     return checkStatus
@@ -71,7 +111,7 @@ class Service {
   }
 
   executeRemove (track, parameter, value) {
-    return set(track, parameter, value)
+    return set(track, 'isMuxed', false)
   }
 
   checkRemove (track, parameter, value) {

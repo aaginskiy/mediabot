@@ -1,10 +1,13 @@
 const { cloneDeep } = require('lodash')
 
-let withNonEngSubtitlesFixed = {
+let withNonEnSubtitlesFixed = {
   'title': 'Captain Marvel 4K',
   'filename': '/Movies/UHD/Captain Marvel (2019)/Captain.Marvel (2019).mkv',
+  movieInfo: {
+    originalLanguage: 'en'
+  },
   'tracks': [{
-    'language': 'eng',
+    'language': 'en',
     'number': 0,
     'newNumber': 0,
     'type': 'video',
@@ -16,7 +19,7 @@ let withNonEngSubtitlesFixed = {
   },
   {
     'name': 'TrueHD Atmos 7.1',
-    'language': 'eng',
+    'language': 'en',
     'number': 1,
     'newNumber': 1,
     'type': 'audio',
@@ -29,7 +32,7 @@ let withNonEngSubtitlesFixed = {
   },
   {
     'name': 'Commentary by Directors/Screenwriters Anna Boden/Ryan Fleck',
-    'language': 'fra',
+    'language': 'fr',
     'number': 3,
     'newNumber': 3,
     'type': 'audio',
@@ -43,11 +46,11 @@ let withNonEngSubtitlesFixed = {
   ]
 }
 
-let withNonEngSubtitlesUnfixed = cloneDeep(withNonEngSubtitlesFixed)
+let withNonEnSubtitlesUnfixed = cloneDeep(withNonEnSubtitlesFixed)
 
-withNonEngSubtitlesUnfixed.tracks[2].isMuxed = true
+withNonEnSubtitlesUnfixed.tracks[2].isMuxed = true
 
 module.exports = {
-  withNonEngSubtitlesUnfixed,
-  withNonEngSubtitlesFixed
+  withNonEnSubtitlesUnfixed,
+  withNonEnSubtitlesFixed
 }

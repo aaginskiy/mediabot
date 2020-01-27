@@ -4,7 +4,7 @@ let rules = {}
 tracks.frenchAudioTrack = {
   name: 'Track Name',
   type: 'audio',
-  language: 'fra',
+  language: 'fr',
   isDefault: true,
   isEnabled: true,
   isForced: true,
@@ -20,14 +20,14 @@ rules.removeFrenchAudio = {
   }, {
     matcher: 'Eql',
     parameter: 'language',
-    value: 'fra'
+    value: 'fr'
   }],
   actions: [{
     type: 'Remove'
   }]
 }
 
-rules.removeNonEngAudio = {
+rules.removeNonEnAudio = {
   type: 'track',
   conditions: [{
     matcher: 'Eql',
@@ -36,10 +36,46 @@ rules.removeNonEngAudio = {
   }, {
     matcher: 'NotEql',
     parameter: 'language',
-    value: 'eng'
+    value: 'en'
   }],
   actions: [{
     type: 'Remove'
+  }]
+}
+
+rules.removeNonOriginalLanguageAudio = {
+  type: 'track',
+  conditions: [{
+    matcher: 'Eql',
+    parameter: 'type',
+    value: 'audio'
+  }, {
+    matcher: 'NotEql',
+    parameter: 'language',
+    value: {
+      location: 'movieInfo',
+      path: 'originalLanguage'
+    }
+  }],
+  actions: [{
+    type: 'Remove'
+  }]
+}
+
+rules.changeNonOriginalLanguageAudio = {
+  type: 'track',
+  conditions: [{
+    matcher: 'Eql',
+    parameter: 'type',
+    value: 'audio'
+  }],
+  actions: [{
+    type: 'Set',
+    parameter: 'language',
+    value: {
+      location: 'movieInfo',
+      path: 'originalLanguage'
+    }
   }]
 }
 
