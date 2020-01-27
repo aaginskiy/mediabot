@@ -21,6 +21,7 @@ class Service {
     this.Movies = app.service('movies')
     this.Jobs = app.service('jobs')
     this.MediaScraper = app.service('utils/media-scraper')
+    this.MetadataEditor = app.service('utils/metadata-editor')
 
     this.watcher = null
   }
@@ -56,6 +57,10 @@ class Service {
         } else {
           metadata.tmdbInfo = {}
         }
+        return metadata
+      })
+      .then((metadata) => {
+        metadata.isFixed = this.MetadataEditor.checkRules(metadata, this.app.get('metadataRules'))
         return metadata
       })
       .then((metadata) => { this.Movies.update(id, metadata, {skipWrite: true}) })
