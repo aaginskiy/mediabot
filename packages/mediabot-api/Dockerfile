@@ -19,4 +19,4 @@ COPY . .
 VOLUME /usr/src/app/config /movies
 EXPOSE 3030
 
-CMD [ "npm", "start" ]
+CMD [ "npm", "run", "start" ]

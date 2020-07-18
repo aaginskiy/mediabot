@@ -18,7 +18,7 @@
     "test": "test/api/"
   },
   "engines": {
-    "node": ">= 6.0.0",
+    "node": ">= 14.0.0",
     "yarn": ">= 0.18.0"
   },
   "scripts": {
@@ -27,16 +27,19 @@
     "jest:watch": "jest --watch --verbose false",
     "release": "standard-version",
     "lint": "standard --fix",
-    "start": "nodemon src/"
+    "start:monitor": "nodemon src/",
+    "start": "node src/"
   },
   "dependencies": {
-    "@feathersjs/configuration": "^1.0.2",
-    "@feathersjs/errors": "^3.2.2",
-    "@feathersjs/express": "^1.1.2",
-    "@feathersjs/feathers": "^3.1.0",
-    "@feathersjs/socketio": "^3.1.0",
+    "@feathersjs/authentication-oauth": "^4.5.4",
+    "@feathersjs/configuration": "^4.5.3",
+    "@feathersjs/errors": "^4.5.3",
+    "@feathersjs/express": "^4.5.4",
+    "@feathersjs/feathers": "^4.5.3",
+    "@feathersjs/socketio": "^4.5.4",
     "@mediabot/tmdb": "aaginskiy/tmdb",
     "body-parser": "^1.18.2",
+    "commitizen": "^4.1.2",
     "compression": "^1.7.1",
     "cors": "^2.8.4",
     "feathers-hooks-common": "^4.11.1",
@@ -46,11 +49,14 @@
     "fluent-ffmpeg": "^2.1.2",
     "glob": "^7.1.2",
     "glob-promise": "^3.2.0",
+    "global": "^4.4.0",
     "got": "^8.3.1",
     "helmet": "^3.9.0",
+    "lerna": "^3.20.2",
     "lodash": "^4.17.4",
     "minimist": "^1.2.0",
     "nedb": "^1.8.0",
+    "nodemon": "^2.0.4",
     "serve-favicon": "^2.4.5",
     "shellwords": "^0.1.1",
     "to": "^0.2.9",
@@ -60,6 +66,7 @@
   },
   "devDependencies": {
     "coveralls": "^3.0.0",
+    "git-cz": "^4.7.0",
     "jest": "^23.6.0",
     "jest-chain": "^1.0.5",
     "jest-circus": "^23.6.0",
@@ -73,6 +80,15 @@
   },
   "jest": {
     "setupTestFrameworkScriptFile": "jest-extended",
-    "coverageReporters": ["text-summary", "lcov", "html"]
+    "coverageReporters": [
+      "text-summary",
+      "lcov",
+      "html"
+    ]
+  },
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/git-cz"
+    }
   }
 }

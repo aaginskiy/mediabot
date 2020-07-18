@@ -10,11 +10,11 @@ const xml2js = require('xml2js')
 const { get } = require('lodash')
 
 class Service {
-  constructor (options) {
+  constructor(options) {
     this.options = options || {}
   }
 
-  setup (app) {
+  setup(app) {
     this.app = app
     tmdb = new TmdbScraper('9cc56c731a06623343d19ce2f7a3c982')
   }
@@ -31,16 +31,17 @@ class Service {
    * @param {Number} year Release year of the movie to search
    * @returns {Object} Promise Promise that resolves to TMDB ID
    */
-  findTmdbId (name, year) {
-    return tmdb.search.movie({
-      query: name,
-      year: year
-    })
-      .then(res => res.results[0].id)
+  findTmdbId(name, year) {
+    return tmdb.search
+      .movie({
+        query: name,
+        year: year,
+      })
+      .then((res) => res.results[0].id)
   }
 
   /**
-   * MediaScraperService#scrapeMoviebyTmdbId
+   * MediaScraperService#scrapeMovieByTmdbId
    *
    * Loads all movies media directory. Existing movies are refreshed,
    * new movies are added, and missing movies are removed.
@@ -50,14 +51,15 @@ class Service {
    * @param {Number} id TMDB ID
    * @returns {Object} Promise Promise that resolves to metadata
    */
-  scrapeMoviebyTmdbId (id) {
+  scrapeMovieByTmdbId(id) {
     this.app.info(`Loading information for movie (TMDB ID: ${id}) from TMDB.`, {
-      label: 'MediaScraperService'
+      label: 'MediaScraperService',
     })
-    return tmdb.movie({
-      id
-    })
-      .then(res => {
+    return tmdb
+      .movie({
+        id,
+      })
+      .then((res) => {
         let movie = {}
 
         movie.id = res.imdb_id
@@ -71,20 +73,20 @@ class Service {
         movie.runtime = res.runtime
         movie.year = res.release_date
         // movie.rating = res.vote_average
-        movie.genre = res.genres.map(genre => genre.name)
-        movie.studio = res.production_companies.map(studio => studio.name)
+        movie.genre = res.genres.map((genre) => genre.name)
+        movie.studio = res.production_companies.map((studio) => studio.name)
         movie.fanart = res.backdrop_path
         movie.poster = res.poster_path
 
         return movie
       })
-      .catch(err => {
+      .catch((err) => {
         this.app.error(`Unable to scrape movie (TMDB ID: ${id}) from TMDB.`)
         this.app.debug(err.message, {
-          label: 'MediaScraperService'
+          label: 'MediaScraperService',
         })
         this.app.debug(err.stack, {
-          label: 'MediaScraperService'
+          label: 'MediaScraperService',
         })
         throw err
       })
@@ -102,13 +104,13 @@ class Service {
    * @param {Number} year Release year of the movie to search
    * @returns {Object} Promise Promise that resolves to metadata
    */
-  scrapeMoviebyName (name, year) {
+  scrapeMoviebyName(name, year) {
     this.app.info(`Loading information for movie (${name} - ${year}) from TMDB.`, {
-      label: 'MediaScraperService'
+      label: 'MediaScraperService',
     })
     return this.findTmdbId(name, year)
-      .then(id => tmdb.movie({id}))
-      .then(res => {
+      .then((id) => tmdb.movie({ id }))
+      .then((res) => {
         let movie = {}
 
         movie.id = res.imdb_id
@@ -121,91 +123,129 @@ class Service {
         movie.runtime = res.runtime
         movie.year = res.release_date
         // movie.rating = res.vote_average
-        movie.genre = res.genres.map(genre => genre.name)
-        movie.studio = res.production_companies.map(studio => studio.name)
+        movie.genre = res.genres.map((genre) => genre.name)
+        movie.studio = res.production_companies.map((studio) => studio.name)
         movie.fanart = res.backdrop_path
         movie.poster = res.poster_path
 
         return movie
       })
-      .catch(err => {
+      .catch((err) => {
         this.app.error(`Unable to scrape movie (${name} - ${year}) from TMDB.`)
         this.app.debug(err.message, {
-          label: 'MediaScraperService'
+          label: 'MediaScraperService',
         })
         this.app.debug(err.stack, {
-          label: 'MediaScraperService'
+          label: 'MediaScraperService',
         })
         throw err
       })
   }
 
-  buildXmlNfo (movie) {
+  buildXmlNfo(movie) {
     var builder = new xml2js.Builder({
-      rootName: 'movie'
+      rootName: 'movie',
     })
     return builder.buildObject(movie)
   }
 
-  async autoScrapeMovie (name, year, filename) {
-    this.app.debug(`Auto scraping movie with name: ${name}, year: ${year}, filename: ${filename}.`, {
-      label: 'MediaScrapeService'
-    })
+  async autoScrapeMovie(name, year, filename) {
+    this.app.debug(
+      `Auto scraping movie with name: ${name}, year: ${year}, filename: ${filename}.`,
+      {
+        label: 'MediaScrapeService',
+      }
+    )
     const writeFile = util.promisify(fs.writeFile)
 
     return this.autoSearchMovie(name, year)
-      .then(id => this.scrapeTmdbMovie(id))
-      .then(movie => {
-        let {
-          dir,
-          name
-        } = path.parse(filename)
-        this.downloadImage(`https://image.tmdb.org/t/p/original${movie.fanart}`, `${dir}/${name}-fanart.jpg`)
-        this.downloadImage(`https://image.tmdb.org/t/p/original${movie.poster}`, `${dir}/${name}-poster.jpg`)
+      .then((id) => this.scrapeTmdbMovie(id))
+      .then((movie) => {
+        let { dir, name } = path.parse(filename)
+        this.downloadImage(
+          `https://image.tmdb.org/t/p/original${movie.fanart}`,
+          `${dir}/${name}-fanart.jpg`
+        )
+        this.downloadImage(
+          `https://image.tmdb.org/t/p/original${movie.poster}`,
+          `${dir}/${name}-poster.jpg`
+        )
         return writeFile(`${dir}/${name}.nfo`, this.buildXmlNfo(movie))
       })
-      .catch(err => {
+      .catch((err) => {
         this.app.error(err.message, {
-          label: 'MediaScrapeService'
+          label: 'MediaScrapeService',
         })
         this.app.debug(err.stack, {
-          label: 'MediaScrapeService'
+          label: 'MediaScrapeService',
         })
         throw err
       })
   }
 
-  downloadImage (uri, filename) {
+  async autoScrapeMovieByTmdbId(id, filename) {
+    this.app.info(`Auto scraping movie with TMDB ID: ${id}.`, {
+      label: 'MediaScrapeService',
+    })
+    const writeFile = util.promisify(fs.writeFile)
+
+    return this.scrapeMovieByTmdbId(id)
+      .then((movie) => {
+        let { dir, name } = path.parse(filename)
+        this.downloadImage(
+          `https://image.tmdb.org/t/p/original${movie.fanart}`,
+          `${dir}/${name}-fanart.jpg`
+        )
+        this.downloadImage(
+          `https://image.tmdb.org/t/p/original${movie.poster}`,
+          `${dir}/${name}-poster.jpg`
+        )
+        return writeFile(`${dir}/${name}.nfo`, this.buildXmlNfo(movie))
+      })
+      .catch((err) => {
+        this.app.error(err.message, {
+          label: 'MediaScrapeService',
+        })
+        this.app.debug(err.stack, {
+          label: 'MediaScrapeService',
+        })
+        throw err
+      })
+  }
+
+  downloadImage(uri, filename) {
     return new Promise((resolve, reject) => {
       var file = fs.createWriteStream(filename)
       got
         .stream(uri)
-        .on('error', err => {
+        .on('error', (err) => {
           this.app.error(err.message, {
-            label: 'MediaScrapeService'
+            label: 'MediaScrapeService',
           })
           this.app.debug(err.stack, {
-            label: 'MediaScrapeService'
+            label: 'MediaScrapeService',
           })
           file.end()
           reject(err)
         })
-        .pipe(file
-          .on('error', err => {
-            this.app.error(err.message, {
-              label: 'MediaScrapeService'
+        .pipe(
+          file
+            .on('error', (err) => {
+              this.app.error(err.message, {
+                label: 'MediaScrapeService',
+              })
+              this.app.debug(err.stack, {
+                label: 'MediaScrapeService',
+              })
+              reject(err)
             })
-            this.app.debug(err.stack, {
-              label: 'MediaScrapeService'
-            })
-            reject(err)
-          })
-          .on('close', () => resolve()))
+            .on('close', () => resolve())
+        )
     })
   }
 }
 
-module.exports = function moduleExport (options) {
+module.exports = function moduleExport(options) {
   return new Service(options)
 }
 

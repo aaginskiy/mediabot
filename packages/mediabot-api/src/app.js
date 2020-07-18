@@ -62,8 +62,8 @@ const socketio = require('@feathersjs/socketio')
 
 // const swagger = require('feathers-swagger');
 
-const handler = require('@feathersjs/express/errors')
-const notFound = require('@feathersjs/errors/not-found')
+const handler = require('@feathersjs/express').errorHandler
+const { NotFound, GeneralError, BadRequest } = require('@feathersjs/errors')
 
 const middleware = require('./middleware')
 const services = require('./services')
@@ -84,7 +84,7 @@ app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: true }))
 // app.use(favicon(path.join(app.get('public'), 'favicon.ico')));
 // Host the public folder
-app.use('/', express.static(app.get('public')))
+// app.use('/', express.static(app.get('public')))
 
 app.configure(rest())
 app.configure(socketio())
@@ -95,7 +95,7 @@ app.configure(middleware)
 app.configure(services)
 app.configure(channels)
 // Configure a middleware for 404s and the error handler
-app.use(notFound())
+// app.use(NotFound())
 app.use(handler())
 
 app.hooks(appHooks)
@@ -115,7 +115,7 @@ const logFormat = winston.format.combine(
   winston.format.timestamp(),
   winston.format.colorize(),
   winston.format.align(),
-  winston.format.printf(info => {
+  winston.format.printf((info) => {
     if (info.isString) {
       return `${info.timestamp} [${info.label}] ${info.level}: ${info.message}`
     } else {
@@ -130,27 +130,31 @@ const wlog = winston.createLogger({
   transports: [
     new winston.transports.File({
       filename: 'logs/error.log',
-      level: 'error'
+      level: 'error',
     }),
     new winston.transports.File({
-      filename: 'logs/combined.log'
-    })
-  ]
+      filename: 'logs/combined.log',
+    }),
+  ],
 })
 
 if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV.toLowerCase() !== 'test') {
-  wlog.add(new winston.transports.Console({
-    level: 'debug',
-    format: logFormat
-  }))
+  wlog.add(
+    new winston.transports.Console({
+      level: 'debug',
+      format: logFormat,
+    })
+  )
 }
 
 if (process.env.NODE_ENV.toLowerCase() === 'test') {
-  wlog.add(new winston.transports.File({
-    filename: 'test/logs/mocha.log',
-    level: 'debug',
-    format: logFormat
-  }))
+  wlog.add(
+    new winston.transports.File({
+      filename: 'test/logs/mocha.log',
+      level: 'debug',
+      format: logFormat,
+    })
+  )
 }
 
 app.configure(logger(wlog))
