@@ -1,0 +1,20 @@
+{
+  "folders": [
+    {
+      "name": "✨ root",
+      "path": "."
+    },
+    {
+      "name": "📦 mediabot",
+      "path": "packages/mediabot"
+    },
+    {
+      "name": "📦 mediabot-gui",
+      "path": "packages/mediabot-gui"
+    }
+  ],
+  "settings": {
+    "jest.pathToJest": "node_modules/.bin/jest",
+    "jest.disabledWorkspaceFolders": ["✨ root", "📦 mediabot-gui"]
+  }
+}

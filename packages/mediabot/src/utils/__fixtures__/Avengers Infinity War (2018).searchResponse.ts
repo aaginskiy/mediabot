@@ -1,0 +1,41 @@
+export default {
+  page: 1,
+  total_results: 2,
+  total_pages: 1,
+  results: [
+    {
+      popularity: 72.223,
+      vote_count: 19189,
+      video: false,
+      poster_path: '/7WsyChQLEftFiDOVTGkv3hFpyyt.jpg',
+      id: 299536,
+      adult: false,
+      backdrop_path: '/bOGkgRGdhrBYJSLpXaxhXVstddV.jpg',
+      original_language: 'en',
+      original_title: 'Avengers: Infinity War',
+      genre_ids: [28, 12, 878],
+      title: 'Avengers: Infinity War',
+      vote_average: 8.3,
+      overview:
+        'As the Avengers and their allies have continued to protect the world from threats too large for any one hero to handle, a new danger has emerged from the cosmic shadows: Thanos. A despot of intergalactic infamy, his goal is to collect all six Infinity Stones, artifacts of unimaginable power, and use them to inflict his twisted will on all of reality. Everything the Avengers have fought for has led up to this moment - the fate of Earth and existence itself has never been more uncertain.',
+      release_date: '2018-04-25',
+    },
+    {
+      popularity: 63.062,
+      vote_count: 14468,
+      video: false,
+      poster_path: '/or06FN3Dka5tukK1e9sl16pB3iy.jpg',
+      id: 299534,
+      adult: false,
+      backdrop_path: '/7RyHsO4yDXtBv1zUU3mTpHeQ0d5.jpg',
+      original_language: 'en',
+      original_title: 'Avengers: Endgame',
+      genre_ids: [28, 12, 878],
+      title: 'Avengers: Endgame',
+      vote_average: 8.3,
+      overview:
+        "After the devastating events of Avengers: Infinity War, the universe is in ruins due to the efforts of the Mad Titan, Thanos. With the help of remaining allies, the Avengers must assemble once more in order to undo Thanos' actions and restore order to the universe once and for all, no matter what consequences may be in store.",
+      release_date: '2019-04-24',
+    },
+  ],
+}
