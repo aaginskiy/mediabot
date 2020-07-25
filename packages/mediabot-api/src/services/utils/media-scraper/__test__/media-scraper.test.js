@@ -41,7 +41,7 @@ var options = {
 
 var MediaScraper = require('../media-scraper.service')
 
-describe("'Scrape' service", () => {
+describe.skip("'Scrape' service", () => {
   beforeAll(() => {
     app = feathers()
     app.configure(logger())

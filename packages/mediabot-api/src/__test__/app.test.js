@@ -2,7 +2,7 @@
 const rp = require('request-promise')
 const app = require('../app')
 
-describe('Feathers application tests', () => {
+describe.skip('Feathers application tests', () => {
   beforeAll(function(done) {
     this.server = app.listen(3434)
     this.server.once('listening', () => {

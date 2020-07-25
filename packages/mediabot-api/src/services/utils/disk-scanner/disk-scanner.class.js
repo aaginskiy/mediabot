@@ -37,14 +37,14 @@ class Service {
    * @returns Promise Promise to resolve metadata from a file.
    */
   async refreshMediainfo(id, filename) {
-    return this._loadMediainfoFromFile(filename)
+    return this.loadMediainfoFromFile(filename)
       .then(async (metadata) => {
         let nfoFilename = path.join(
           path.dirname(metadata.filename),
           path.basename(metadata.filename, path.extname(metadata.filename)) + '.nfo'
         )
 
-        let nfo = await this._loadMetadataFromNfo(nfoFilename)
+        let nfo = await this.loadMetadataFromNfo(nfoFilename)
         metadata.localInfo = nfo
         metadata.movieInfo = {}
         metadata.movieInfo.title = _.get(nfo, 'title')
@@ -173,7 +173,7 @@ class Service {
     let data = await this.Movies.get(id)
     data = this.MetadataEditor.executeRules(data, this.app.get('metadataRules'))
     const fixEvent = new EventEmitter()
-    let muxEvent = this._mux(id, data)
+    let muxEvent = this.mux(id, data)
 
     muxEvent.on('error', (error) => fixEvent.emit('error', error))
     muxEvent.on('progress', (progress) => fixEvent.emit('progress', progress))
@@ -239,13 +239,11 @@ class Service {
   }
 
   _createMediaFromMediainfo(filename) {
-    return this._loadMediainfoFromFile(filename).then((metadata) =>
-      this.Movies.create(metadata, {})
-    )
+    return this.loadMediainfoFromFile(filename).then((metadata) => this.Movies.create(metadata, {}))
   }
 
   /**
-   * DiskScannerService#_loadMediainfoFromFile
+   * DiskScannerService#loadMediainfoFromFile
    *
    * Loads media metadata, artwork and directory files from disk.
    *
@@ -254,7 +252,7 @@ class Service {
    * @param {String} filename Filename of the media to load.
    * @returns Promise Promise to resolve metadata from a file.
    */
-  _loadMediainfoFromFile(filename) {
+  loadMediainfoFromFile(filename) {
     this.app.info('Loading requested movie metadata from the disk.', {
       label: 'DiskScannerService',
     })
@@ -363,7 +361,7 @@ class Service {
   }
 
   /**
-   * DiskScannerService#_loadMetadataFromNfo
+   * DiskScannerService#loadMetadataFromNfo
    *
    * Loads media metadata from local nfo file
    *
@@ -372,7 +370,7 @@ class Service {
    * @param {String} filename Filename of the nfo file to load.
    * @returns Promise Promise to resolve metadata from nfo.
    */
-  async _loadMetadataFromNfo(filename) {
+  async loadMetadataFromNfo(filename) {
     return readFile(filename)
       .then((nfo) =>
         new xml2js.Parser({
@@ -415,7 +413,7 @@ class Service {
   }
 
   /**
-   * DiskScannerService#_saveMediainfo
+   * DiskScannerService#saveMediainfo
    *
    * Updates mkv file properties with data.  If id is present, filename is extracted from
    * that movie object.
@@ -424,15 +422,14 @@ class Service {
    * @returns Promise
    * @memberof DiskScannerService
    */
-  async _saveMediainfo(id, mediainfo) {
-    console.log(id)
+  async saveMediainfo(id, mediainfo) {
     this.app.info(`Patching movie #${id} metadata to file.`, { label: 'MediaFileService' })
 
     const exec = util.promisify(childProcess.exec)
 
     const movieData = await this.Movies.get(id)
     return exec(
-      `mkvpropedit -v ${shellwords.escape(movieData.filename)} ${this._generateInfoCommand(
+      `mkvpropedit -v ${shellwords.escape(movieData.filename)} ${this.generateInfoCommand(
         mediainfo
       )}`
     ).catch((err) => {
@@ -441,7 +438,7 @@ class Service {
     })
   }
 
-  _generateInfoCommand(data) {
+  generateInfoCommand(data) {
     let command = `--edit info --set "title=${data.title}"`
 
     if (!data.tracks) return command
@@ -470,7 +467,7 @@ class Service {
     return command
   }
 
-  _generateMergeCommand(data) {
+  generateMergeCommand(data) {
     const base = path.basename(data.filename, '.mkv')
     const dir = path.dirname(data.filename)
 
@@ -534,7 +531,7 @@ class Service {
     return commandObj.command
   }
 
-  _mux(id, data) {
+  mux(id, data) {
     this.app.silly('Called MediaFile#mux with:', { label: 'MediaFileService' })
     this.app.silly({ id: id, data: data }, { label: 'MediaFileService' })
 
@@ -542,7 +539,7 @@ class Service {
     const unlink = util.promisify(fs.unlink)
 
     const muxEvent = new EventEmitter()
-    const command = this._generateMergeCommand(data)
+    const command = this.generateMergeCommand(data)
     const updateEvent = childProcess.spawn(command.shift(), command, { shell: true })
     updateEvent.stdout.on('data', (res) => {
       const re = /(.*): (.*)/

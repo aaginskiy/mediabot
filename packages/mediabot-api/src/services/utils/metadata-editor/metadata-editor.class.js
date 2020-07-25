@@ -135,7 +135,7 @@ class Service {
   }
 
   autoFixMetadata(filename, rules) {
-    return this.DiskScannerService._loadMediainfoFromFile(filename).then((metadata) => {
+    return this.DiskScannerService.loadMediainfoFromFile(filename).then((metadata) => {
       this.app.debug(metadata)
       let executedMetadata = this.executeRules(metadata, rules)
       this.app.debug(executedMetadata)
