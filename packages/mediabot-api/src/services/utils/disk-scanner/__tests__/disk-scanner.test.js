@@ -17,7 +17,7 @@ const nfoJson = require('../__fixtures__/2001 A Space Odyssey (1968).js')
 
 const fixture = {}
 
-describe('\'Disk Scanner\' service', () => {
+describe("'Disk Scanner' service", () => {
   let app, DiskScanner, MediaScraper, Movies, Jobs
 
   beforeAll(async () => {
@@ -27,16 +27,22 @@ describe('\'Disk Scanner\' service', () => {
     app.use('/movies', memory())
     app.use('/jobs', memory())
     app.use('/utils/media-scraper', memory())
+    app.use('/utils/metadata-editor', memory())
     app.configure(DiskScannerService)
     app.setup()
 
     DiskScanner = app.service('/utils/disk-scanner')
     MediaScraper = app.service('/utils/media-scraper')
+    MetadataEditor = app.service('/utils/metadata-editor')
     MediaScraper.autoSearchMovie = jest.fn()
     MediaScraper.autoSearchMovie.mockReturnValue(null)
 
     MediaScraper.scrapeTmdbMovie = jest.fn()
     MediaScraper.scrapeTmdbMovie.mockReturnValue(null)
+
+    MetadataEditor.checkRules = jest.fn()
+    MetadataEditor.checkRules.mockReturnValue(true)
+
     Movies = app.service('/movies')
     Jobs = app.service('/jobs')
 
@@ -45,26 +51,22 @@ describe('\'Disk Scanner\' service', () => {
     this.tripleZathura = require('../__fixtures__/triple-zathura.json') // eslint-disable-line global-require
 
     this.fixture = {
-      stdout: JSON.stringify(require('../__fixtures__/zathura.json')) // eslint-disable-line global-require
+      stdout: JSON.stringify(require('../__fixtures__/zathura.json')), // eslint-disable-line global-require
     }
 
     fixture.zathuraOne = {
-      stdout: JSON.stringify(this.tripleZathura[0])
+      stdout: JSON.stringify(this.tripleZathura[0]),
     }
 
     fixture.zathuraTwo = {
-      stdout: JSON.stringify(this.tripleZathura[1])
+      stdout: JSON.stringify(this.tripleZathura[1]),
     }
 
     fixture.zathuraThree = {
-      stdout: JSON.stringify(this.tripleZathura[2])
+      stdout: JSON.stringify(this.tripleZathura[2]),
     }
 
-    this.zathuraOneDir = [
-      'zathura1.mkv',
-      'zathura1-poster.jpg',
-      'zathura1-fanart.jpg'
-    ]
+    this.zathuraOneDir = ['zathura1.mkv', 'zathura1-poster.jpg', 'zathura1-fanart.jpg']
 
     this.data = {
       title: 'Movie Title',
@@ -75,9 +77,9 @@ describe('\'Disk Scanner\' service', () => {
           language: 'en',
           isDefault: true,
           isEnabled: true,
-          isForced: true
-        }
-      ]
+          isForced: true,
+        },
+      ],
     }
 
     this.nfoFilename = path.resolve(__dirname, '../__fixtures__/2001 A Space Odyssey (1968).nfo')
@@ -119,14 +121,15 @@ describe('\'Disk Scanner\' service', () => {
   })
 
   beforeEach(() => {
-    return Movies.create([{
-      title: 'Ready to Delete',
-      filename: '/fake/system/delete/delete.mkv'
-    },
-    {
-      title: 'Existing Movie #1',
-      filename: '/fake/system/zathura3/zathura3.mkv'
-    }
+    return Movies.create([
+      {
+        title: 'Ready to Delete',
+        filename: '/fake/system/delete/delete.mkv',
+      },
+      {
+        title: 'Existing Movie #1',
+        filename: '/fake/system/zathura3/zathura3.mkv',
+      },
     ])
   })
 
@@ -148,7 +151,7 @@ describe('\'Disk Scanner\' service', () => {
       jest.spyOn(DiskScanner, '_findAllMediaFiles').mockResolvedValue({
         created: ['/fake/system/zathura1/zathura1.mkv', '/fake/system/zathura2/zathura2.mkv'],
         updated: [],
-        removed: []
+        removed: [],
       })
 
       jest.spyOn(Jobs, 'create')
@@ -156,10 +159,13 @@ describe('\'Disk Scanner\' service', () => {
       await DiskScanner.scanMediaLibrary('/fake/system/')
 
       expect(Jobs.create).toBeCalledTimes(2)
-      expect(Jobs.create).toBeCalledWith(expect.objectContaining({
-        args: expect.any(Array),
-        name: expect.stringMatching('RefreshMediainfo')
-      }), {})
+      expect(Jobs.create).toBeCalledWith(
+        expect.objectContaining({
+          args: expect.any(Array),
+          name: expect.stringMatching('RefreshMediainfo'),
+        }),
+        {}
+      )
       Jobs.create.mockRestore()
     })
 
@@ -167,7 +173,7 @@ describe('\'Disk Scanner\' service', () => {
       jest.spyOn(DiskScanner, '_findAllMediaFiles').mockResolvedValue({
         created: [],
         updated: [],
-        removed: ['/fake/system/delete/delete.mkv']
+        removed: ['/fake/system/delete/delete.mkv'],
       })
 
       jest.spyOn(Movies, 'remove')
@@ -175,9 +181,12 @@ describe('\'Disk Scanner\' service', () => {
       await DiskScanner.scanMediaLibrary('/fake/system/')
 
       expect(Movies.remove).toBeCalled()
-      expect(Movies.remove).toBeCalledWith(null, expect.objectContaining({
-        query: { filename: { $in: ['/fake/system/delete/delete.mkv'] } }
-      }))
+      expect(Movies.remove).toBeCalledWith(
+        null,
+        expect.objectContaining({
+          query: { filename: { $in: ['/fake/system/delete/delete.mkv'] } },
+        })
+      )
 
       Movies.remove.mockRestore()
     })
@@ -186,7 +195,7 @@ describe('\'Disk Scanner\' service', () => {
       jest.spyOn(DiskScanner, '_findAllMediaFiles').mockResolvedValue({
         created: [],
         updated: ['/fake/system/zathura1/zathura1.mkv', '/fake/system/zathura2/zathura2.mkv'],
-        removed: []
+        removed: [],
       })
 
       jest.spyOn(Jobs, 'create')
@@ -209,16 +218,22 @@ describe('\'Disk Scanner\' service', () => {
       jest.spyOn(DiskScanner, '_findAllMediaFiles').mockResolvedValue({
         created: ['/fake/system/zathura1/zathura1.mkv', '/fake/system/zathura2/zathura2.mkv'],
         updated: [],
-        removed: []
+        removed: [],
       })
 
       jest.spyOn(Jobs, 'create')
 
       await DiskScanner.refreshAllMediainfo('/fake/system/')
-      expect(Jobs.create).toHaveBeenNthCalledWith(1, expect.arrayContaining([{
-        args: expect.any(Array),
-        name: expect.stringMatching('RefreshMediainfo')
-      }]), {})
+      expect(Jobs.create).toHaveBeenNthCalledWith(
+        1,
+        expect.arrayContaining([
+          {
+            args: expect.any(Array),
+            name: expect.stringMatching('RefreshMediainfo'),
+          },
+        ]),
+        {}
+      )
 
       Jobs.create.mockRestore()
     })
@@ -227,7 +242,7 @@ describe('\'Disk Scanner\' service', () => {
       jest.spyOn(DiskScanner, '_findAllMediaFiles').mockResolvedValue({
         created: [],
         updated: [],
-        removed: ['/fake/system/delete/delete.mkv']
+        removed: ['/fake/system/delete/delete.mkv'],
       })
 
       jest.spyOn(Movies, 'remove')
@@ -235,13 +250,16 @@ describe('\'Disk Scanner\' service', () => {
       await DiskScanner.refreshAllMediainfo('/fake/system/')
 
       expect(Movies.remove).toBeCalled()
-      expect(Movies.remove).toBeCalledWith(null, expect.objectContaining({
-        query: {
-          filename: {
-            $in: ['/fake/system/delete/delete.mkv']
-          }
-        }
-      }))
+      expect(Movies.remove).toBeCalledWith(
+        null,
+        expect.objectContaining({
+          query: {
+            filename: {
+              $in: ['/fake/system/delete/delete.mkv'],
+            },
+          },
+        })
+      )
 
       Movies.remove.mockRestore()
     })
@@ -250,7 +268,7 @@ describe('\'Disk Scanner\' service', () => {
       jest.spyOn(DiskScanner, '_findAllMediaFiles').mockResolvedValue({
         created: [],
         updated: ['/fake/system/zathura3/zathura3.mkv', '/fake/system/zathura4/zathura4.mkv'],
-        removed: []
+        removed: [],
       })
 
       jest.spyOn(Jobs, 'create')
@@ -258,10 +276,16 @@ describe('\'Disk Scanner\' service', () => {
       await DiskScanner.refreshAllMediainfo('/fake/system/')
 
       expect(Jobs.create).toBeCalledTimes(2)
-      expect(Jobs.create).toHaveBeenNthCalledWith(2, expect.arrayContaining([{
-        args: expect.any(Array),
-        name: expect.stringMatching('RefreshMediainfo')
-      }]), {})
+      expect(Jobs.create).toHaveBeenNthCalledWith(
+        2,
+        expect.arrayContaining([
+          {
+            args: expect.any(Array),
+            name: expect.stringMatching('RefreshMediainfo'),
+          },
+        ]),
+        {}
+      )
 
       Jobs.create.mockRestore()
     })
@@ -273,17 +297,19 @@ describe('\'Disk Scanner\' service', () => {
 
       let movie = await Movies.find({
         query: {
-          filename: '/fake/system/zathura3/zathura3.mkv'
-        }
+          filename: '/fake/system/zathura3/zathura3.mkv',
+        },
       })
 
       await DiskScanner.refreshMediainfo(movie[0].id, movie[0].filename)
 
-      expect(Movies.update).toBeCalledWith(movie[0].id,
+      expect(Movies.update).toBeCalledWith(
+        movie[0].id,
         expect.objectContaining({
-          title: 'Zathura: A Space Adventure 3 (2005)'
+          title: 'Zathura: A Space Adventure 3 (2005)',
         }),
-        expect.anything())
+        expect.anything()
+      )
 
       Movies.update.mockRestore()
     })
@@ -292,11 +318,13 @@ describe('\'Disk Scanner\' service', () => {
   describe('private functions', () => {
     describe('#_findAllMediaFiles', () => {
       beforeAll((done) => {
-        jest.spyOn(glob, 'promise').mockResolvedValue([
-          '/fake/system/zathura1/zathura1.mkv',
-          '/fake/system/zathura2/zathura2.mkv',
-          '/fake/system/zathura3/zathura3.mkv'
-        ])
+        jest
+          .spyOn(glob, 'promise')
+          .mockResolvedValue([
+            '/fake/system/zathura1/zathura1.mkv',
+            '/fake/system/zathura2/zathura2.mkv',
+            '/fake/system/zathura3/zathura3.mkv',
+          ])
         done()
       })
 
@@ -336,50 +364,49 @@ describe('\'Disk Scanner\' service', () => {
         expect(DiskScanner._loadMediainfoFromFile('')).rejects.toThrow(TypeError))
 
       it('throws an error when file is not found', () =>
-        expect(DiskScanner._loadMediainfoFromFile('/fake/system/bad_filename.mkv'))
-          .rejects.toThrow(Error))
+        expect(DiskScanner._loadMediainfoFromFile('/fake/system/bad_filename.mkv')).rejects.toThrow(
+          Error
+        ))
 
       it('throws an error of JSON cannot be read', () =>
-        expect(DiskScanner._loadMediainfoFromFile('bad_JSON.mkv'))
-          .rejects.toThrow(expect.anything()))
+        expect(DiskScanner._loadMediainfoFromFile('bad_JSON.mkv')).rejects.toThrow(
+          expect.anything()
+        ))
 
       it('returns an object', () =>
-        expect(DiskScanner._loadMediainfoFromFile('/fake/system/zathura1/zathura1.mkv'))
-          .toBeObject('object'))
+        expect(DiskScanner._loadMediainfoFromFile('/fake/system/zathura1/zathura1.mkv')).toBeObject(
+          'object'
+        ))
 
-      it('has \'dir\' property', () =>
-        expect(DiskScanner._loadMediainfoFromFile('/fake/system/zathura1/zathura1.mkv'))
-          .resolves.toHaveProperty(
-            'dir',
-            '/fake/system/zathura1'))
+      it("has 'dir' property", () =>
+        expect(
+          DiskScanner._loadMediainfoFromFile('/fake/system/zathura1/zathura1.mkv')
+        ).resolves.toHaveProperty('dir', '/fake/system/zathura1'))
 
-      it('has \'files\' (Array) property', () =>
-        expect(DiskScanner._loadMediainfoFromFile('/fake/system/zathura1/zathura1.mkv'))
-          .resolves.toHaveProperty('files', expect.toBeArray()))
+      it("has 'files' (Array) property", () =>
+        expect(
+          DiskScanner._loadMediainfoFromFile('/fake/system/zathura1/zathura1.mkv')
+        ).resolves.toHaveProperty('files', expect.toBeArray()))
 
-      it('has \'poster\' property', () =>
-        expect(DiskScanner._loadMediainfoFromFile('/fake/system/zathura1/zathura1.mkv'))
-          .resolves.toHaveProperty(
-            'poster',
-            'zathura1-poster.jpg'))
+      it("has 'poster' property", () =>
+        expect(
+          DiskScanner._loadMediainfoFromFile('/fake/system/zathura1/zathura1.mkv')
+        ).resolves.toHaveProperty('poster', 'zathura1-poster.jpg'))
 
-      it('has \'fanart\' property', () =>
-        expect(DiskScanner._loadMediainfoFromFile('/fake/system/zathura1/zathura1.mkv'))
-          .resolves.toHaveProperty(
-            'fanart',
-            'zathura1-fanart.jpg'))
+      it("has 'fanart' property", () =>
+        expect(
+          DiskScanner._loadMediainfoFromFile('/fake/system/zathura1/zathura1.mkv')
+        ).resolves.toHaveProperty('fanart', 'zathura1-fanart.jpg'))
 
-      it('sets \'videoTag\' to default video', () =>
-        expect(DiskScanner._loadMediainfoFromFile('/fake/system/zathura1/zathura1.mkv'))
-          .resolves.toHaveProperty(
-            'videoTag',
-            'MPEG-4p10/AVC/h.264'))
+      it("sets 'videoTag' to default video", () =>
+        expect(
+          DiskScanner._loadMediainfoFromFile('/fake/system/zathura1/zathura1.mkv')
+        ).resolves.toHaveProperty('videoTag', 'MPEG-4p10/AVC/h.264'))
 
-      it('sets \'audioTag\' to default audio', () =>
-        expect(DiskScanner._loadMediainfoFromFile('/fake/system/zathura1/zathura1.mkv'))
-          .resolves.toHaveProperty(
-            'audioTag',
-            'DTS 6ch'))
+      it("sets 'audioTag' to default audio", () =>
+        expect(
+          DiskScanner._loadMediainfoFromFile('/fake/system/zathura1/zathura1.mkv')
+        ).resolves.toHaveProperty('audioTag', 'DTS 6ch'))
     })
 
     describe('#_loadMetadataFromNfo', () => {
@@ -396,10 +423,12 @@ describe('\'Disk Scanner\' service', () => {
 
         await DiskScanner._createMediaFromMediainfo('/fake/system/zathura1/zathura1.mkv')
 
-        expect(Movies.create).toBeCalledWith(expect.objectContaining({
-          title: 'Zathura: A Space Adventure (2005)'
-        }),
-        expect.anything())
+        expect(Movies.create).toBeCalledWith(
+          expect.objectContaining({
+            title: 'Zathura: A Space Adventure (2005)',
+          }),
+          expect.anything()
+        )
 
         Movies.create.mockRestore()
       })
@@ -414,30 +443,36 @@ describe('\'Disk Scanner\' service', () => {
           filename: 'test_movie.mkv',
           tracks: [
             {
-              number: 0
+              number: 0,
             },
             {
-              number: 1
-            }
-          ]
+              number: 1,
+            },
+          ],
         }
 
         done()
       })
 
       it('should set the media title', () => {
-        expect(DiskScanner._generateInfoCommand(data)).toContain('--edit info --set "title=Test Movie"')
+        expect(DiskScanner._generateInfoCommand(data)).toContain(
+          '--edit info --set "title=Test Movie"'
+        )
       })
 
       it('should delete track parameters when they are empty', () => {
-        expect(DiskScanner._generateInfoCommand(data)).toContain('--edit track:1 --delete name --delete language --set "flag-default=0" --set "flag-enabled=0" --set "flag-forced=0"')
+        expect(DiskScanner._generateInfoCommand(data)).toContain(
+          '--edit track:1 --delete name --delete language --set "flag-default=0" --set "flag-enabled=0" --set "flag-forced=0"'
+        )
       })
 
       it('should not have track in command if no tracks present', () => {
-        expect(DiskScanner._generateInfoCommand({
-          title: 'Test Movie',
-          filename: 'test_movie.mkv'
-        })).not.toContain('--edit track')
+        expect(
+          DiskScanner._generateInfoCommand({
+            title: 'Test Movie',
+            filename: 'test_movie.mkv',
+          })
+        ).not.toContain('--edit track')
       })
 
       it('should set each track parameter when not empty', () => {
@@ -448,7 +483,9 @@ describe('\'Disk Scanner\' service', () => {
         instanceData.tracks[0].isDefault = true
         instanceData.tracks[0].isEnabled = true
         instanceData.tracks[0].isForced = true
-        expect(DiskScanner._generateInfoCommand(instanceData)).toContain('--edit track:1 --set "name=Track Name" --set "language=en" --set "flag-default=1" --set "flag-enabled=1" --set "flag-forced=1"')
+        expect(DiskScanner._generateInfoCommand(instanceData)).toContain(
+          '--edit track:1 --set "name=Track Name" --set "language=en" --set "flag-default=1" --set "flag-enabled=1" --set "flag-forced=1"'
+        )
       })
     })
 
@@ -463,40 +500,40 @@ describe('\'Disk Scanner\' service', () => {
         expect(DiskScanner._generateMergeCommand(mergeFixture)).toBeArray()
       })
 
-      it('should contain \' -D\' if no video tracks to mux', () => {
+      it("should contain ' -D' if no video tracks to mux", () => {
         mergeFixture.tracks[0].isMuxed = false
         expect(DiskScanner._generateMergeCommand(mergeFixture)).toContain('-D')
       })
 
-      it('should contain \' -A\' if no audio tracks to mux', () => {
+      it("should contain ' -A' if no audio tracks to mux", () => {
         mergeFixture.tracks[1].isMuxed = false
         expect(DiskScanner._generateMergeCommand(mergeFixture)).toContain('-A')
       })
 
-      it('should contain \' -S\' if no subtitle tracks to mux', () => {
+      it("should contain ' -S' if no subtitle tracks to mux", () => {
         mergeFixture.tracks[2].isMuxed = false
         expect(DiskScanner._generateMergeCommand(mergeFixture)).toContain('-S')
       })
 
-      it('should contain \' -d track.number\' if one video track to mux', () => {
+      it("should contain ' -d track.number' if one video track to mux", () => {
         let ret = DiskScanner._generateMergeCommand(mergeFixture)
         expect(ret).toContain('-d')
         expect(ret).toContain(`${mergeFixture.tracks[0].number}`)
       })
 
-      it('should contain \' -a track.number\' if one audio track to mux', () => {
+      it("should contain ' -a track.number' if one audio track to mux", () => {
         let ret = DiskScanner._generateMergeCommand(mergeFixture)
         expect(ret).toContain('-a')
         expect(ret).toContain(`${mergeFixture.tracks[1].number}`)
       })
 
-      it('should contain \' -s track.number\' if one subtitles track to mux', () => {
+      it("should contain ' -s track.number' if one subtitles track to mux", () => {
         let ret = DiskScanner._generateMergeCommand(mergeFixture)
         expect(ret).toContain('-s')
         expect(ret).toContain(`${mergeFixture.tracks[2].number}`)
       })
 
-      it('should contain \' -M\' to remove attachments', () => {
+      it("should contain ' -M' to remove attachments", () => {
         expect(DiskScanner._generateMergeCommand(mergeFixture)).toContain('-M')
       })
 
@@ -512,7 +549,9 @@ describe('\'Disk Scanner\' service', () => {
       it('should output to temporary file', () => {
         mergeFixture.filename = '/test/directory/filename.mkv'
 
-        expect(DiskScanner._generateMergeCommand(mergeFixture)).toContain('"/test/directory/filename.rmbtmp"')
+        expect(DiskScanner._generateMergeCommand(mergeFixture)).toContain(
+          '"/test/directory/filename.rmbtmp"'
+        )
       })
 
       it('should set title', () => {
@@ -537,7 +576,7 @@ describe('\'Disk Scanner\' service', () => {
         done()
       })
 
-      afterAll(done => {
+      afterAll((done) => {
         fs.rename.mockRestore()
         done()
       })
@@ -547,13 +586,13 @@ describe('\'Disk Scanner\' service', () => {
         expect(childProcess.spawn).toBeCalledWith('mkvmerge', expect.anything(), expect.anything())
       })
 
-      describe('when \'data\' message is emitted', () => {
+      describe("when 'data' message is emitted", () => {
         it.skip('should aggregate error messages', () => {
           const event = DiskScanner._mux(1, mergeFixture)
           this.eventStub.stdout.emit('data', Buffer.from('Error: Error #1'))
           this.eventStub.stdout.emit('data', Buffer.from('Error: Error #2'))
           this.eventStub.emit('exit', 2)
-          return expect(event).rejectsToThrow('Received \'exit\' message with code \'2\'')
+          return expect(event).rejectsToThrow("Received 'exit' message with code '2'")
         })
 
         it('should call progress function with integer percent on progress', (done) => {
@@ -572,49 +611,54 @@ describe('\'Disk Scanner\' service', () => {
         })
       })
 
-      it.skip('should reject when \'error\' message is emitted', () => {
+      it.skip("should reject when 'error' message is emitted", () => {
         const event = DiskScanner._mux(1, mergeFixture)
         this.eventStub.emit('error', 'Error')
-        return expect(event).rejects.toThrow('Received \'error\' message with \'Error\'')
+        return expect(event).rejects.toThrow("Received 'error' message with 'Error'")
       })
 
-      it.skip('should resolve when \'exit\' message is received with code 0', () => {
+      it.skip("should resolve when 'exit' message is received with code 0", () => {
         const event = DiskScanner._mux(1, mergeFixture)
         this.eventStub.emit('exit', 0)
         return expect(event).to.eventually.be.fulfilled
       })
 
-      it.skip('should resolve when \'exit\' message is received with code 1', () => {
+      it.skip("should resolve when 'exit' message is received with code 1", () => {
         const event = DiskScanner._mux(1, mergeFixture)
         this.eventStub.emit('exit', 1)
         return expect(event).to.eventually.be.fulfilled
       })
 
-      it.skip('should resolve when \'exit\' message is received with code 2', () => {
+      it.skip("should resolve when 'exit' message is received with code 2", () => {
         const event = DiskScanner.mux(1, mergeFixture)
         this.eventStub.emit('exit', 2)
         return expect(event).to.eventually.be.rejectedWith(
           Error,
-          'Received \'exit\' message with code \'2\''
+          "Received 'exit' message with code '2'"
         )
       })
     })
 
     describe('#_saveMediainfo', () => {
       let goodFileId
-      beforeEach(() => Movies.create({
-        title: 'Modified Existing Movie #1',
-        filename: 'good_filename.mkv'
-      })
-        .then((res) => {
+      beforeEach(() =>
+        Movies.create({
+          title: 'Modified Existing Movie #1',
+          filename: 'good_filename.mkv',
+        }).then((res) => {
           goodFileId = res.id
-        }))
+        })
+      )
 
       afterEach(() => Movies.remove(null))
 
       it('should call mkvpropedit with the right command', () =>
         DiskScanner._saveMediainfo(goodFileId, this.data).then(() =>
-          expect(childProcess.exec).toBeCalledWith('mkvpropedit -v good_filename.mkv --edit info --set "title=Movie Title" --edit track:NaN --set "name=Track Name" --set "language=en" --set "flag-default=1" --set "flag-enabled=1" --set "flag-forced=1"', expect.anything())))
+          expect(childProcess.exec).toBeCalledWith(
+            'mkvpropedit -v good_filename.mkv --edit info --set "title=Movie Title" --edit track:NaN --set "name=Track Name" --set "language=en" --set "flag-default=1" --set "flag-enabled=1" --set "flag-forced=1"',
+            expect.anything()
+          )
+        ))
     })
   })
 })

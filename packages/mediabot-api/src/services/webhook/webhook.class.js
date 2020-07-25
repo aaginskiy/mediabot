@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 const path = require('path')
-const request = require('request-promise')
+
 class Service {
   constructor(options) {
     this.options = options || {}
@@ -9,6 +9,9 @@ class Service {
   setup(app) {
     this.app = app
     this.ScrapeService = app.service('utils/media-scraper')
+    this.MetadataEditor = app.service('utils/metadata-editor')
+    this.DiskScanner = app.service('utils/disk-scanner')
+    this.Jobs = app.service('jobs')
   }
 
   async create(data, params) {
@@ -19,23 +22,23 @@ class Service {
     if (data.movie && data.eventType === 'Download') {
       this.app.info(`Processing 'Download' webhook from Radarr.`, { label: 'WebhookService' })
 
-      let name = data.remoteMovie.title
-      let year = data.remoteMovie.year
       let tmdbId = data.remoteMovie.tmdbId
       let filename = path.join(data.movie.folderPath, data.movieFile.relativePath)
 
-      return this.ScrapeService.autoScrapeMovieByTmdbId(tmdbId, filename)
-        .then(() => {
-          return data
+      return this.Jobs.create(
+        {
+          args: [filename, tmdbId],
+          name: 'ScanScrapeMedia',
+        },
+        {}
+      ).catch((err) => {
+        this.app.error(`Processing 'Download' webhook from Radarr failed.`, {
+          label: 'WebhookService',
         })
-        .catch((err) => {
-          this.app.error(`Processing 'Download' webhook from Radarr failed.`, {
-            label: 'WebhookService',
-          })
-          this.app.error(err.message, { label: 'WebhookService' })
-          this.app.debug(err.stack, { label: 'WebhookService' })
-          throw err
-        })
+        this.app.error(err.message, { label: 'WebhookService' })
+        this.app.debug(err.stack, { label: 'WebhookService' })
+        throw err
+      })
     }
 
     return Promise.resolve(data)

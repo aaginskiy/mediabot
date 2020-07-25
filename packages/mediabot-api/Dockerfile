@@ -1,4 +1,11 @@
-FROM node:10
+FROM node:14
+
+RUN apt update && apt-get install -y apt-transport-https
+
+RUN wget -q -O - https://mkvtoolnix.download/gpg-pub-moritzbunkus.txt | apt-key add -
+RUN echo 'deb http://mkvtoolnix.download/debian/ stretch main' >>  /etc/apt/sources.list
+RUN echo 'deb-src http://mkvtoolnix.download/debian/ stretch main' >>  /etc/apt/sources.list
+RUN apt update && apt install -y mkvtoolnix
 
 # Create app directory
 WORKDIR /usr/src/app

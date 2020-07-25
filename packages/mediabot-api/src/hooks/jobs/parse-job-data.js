@@ -1,7 +1,7 @@
 const { checkContext } = require('feathers-hooks-common')
 const { NotImplemented } = require('@feathersjs/errors')
 
-function updateContextData (data, app) {
+function updateContextData(data, app) {
   data.status = 'queued'
   data.progress = 0
 
@@ -23,15 +23,20 @@ function updateContextData (data, app) {
       data.service = 'utils/disk-scanner'
       data.function = 'refreshMediainfo'
       break
-    case 'MuxMovie':
+    case 'AutoFixMedia':
       data.priority = 'normal'
-      data.service = 'movies'
-      data.function = 'mux'
+      data.service = 'utils/disk-scanner'
+      data.function = 'autoFixMovie'
       break
     case 'AutoScrapeMovie':
       data.priority = 'high'
       data.service = 'media-scraper'
       data.function = 'autoScrapeMovie'
+      break
+    case 'ScanScrapeMedia':
+      data.priority = 'high'
+      data.service = 'utils/disk-scanner'
+      data.function = 'scanScrapeSingleMedia'
       break
     default:
       throw new NotImplemented(`Command '${data.name}' is not implemented.`)
@@ -40,14 +45,14 @@ function updateContextData (data, app) {
   return data
 }
 
-module.exports = function (options = {}) {
-  return context => {
+module.exports = function(options = {}) {
+  return (context) => {
     checkContext(context, 'before', ['create', 'patch'], 'parseJobData')
 
     if (!Array.isArray(context.data)) {
       context.data = updateContextData(context.data, context.app)
     } else {
-      context.data = context.data.map(item => updateContextData(item, context.app))
+      context.data = context.data.map((item) => updateContextData(item, context.app))
     }
 
     return context

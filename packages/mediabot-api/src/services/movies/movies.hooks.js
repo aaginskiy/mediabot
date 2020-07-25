@@ -17,7 +17,7 @@ module.exports = {
     create: [],
     update: [],
     patch: [disallow('external')],
-    remove: [disallow('external')]
+    remove: [disallow('external')],
   },
 
   after: {
@@ -25,9 +25,9 @@ module.exports = {
     find: [],
     get: [],
     create: [],
-    update: [updateMediaFile()],
+    update: [],
     patch: [],
-    remove: []
+    remove: [],
   },
 
   error: {
@@ -37,6 +37,6 @@ module.exports = {
     create: [],
     update: [],
     patch: [],
-    remove: []
-  }
+    remove: [],
+  },
 }

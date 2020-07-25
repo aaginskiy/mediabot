@@ -161,6 +161,13 @@ class Service {
     return this.autoSearchMovie(name, year)
       .then((id) => this.scrapeTmdbMovie(id))
       .then((movie) => {
+        console.log(movie)
+        movie.uniqueid = []
+        if (movie.id) movie.uniqueid.push({ $: { type: 'imdb' }, _: movie.id })
+        if (movie.tmdbid) movie.uniqueid.push({ $: { type: 'tmdb' }, _: movie.tmdbid })
+      })
+      .then((movie) => {
+        console.log(movie)
         let { dir, name } = path.parse(filename)
         this.downloadImage(
           `https://image.tmdb.org/t/p/original${movie.fanart}`,
@@ -190,6 +197,16 @@ class Service {
     const writeFile = util.promisify(fs.writeFile)
 
     return this.scrapeMovieByTmdbId(id)
+      .then((movie) => {
+        movie.uniqueid = []
+        if (movie.id) movie.uniqueid.push({ $: { type: 'imdb' }, _: movie.id })
+        if (movie.tmdbid) movie.uniqueid.push({ $: { type: 'tmdb' }, _: movie.tmdbid })
+
+        delete movie.id
+        delete movie.tmdbid
+
+        return movie
+      })
       .then((movie) => {
         let { dir, name } = path.parse(filename)
         this.downloadImage(
