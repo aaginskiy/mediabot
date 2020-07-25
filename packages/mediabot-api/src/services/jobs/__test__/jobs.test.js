@@ -1,14 +1,14 @@
 /* global describe it expect */
 const path = require('path')
 const feathers = require('@feathersjs/feathers')
-const createService = require('../../../src/api/services/movies/movies.service')
+const createService = require('../jobs.service')
 
 const app = feathers()
 app.set('dataLocation', path.join(__dirname, '../../test/data/'))
 app.configure(createService)
 
-describe('\'Movies\' service', () => {
+describe("'job' service", () => {
   it('registered the service', () => {
-    expect(app.service('movies')).toBeTruthy()
+    expect(app.service('jobs')).toBeTruthy()
   })
 })

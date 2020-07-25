@@ -1,0 +1,257 @@
+{
+  "attachments": [],
+  "chapters": [
+    {
+      "num_entries": 20
+    }
+  ],
+  "container": {
+    "properties": {
+      "container_type": 17,
+      "date_local": "2018-08-07T06:02:03-05:00",
+      "date_utc": "2018-08-07T11:02:03Z",
+      "duration": 8961984000000,
+      "is_providing_timestamps": true,
+      "muxing_application": "libebml v1.3.6 + libmatroska v1.4.9",
+      "segment_uid": "207f3d1439e3c2c3f36d010eac5a6f91",
+      "title": "Avengers: Infinity War 4K",
+      "writing_application": "mkvmerge v25.0.0 ('Prog Noir') 64-bit"
+    },
+    "recognized": true,
+    "supported": true,
+    "type": "Matroska"
+  },
+  "errors": [],
+  "file_name": "/mnt/cache/nas/Movies/UHD/Avengers Infinity War (2018)/Avengers Infinity War (2018).Remux-2160p.HEVC.TrueHD.Atmos.mkv",
+  "global_tags": [],
+  "identification_format_version": 12,
+  "track_tags": [],
+  "tracks": [
+    {
+      "codec": "MPEG-H/HEVC/H.265",
+      "id": 0,
+      "properties": {
+        "codec_id": "V_MPEGH/ISO/HEVC",
+        "codec_private_data": "012220000000b0000000000099f000fcfdfafa00000f04a00001002140010c01ffff222000000300b00000030000030099148c0c00000fa40001770140a10001003d420101222000000300b00000030000030099a001e020021c4db148e490a50bc06d4244026d9400000fa4000177018d30397800166940017d7be78f1e80a2000100094401c072f6884fb640a70001003d4e010538427fcc9bb89248219561c292e3a1fdf34154454d4520546974616e2046696c6520332e382e31362028342e382e31362e302920202020202080",
+        "codec_private_length": 207,
+        "default_duration": 41708333,
+        "default_track": true,
+        "display_dimensions": "3840x2160",
+        "display_unit": 0,
+        "enabled_track": true,
+        "forced_track": false,
+        "language": "und",
+        "minimum_timestamp": 0,
+        "number": 1,
+        "packetizer": "mpegh_p2_video",
+        "pixel_dimensions": "3840x2160",
+        "uid": 16738887141540251606
+      },
+      "type": "video"
+    },
+    {
+      "codec": "TrueHD Atmos",
+      "id": 1,
+      "properties": {
+        "audio_channels": 8,
+        "audio_sampling_frequency": 48000,
+        "codec_id": "A_TRUEHD",
+        "codec_private_length": 0,
+        "default_track": true,
+        "enabled_track": true,
+        "forced_track": false,
+        "language": "eng",
+        "minimum_timestamp": 0,
+        "number": 2,
+        "track_name": "TrueHD Atmos 7.1",
+        "uid": 5173750794693574641
+      },
+      "type": "audio"
+    },
+    {
+      "codec": "AC-3",
+      "id": 2,
+      "properties": {
+        "audio_channels": 6,
+        "audio_sampling_frequency": 48000,
+        "codec_id": "A_AC3",
+        "codec_private_length": 0,
+        "default_duration": 32000000,
+        "default_track": false,
+        "enabled_track": true,
+        "forced_track": false,
+        "language": "eng",
+        "minimum_timestamp": 0,
+        "number": 3,
+        "track_name": "AC3 5.1",
+        "uid": 12993199848509724319
+      },
+      "type": "audio"
+    },
+    {
+      "codec": "AC-3",
+      "id": 3,
+      "properties": {
+        "audio_channels": 2,
+        "audio_sampling_frequency": 48000,
+        "codec_id": "A_AC3",
+        "codec_private_length": 0,
+        "default_duration": 32000000,
+        "default_track": false,
+        "enabled_track": true,
+        "forced_track": false,
+        "language": "eng",
+        "minimum_timestamp": 0,
+        "number": 4,
+        "track_name": "Commentary by Anthony Russo/Joe Russo/Christopher Markus/Stephen McFeely",
+        "uid": 16500984613811872838
+      },
+      "type": "audio"
+    },
+    {
+      "codec": "HDMV PGS",
+      "id": 4,
+      "properties": {
+        "codec_id": "S_HDMV/PGS",
+        "codec_private_length": 0,
+        "default_track": true,
+        "enabled_track": true,
+        "forced_track": true,
+        "language": "eng",
+        "number": 5,
+        "track_name": "English (Forced only)",
+        "uid": 15365058641750448849
+      },
+      "type": "subtitles"
+    },
+    {
+      "codec": "HDMV PGS",
+      "id": 5,
+      "properties": {
+        "codec_id": "S_HDMV/PGS",
+        "codec_private_length": 0,
+        "default_track": false,
+        "enabled_track": true,
+        "forced_track": false,
+        "language": "eng",
+        "number": 6,
+        "track_name": "English (SDH)",
+        "uid": 5863186752494998054
+      },
+      "type": "subtitles"
+    },
+    {
+      "codec": "HDMV PGS",
+      "id": 6,
+      "properties": {
+        "codec_id": "S_HDMV/PGS",
+        "codec_private_length": 0,
+        "default_track": false,
+        "enabled_track": true,
+        "forced_track": false,
+        "language": "chi",
+        "number": 7,
+        "track_name": "Chinese (Cantonese)",
+        "uid": 3488833000380413161
+      },
+      "type": "subtitles"
+    },
+    {
+      "codec": "HDMV PGS",
+      "id": 7,
+      "properties": {
+        "codec_id": "S_HDMV/PGS",
+        "codec_private_length": 0,
+        "default_track": false,
+        "enabled_track": true,
+        "forced_track": false,
+        "language": "chi",
+        "number": 8,
+        "track_name": "Chinese (Mandarin Traditional)",
+        "uid": 15381027245494769995
+      },
+      "type": "subtitles"
+    },
+    {
+      "codec": "HDMV PGS",
+      "id": 8,
+      "properties": {
+        "codec_id": "S_HDMV/PGS",
+        "codec_private_length": 0,
+        "default_track": false,
+        "enabled_track": true,
+        "forced_track": false,
+        "language": "fre",
+        "number": 9,
+        "track_name": "French",
+        "uid": 4164269989865616319
+      },
+      "type": "subtitles"
+    },
+    {
+      "codec": "HDMV PGS",
+      "id": 9,
+      "properties": {
+        "codec_id": "S_HDMV/PGS",
+        "codec_private_length": 0,
+        "default_track": false,
+        "enabled_track": true,
+        "forced_track": false,
+        "language": "jpn",
+        "number": 10,
+        "track_name": "Japanese",
+        "uid": 5828237229359120213
+      },
+      "type": "subtitles"
+    },
+    {
+      "codec": "HDMV PGS",
+      "id": 10,
+      "properties": {
+        "codec_id": "S_HDMV/PGS",
+        "codec_private_length": 0,
+        "default_track": false,
+        "enabled_track": true,
+        "forced_track": false,
+        "language": "kor",
+        "number": 11,
+        "track_name": "Korean",
+        "uid": 2304851362627073443
+      },
+      "type": "subtitles"
+    },
+    {
+      "codec": "HDMV PGS",
+      "id": 11,
+      "properties": {
+        "codec_id": "S_HDMV/PGS",
+        "codec_private_length": 0,
+        "default_track": false,
+        "enabled_track": true,
+        "forced_track": false,
+        "language": "spa",
+        "number": 12,
+        "track_name": "Spanish (Latin American)",
+        "uid": 9545421587566163567
+      },
+      "type": "subtitles"
+    },
+    {
+      "codec": "HDMV PGS",
+      "id": 12,
+      "properties": {
+        "codec_id": "S_HDMV/PGS",
+        "codec_private_length": 0,
+        "default_track": false,
+        "enabled_track": true,
+        "forced_track": false,
+        "language": "tha",
+        "number": 13,
+        "track_name": "Thai",
+        "uid": 12446391622011359844
+      },
+      "type": "subtitles"
+    }
+  ],
+  "warnings": []
+}

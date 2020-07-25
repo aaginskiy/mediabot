@@ -3,16 +3,14 @@ const fs = require('fs')
 
 const feathers = require('@feathersjs/feathers')
 const logger = require('feathers-logger')
-const settings = require('../../../src/api/services/settings/settings.service.js')
+const settings = require('../settings.service.js')
 
-describe('\'Settings\' service', () => {
-  it('registers the service', async () =>
-    expect(SettingsService)
-      .toBeTruthy())
+describe("'Settings' service", () => {
+  it('registers the service', async () => expect(SettingsService).toBeTruthy())
 
   let app, SettingsService
 
-  beforeAll(done => {
+  beforeAll((done) => {
     app = feathers()
     app.configure(settings)
     app.configure(logger())
@@ -27,7 +25,7 @@ describe('\'Settings\' service', () => {
     SettingsService = app.service('settings')
 
     const settingsJSON = JSON.stringify({
-      movieDirectory: '/dev/test'
+      movieDirectory: '/dev/test',
     })
     // jest.mock('fs')
 
@@ -52,14 +50,14 @@ describe('\'Settings\' service', () => {
     done()
   })
 
-  afterEach(done => {
+  afterEach((done) => {
     fs.readFile.mockClear()
     fs.writeFile.mockClear()
     SettingsService.update.mockClear()
     done()
   })
 
-  afterAll(done => {
+  afterAll((done) => {
     fs.readFile.mockRestore()
     fs.writeFile.mockRestore()
     SettingsService.update.mockRestore()
@@ -69,8 +67,10 @@ describe('\'Settings\' service', () => {
   describe('#create', () => {
     it('resolves with settings object if successful', () => {
       app.set('configLocation', '/good')
-      return expect(SettingsService.create({}, {}))
-        .resolves.toHaveProperty('movieDirectory', '/dev/test')
+      return expect(SettingsService.create({}, {})).resolves.toHaveProperty(
+        'movieDirectory',
+        '/dev/test'
+      )
     })
 
     it('rejects if unsuccessful', () => {
@@ -82,31 +82,32 @@ describe('\'Settings\' service', () => {
   describe('#find', () => {
     it('resolves with settings object if settings exist', () => {
       app.set('settings', { movieDirectory: '/dev/test/no/file' })
-      return expect(SettingsService.find({}))
-        .resolves.toHaveProperty('movieDirectory', '/dev/test/no/file')
+      return expect(SettingsService.find({})).resolves.toHaveProperty(
+        'movieDirectory',
+        '/dev/test/no/file'
+      )
     })
 
     it('rejects with settings object if settings exist', () => {
       app.set('settings', undefined)
       app.set('configLocation', '/good')
-      return expect(SettingsService.find({}))
-        .resolves.toHaveProperty('movieDirectory', '/dev/test')
+      return expect(SettingsService.find({})).resolves.toHaveProperty('movieDirectory', '/dev/test')
     })
   })
 
   describe('#find', () => {
     it('resolves with specific setting if settings exist', () => {
       app.set('settings', { movieDirectory: '/dev/test/get/file' })
-      return expect(SettingsService.get('movieDirectory'))
-        .resolves.toEqual('/dev/test/get/file')
+      return expect(SettingsService.get('movieDirectory')).resolves.toEqual('/dev/test/get/file')
     })
   })
 
   describe('#update', () => {
     it('resolves with settings object if successful', () => {
       app.set('configLocation', '/good')
-      return SettingsService.update(1, {}).then(() => expect(fs.writeFile)
-        .toBeCalledWith('/good/config.json', '{}', expect.any(Function)))
+      return SettingsService.update(1, {}).then(() =>
+        expect(fs.writeFile).toBeCalledWith('/good/config.json', '{}', expect.any(Function))
+      )
     })
 
     it('rejects if unsuccessful', () => {
@@ -118,9 +119,17 @@ describe('\'Settings\' service', () => {
   describe('#patch', () => {
     it('calls update with updated settings object', () => {
       app.set('configLocation', '/good')
-      return SettingsService.patch('movieDirectory', { movieDirectory: '/new/directory' }, {}).then(() =>
-        expect(SettingsService.update)
-          .toBeCalledWith('movieDirectory', { movieDirectory: '/new/directory' }, {}))
+      return SettingsService.patch(
+        'movieDirectory',
+        { movieDirectory: '/new/directory' },
+        {}
+      ).then(() =>
+        expect(SettingsService.update).toBeCalledWith(
+          'movieDirectory',
+          { movieDirectory: '/new/directory' },
+          {}
+        )
+      )
     })
   })
 })

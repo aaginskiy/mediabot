@@ -1,6 +1,6 @@
 /* global describe it beforeAll beforeEach afterEach expect jest */
 const feathers = require('@feathersjs/feathers')
-const JobWorkerService = require('../../../src/api/services/job-workers/job-workers.service')
+const JobWorkerService = require('../job-workers.service')
 const MemoryService = require('feathers-memory')
 
 const app = feathers()
@@ -11,96 +11,97 @@ app.setup()
 const jobworker = app.service('job-workers')
 const jobs = app.service('jobs')
 
-describe('\'Job Worker\' service', () => {
+describe("'Job Worker' service", () => {
   beforeAll(() => {
     return Promise.all([
       jobworker.create([
         { status: 'active' },
         { status: 'active' },
         { status: 'active' },
-        { status: 'active' }
+        { status: 'active' },
       ]),
-      jobs.create([
-        { status: 'running' },
-        { status: 'queued' }
-      ])
+      jobs.create([{ status: 'running' }, { status: 'queued' }]),
     ])
   })
 
-  it('register the service', () =>
-    expect(jobworker).toBeTruthy())
+  it('register the service', () => expect(jobworker).toBeTruthy())
 
   it('should do nothing if no idle workers available', () =>
-    expect(jobworker.scheduleJobs()
-      .then(() => jobworker.find()))
-      .resolves.toMatchObject([
-        {
-          'id': 0,
-          'status': 'active'
-        },
-        {
-          'id': 1,
-          'status': 'active'
-        },
-        {
-          'id': 2,
-          'status': 'active'
-        },
-        {
-          'id': 3,
-          'status': 'active'
-        }
-      ]))
+    expect(jobworker.scheduleJobs().then(() => jobworker.find())).resolves.toMatchObject([
+      {
+        id: 0,
+        status: 'active',
+      },
+      {
+        id: 1,
+        status: 'active',
+      },
+      {
+        id: 2,
+        status: 'active',
+      },
+      {
+        id: 3,
+        status: 'active',
+      },
+    ]))
 
   describe('worker is available', () => {
-    beforeEach(() => Promise.all([
-      jobworker.patch(2, { status: 'idle', jobId: undefined }),
-      jobs.patch(1, { status: 'queued' })
-    ]))
+    beforeEach(() =>
+      Promise.all([
+        jobworker.patch(2, { status: 'idle', jobId: undefined }),
+        jobs.patch(1, { status: 'queued' }),
+      ])
+    )
 
     it('should change status to active', async () => {
       await jobworker.scheduleJobs()
 
-      return expect(jobworker.get(2))
-        .resolves.toHaveProperty('status', 'active')
+      return expect(jobworker.get(2)).resolves.toHaveProperty('status', 'active')
     })
 
     it('should change jobId to active', async () => {
       await jobworker.scheduleJobs()
 
-      return expect(jobworker.get(2))
-        .resolves.toHaveProperty('jobId', 1)
+      return expect(jobworker.get(2)).resolves.toHaveProperty('jobId', 1)
     })
 
     it('should run job by jobId', async () => {
       await jobworker.scheduleJobs()
 
-      return expect(jobs.get(1))
-        .resolves.toHaveProperty('status', 'running')
+      return expect(jobs.get(1)).resolves.toHaveProperty('status', 'running')
     })
 
     it('should reset to idle after job is completed', (done) => {
-      jobworker.scheduleJobs()
+      jobworker
+        .scheduleJobs()
         .then(() => jobs.patch(1, { status: 'completed' }))
-        .then(() => setTimeout(() => {
-          jobworker.get(2)
-            .then((data) => {
-              expect(data.status).toBe('idle')
-            })
-            .then(() => done(), done)
-        }, 0))
+        .then(() =>
+          setTimeout(() => {
+            jobworker
+              .get(2)
+              .then((data) => {
+                expect(data.status).toBe('idle')
+              })
+              .then(() => done(), done)
+          }, 0)
+        )
     })
 
     it('should reset to idle after job is failed', (done) => {
-      jobworker.scheduleJobs()
+      jobworker
+        .scheduleJobs()
         .then(() => jobs.patch(1, { status: 'failed' }))
-        .then(() => setTimeout(() => {
-          jobworker.get(2)
-            .then((data) => {
-              expect(data.status).toBe('idle')
-            })
-            .then(() => done(), done)
-        }, 0))
+        .then(() =>
+          setTimeout(() => {
+            jobworker
+              .get(2)
+              .then((data) => {
+                expect(data.status).toBe('idle')
+              })
+              .then(() => done(), done)
+          }, 0)
+        )
     })
   })
 
