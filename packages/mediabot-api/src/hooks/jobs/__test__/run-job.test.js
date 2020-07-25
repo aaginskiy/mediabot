@@ -2,7 +2,7 @@
 const feathers = require('@feathersjs/feathers')
 const logger = require('feathers-logger')
 const runJob = require('../run-job')
-const MediaScraperClass = require('../../../services/utils/media-scraper/media-scraper.service')
+const MediaScraper = require('../../../services/utils/media-scraper/media-scraper.service')
 
 describe("'run-job' hook", () => {
   let app
@@ -10,7 +10,7 @@ describe("'run-job' hook", () => {
   beforeEach(() => {
     app = feathers()
     app.configure(logger())
-    app.configure(MediaScraperClass)
+    app.configure(MediaScraper)
 
     app.use('/dummy', {
       async get(id) {
@@ -26,7 +26,7 @@ describe("'run-job' hook", () => {
           data.function = 'get'
         } else if (id === 'MediaScraper') {
           data.args = ['completedArg']
-          data.service = 'media-scraper'
+          data.service = 'utils/media-scraper'
           data.function = 'autoScrapeMovie'
         } else {
           data.args = ['failedArg']
@@ -59,15 +59,14 @@ describe("'run-job' hook", () => {
       }
     })
 
-    jest.spyOn(MediaScraperClass.prototype, 'autoScrapeMovie').mockResolvedValue('')
+    jest.spyOn(app.service('utils/media-scraper'), 'autoScrapeMovie').mockResolvedValue('')
 
     jest.spyOn(app.service('jobs'), 'patch')
   })
 
   afterEach(() => {
     app.service('dummy').get.mockRestore()
-    app.service('jobs').patch.mockRestore()
-    MediaScraperClass.prototype.autoScrapeMovie.mockRestore()
+    app.service('utils/media-scraper').autoScrapeMovie.mockRestore()
   })
 
   it('should thow an error if method is not patch', () =>
@@ -102,8 +101,8 @@ describe("'run-job' hook", () => {
         })
       ))
 
-  it("should call MediaScraper utility if data.service is 'media-scraper'", async () => {
+  it("should call MediaScraper utility if data.service is 'utils/media-scraper'", async () => {
     await app.service('jobs').patch('MediaScraper', { status: 'running' })
-    return expect(MediaScraperClass.prototype.autoScrapeMovie).toBeCalledTimes(1)
+    return expect(app.service('utils/media-scraper').autoScrapeMovie).toBeCalledTimes(1)
   })
 })

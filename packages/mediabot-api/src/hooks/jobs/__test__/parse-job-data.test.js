@@ -3,6 +3,8 @@ const { NotImplemented } = require('@feathersjs/errors')
 
 const parseJobData = require('../parse-job-data')
 const hook = parseJobData()
+const feathers = require('@feathersjs/feathers')
+const app = feathers()
 
 describe("'parse-job-data' hook", () => {
   beforeEach((done) => {
@@ -10,6 +12,7 @@ describe("'parse-job-data' hook", () => {
       type: 'before',
       method: 'create',
       data: {},
+      app: app,
     }
 
     done()
@@ -43,8 +46,8 @@ describe("'parse-job-data' hook", () => {
     it('should set priority to high', () =>
       expect(hook(this.mock).data).toHaveProperty('priority', 'high'))
 
-    it("should set service to 'movies'", () =>
-      expect(hook(this.mock).data).toHaveProperty('service', 'disk-scanner'))
+    it("should set service to 'utils/disk-scanner'", () =>
+      expect(hook(this.mock).data).toHaveProperty('service', 'utils/disk-scanner'))
 
     it("should set function to 'rescan'", () =>
       expect(hook(this.mock).data).toHaveProperty('function', 'scanMediaLibrary'))

@@ -84,7 +84,7 @@ class Service {
    * @returns {Object} Promise Promise to queue jobs to update each movie
    */
   async refreshAllMediainfo(directory) {
-    let mediaFiles = await this._findAllMediaFiles(directory)
+    let mediaFiles = await this.findAllMediaFiles(directory)
 
     let existingMovies = await this.Movies.find({
       query: {
@@ -128,7 +128,7 @@ class Service {
   }
 
   async scanMediaLibrary(directory) {
-    let mediaFiles = await this._findAllMediaFiles(directory)
+    let mediaFiles = await this.findAllMediaFiles(directory)
 
     let createData = mediaFiles.created.map((filename) => {
       return { filename: filename }
@@ -192,7 +192,7 @@ class Service {
   // Private functions
 
   /**
-   * DiskScannerService#_findAllMediaFiles
+   * DiskScannerService#findAllMediaFiles
    *
    * Scans directory recursively for any media files
    *
@@ -202,7 +202,7 @@ class Service {
    * @param {String} directory root directory to scan
    * @returns Promise Promise to resolve to object of arrays containing media filenames { created: [...], updated: [...], removed [...] }
    */
-  async _findAllMediaFiles(directory) {
+  async findAllMediaFiles(directory) {
     const globString = `${directory}/**/*.mkv`
 
     this.app.info(`Loading movies from ${directory}.`, { label: 'DiskScannerService' })
@@ -238,7 +238,7 @@ class Service {
     }
   }
 
-  _createMediaFromMediainfo(filename) {
+  createMediaFromMediainfo(filename) {
     return this.loadMediainfoFromFile(filename).then((metadata) => this.Movies.create(metadata, {}))
   }
 

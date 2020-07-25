@@ -7,11 +7,11 @@ module.exports = function(options = {}) {
 
     if (context.params.runJob === true) {
       let result = getByDot(context, 'result')
-
+      console.log(result)
       let service = context.app.service(result.service)
 
       context.app.info(
-        `Running Job #${context.id} - ${service.options.name}#${result.function} with ${result.args}`,
+        `Running Job #${context.id} - ${service}#${result.function} with ${result.args}`,
         { label: 'JobService' }
       )
       service[result.function](...result.args)

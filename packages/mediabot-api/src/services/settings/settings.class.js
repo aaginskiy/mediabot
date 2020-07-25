@@ -5,11 +5,11 @@ const util = require('util')
 const { get, set } = require('lodash')
 
 class Service {
-  constructor (options) {
+  constructor(options) {
     this.options = {}
   }
 
-  setup (app) {
+  setup(app) {
     this.app = app
     // const configFile = path.join(this.app.get('configLocation'), './config.json')
     // const readFile = util.promisify(fs.readFile)
@@ -41,7 +41,7 @@ class Service {
     //   })
   }
 
-  async find (params) {
+  async find(params) {
     let settings = this.app.get('settings')
     if (settings) {
       return Promise.resolve(settings)
@@ -50,13 +50,13 @@ class Service {
     }
   }
 
-  async get (id, params) {
+  async get(id, params) {
     let settings = this.app.get('settings')
 
     return get(settings, id)
   }
 
-  async update (id, data, params) {
+  async update(id, data, params) {
     const configFile = path.join(this.app.get('configLocation'), './config.json')
     const writeFile = util.promisify(fs.writeFile)
 
@@ -65,28 +65,30 @@ class Service {
         this.app.info('Saved settings to configuration file.', { label: 'SettingsService' })
         return this.create(data, params)
       })
-      .catch(err => {
-        this.app.error(`Unable to save settings to configuration file.`, { label: 'SettingsService' })
+      .catch((err) => {
+        this.app.error(`Unable to save settings to configuration file.`, {
+          label: 'SettingsService',
+        })
         this.app.error(err.message, { label: 'SettingsService' })
         this.app.debug(err.stack, { label: 'SettingsService' })
         throw err
       })
   }
 
-  async patch (id, data, params) {
+  async patch(id, data, params) {
     const configFile = path.join(this.app.get('configLocation'), './config.json')
     const writeFile = util.promisify(fs.writeFile)
     let settings = this.app.get('settings')
 
     set(settings, id, get(data, id))
-    console.log('patch' + id)
-    console.log('patch' + data)
+
+    console.log(settings)
 
     return this.update(id, settings, params)
   }
 }
 
-module.exports = function (options) {
+module.exports = function(options) {
   return new Service(options)
 }
 

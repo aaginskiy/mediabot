@@ -22,12 +22,13 @@ describe("'Settings' service", () => {
 
     app.setup()
 
+    app.set('settings', {})
+
     SettingsService = app.service('settings')
 
     const settingsJSON = JSON.stringify({
       movieDirectory: '/dev/test',
     })
-    // jest.mock('fs')
 
     jest.spyOn(fs, 'readFile').mockImplementation((path, callback) => {
       if (path === '/good/config.json') {
