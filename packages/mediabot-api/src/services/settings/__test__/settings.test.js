@@ -2,7 +2,6 @@
 const fs = require('fs')
 
 const feathers = require('@feathersjs/feathers')
-const logger = require('feathers-logger')
 const settings = require('../settings.service.js')
 
 describe("'Settings' service", () => {
@@ -13,12 +12,6 @@ describe("'Settings' service", () => {
   beforeAll((done) => {
     app = feathers()
     app.configure(settings)
-    app.configure(logger())
-    app.log = console.log
-    logger.info = console.log
-    logger.warn = console.log
-    logger.error = console.log
-    logger.debug = console.log
 
     app.setup()
 
@@ -63,21 +56,6 @@ describe("'Settings' service", () => {
     fs.writeFile.mockRestore()
     SettingsService.update.mockRestore()
     done()
-  })
-
-  describe('#create', () => {
-    it('resolves with settings object if successful', () => {
-      app.set('configLocation', '/good')
-      return expect(SettingsService.create({}, {})).resolves.toHaveProperty(
-        'movieDirectory',
-        '/dev/test'
-      )
-    })
-
-    it('rejects if unsuccessful', () => {
-      app.set('configLocation', '/bad')
-      return expect(SettingsService.create({}, {})).rejects.toThrow('File stub error')
-    })
   })
 
   describe('#find', () => {

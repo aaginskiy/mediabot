@@ -1,0 +1,115 @@
+{
+  "movieDirectory": "/Volumes/MediaNAS/Movies/UHD/",
+  "port": "3030",
+  "mediaParser": {
+    "tmdbKey": "9cc56c731a06623343d19ce2f7a3c982",
+    "movie": {
+      "include": {
+        "title": true,
+        "originalTitle": true,
+        "tagline": true,
+        "plot": true,
+        "rating": false,
+        "runtime": true,
+        "year": true,
+        "certification": true,
+        "cast": true,
+        "genres": true,
+        "artwork": true,
+        "trailer": true,
+        "movieset": true
+      },
+      "source": {
+        "title": "tmdb",
+        "originalTitle": "tmdb",
+        "tagline": "tmdb",
+        "plot": "tmdb",
+        "rating": "tmdb",
+        "runtime": "tmdb",
+        "year": "tmdb",
+        "certification": "tmdb",
+        "cast": "tmdb",
+        "genres": "tmdb",
+        "artwork": "tmdb",
+        "trailer": "tmdb",
+        "movieset": "tmdb"
+      }
+    }
+  },
+  "metadataRules": [
+    {
+      "type": "track",
+      "conditions": [
+        {
+          "matcher": "Eql",
+          "parameter": "type",
+          "value": "audio"
+        },
+        {
+          "matcher": "NotEql",
+          "parameter": "language",
+          "value": "eng"
+        },
+        {
+          "matcher": "NotUndefined",
+          "parameter": "language"
+        }
+      ],
+      "actions": [
+        {
+          "type": "Remove"
+        }
+      ]
+    },
+    {
+      "type": "track",
+      "conditions": [
+        {
+          "matcher": "Eql",
+          "parameter": "type",
+          "value": "subtitles"
+        },
+        {
+          "matcher": "NotEql",
+          "parameter": "language",
+          "value": "eng"
+        },
+        {
+          "matcher": "NotUndefined",
+          "parameter": "language"
+        }
+      ],
+      "actions": [
+        {
+          "type": "Remove"
+        }
+      ]
+    }
+  ],
+  "radarr": {
+    "hostname": "http://radarr:7878",
+    "apikey": "5101db865a0d4de29d38f01b07d564fd"
+  },
+  "authentication": {
+    "entity": "user",
+    "service": "users",
+    "secret": "85E8MrmHWs16N/yqfKxfrhGKMRY=",
+    "authStrategies": [
+      "jwt",
+      "local"
+    ],
+    "jwtOptions": {
+      "header": {
+        "typ": "access"
+      },
+      "audience": "https://yourdomain.com",
+      "issuer": "feathers",
+      "algorithm": "HS256",
+      "expiresIn": "1d"
+    },
+    "local": {
+      "usernameField": "email",
+      "passwordField": "password"
+    }
+  }
+}

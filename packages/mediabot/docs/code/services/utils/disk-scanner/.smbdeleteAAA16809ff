@@ -1,0 +1,18 @@
+---
+title: disk-scanner.class
+---
+
+# disk-scanner.class
+
+<a name="MediaFilenames"></a>
+
+## MediaFilenames
+**Kind**: global typedef  
+**Properties**
+
+| Name | Type | Description |
+| --- | --- | --- |
+| created | <code>Array</code> | List of new media in the scanned directory |
+| updated | <code>Array</code> | List of existing media in the scanned directory |
+| removed | <code>Array</code> | List of deleted media in the scanned directory |
+
