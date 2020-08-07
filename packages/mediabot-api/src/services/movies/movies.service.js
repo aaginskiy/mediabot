@@ -3,6 +3,16 @@ const createService = require('feathers-nedb')
 const createModel = require('../../models/movies.model')
 const hooks = require('./movies.hooks')
 
+/**
+   * @typedef Movie
+   * @property {String} _id Databased entry ID
+   * @property {String} title Movie title
+   * @property {Integer} year Movie release year
+   * @property {String} language Movie language code
+   * @property {String} filename Filename of the media file
+   * @property {MediaInfo} mediaInfo Media info from the media file
+   */
+  
 module.exports = function () {
   const app = this
   const Model = createModel(app)

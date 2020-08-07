@@ -10,253 +10,107 @@ const Promise = require('bluebird')
 const fs = require('fs')
 const readFile = util.promisify(fs.readFile)
 const xml2js = require('xml2js')
+const logger = require('../../../logger')
 
-class Service {
+/**
+ *
+ * Disk scanning services for finding and modifying media files
+ *
+ * @since 0.2.0
+ */
+class DiskScanner {
   constructor(options) {
     this.options = options || {}
   }
 
   setup(app) {
     this.app = app
-    this.Movies = app.service('movies')
-    this.Jobs = app.service('jobs')
-    this.MediaScraper = app.service('utils/media-scraper')
-    this.MetadataEditor = app.service('utils/metadata-editor')
-
-    this.watcher = null
   }
 
   /**
-   * DiskScannerService#refreshMediainfo
-   *
-   * Refreshes media metadata, artwork and directory files from disk for one media file.
-   *
-   * @since 0.2.0
-   * @memberof DiskScannerService
-   * @param {String} filename Filename of the media to load.
-   * @returns Promise Promise to resolve metadata from a file.
+   * @typedef MediaFilenames
+   * @property {Array<String>} created List of new media in the scanned directory
+   * @property {Array<String>} updated List of existing media in the scanned directory
+   * @property {Array<String>} removed List of deleted media in the scanned directory
    */
-  async refreshMediainfo(id, filename) {
-    return this.loadMediainfoFromFile(filename)
-      .then(async (metadata) => {
-        let nfoFilename = path.join(
-          path.dirname(metadata.filename),
-          path.basename(metadata.filename, path.extname(metadata.filename)) + '.nfo'
-        )
-
-        let nfo = await this.loadMetadataFromNfo(nfoFilename)
-        metadata.localInfo = nfo
-        metadata.movieInfo = {}
-        metadata.movieInfo.title = _.get(nfo, 'title')
-        metadata.movieInfo.year = _.get(nfo, 'year')
-        metadata.movieInfo.tmdbid = _.get(nfo, 'uniqueid.tmdbid')
-
-        if (metadata.movieInfo.tmdbid) {
-          metadata.tmdbInfo = await this.MediaScraper.scrapeMovieByTmdbId(
-            metadata.movieInfo.tmdbid
-          ).catch((e) => ({}))
-        } else if (metadata.movieInfo.title) {
-          metadata.tmdbInfo = await this.MediaScraper.scrapeMovieByName(
-            metadata.movieInfo.title,
-            metadata.movieInfo.year
-          ).catch((e) => ({}))
-        } else {
-          metadata.tmdbInfo = {}
-        }
-        return metadata
-      })
-      .then((metadata) => {
-        metadata.isFixed = this.MetadataEditor.checkRules(metadata, this.app.get('metadataRules'))
-        return metadata
-      })
-      .then((metadata) => this.Movies.update(id, metadata))
-  }
 
   /**
-   * DiskScannerService#refreshAllMediainfo
-   *
-   * Loads all movies media directory. Existing movies are refreshed,
-   * new movies are added, and missing movies are removed.
-   *
-   * @since 0.2.0
-   * @memberof DiskScannerService
-   * @param {Object} directory Root directory where to refresh movies
-   * @returns {Object} Promise Promise to queue jobs to update each movie
-   */
-  async refreshAllMediainfo(directory) {
-    let mediaFiles = await this.findAllMediaFiles(directory)
-
-    let existingMovies = await this.Movies.find({
-      query: {
-        filename: {
-          $in: mediaFiles.updated,
-        },
-        $select: ['_id', 'filename'],
-      },
-    })
-
-    let createData = mediaFiles.created.map((filename) => {
-      return {
-        filename: filename,
-      }
-    })
-
-    let createdMovies = await this.Movies.create(createData, {})
-
-    let createJobsData = (movies) => {
-      return movies.map((movie) => ({
-        args: [movie._id, movie.filename],
-        name: 'RefreshMediainfo',
-      }))
-    }
-
-    let createJobs = (movie) => {
-      this.Jobs.create(
-        {
-          args: [movie._id, movie.filename],
-          name: 'RefreshMediainfo',
-        },
-        {}
-      )
-    }
-
-    return Promise.all([
-      this.Jobs.create(createJobsData(createdMovies), {}),
-      this.Movies.remove(null, { query: { filename: { $in: mediaFiles.removed } } }),
-      this.Jobs.create(createJobsData(existingMovies), {}),
-    ])
-  }
-
-  async scanMediaLibrary(directory) {
-    let mediaFiles = await this.findAllMediaFiles(directory)
-
-    let createData = mediaFiles.created.map((filename) => {
-      return { filename: filename }
-    })
-
-    let movies = await this.Movies.create(createData, {})
-
-    let createJobs = (movie) => {
-      this.Jobs.create(
-        {
-          args: [movie._id, movie.filename],
-          name: 'RefreshMediainfo',
-        },
-        {}
-      )
-    }
-
-    return Promise.all([
-      Promise.map(movies, createJobs, { concurrency: 1 }),
-      this.Movies.remove(null, { query: { filename: { $in: mediaFiles.removed } } }),
-    ])
-  }
-
-  async scanScrapeSingleMedia(filename, tmdbId) {
-    let existingMovies = await this.Movies.find({
-      query: {
-        filename: filename,
-        $select: ['_id', 'filename'],
-      },
-    })
-
-    let existingMovie = existingMovies[0]
-
-    if (!existingMovie) existingMovie = await this.Movies.create({ filename: filename })
-
-    return this.MediaScraper.autoScrapeMovieByTmdbId(tmdbId, filename)
-      .then((val) => this.refreshMediainfo(existingMovie._id, filename))
-      .then((val) => this.autoFixMovie(existingMovie._id))
-  }
-
-  async autoFixMovie(id) {
-    let data = await this.Movies.get(id)
-    data = this.MetadataEditor.executeRules(data, this.app.get('metadataRules'))
-    const fixEvent = new EventEmitter()
-    let muxEvent = this.mux(id, data)
-
-    muxEvent.on('error', (error) => fixEvent.emit('error', error))
-    muxEvent.on('progress', (progress) => fixEvent.emit('progress', progress))
-    muxEvent.on('finished', (val) => {
-      this.refreshMediainfo(id, data.filename)
-        .then((metadata) => fixEvent.emit('finished', val))
-        .catch((error) => fixEvent.emit('error', error))
-    })
-    return fixEvent
-  }
-
-  startWatchingDirectories() {}
-
-  stopWatchingDirectories() {}
-
-  // Private functions
+  * @typedef MediaInfo
+  * @property {string} title Databased entry ID
+  * @property {string} filename Movie title
+  * @property {Array<Track>} tracks Movie release year
+  */
 
   /**
-   * DiskScannerService#findAllMediaFiles
+  * @typedef Track
+  * @property {string} name Track name
+  * @property {string} language Track language in 3 letter code
+  * @property {integer} number Track order number in the file
+  * @property {integer} newNumber New track order for remux
+  * @property {string} type Track type (audio, video, subtitles)
+  * @property {string} codecType Type of codec used to encode the track
+  * @property {string} audioChannels Number of audio channels
+  * @property {string} bps BPS of the audio track
+  * @property {boolean} isDefault Default track
+  * @property {boolean} isEnabled Enabled track
+  * @property {boolean} isForced Forced track
+  * @property {boolean} isMuxed Notes if the track is in sync with media file muxing
+  */
+
+  /**
    *
-   * Scans directory recursively for any media files
+   * Scans directory recursively for any MKV media files
    *
    * @since 0.2.0
-   * @memberof DiskScannerService
-   * @private
-   * @param {String} directory root directory to scan
-   * @returns Promise Promise to resolve to object of arrays containing media filenames { created: [...], updated: [...], removed [...] }
+   * @param {string} directory root directory to scan
+   * @param {Array<string>} existingFilenames array of filenames previously scanned for this directory
+   * @return {Promise<MediaFilenames>} Promise to resolve to object of arrays containing media filenames
    */
-  async findAllMediaFiles(directory) {
+  async findAllMediaFiles(directory, existingFilenames) {
     const globString = `${directory}/**/*.mkv`
 
-    this.app.info(`Loading movies from ${directory}.`, { label: 'DiskScannerService' })
-    const mediaOnDisk = await glob.promise(globString)
+    logger.info(`Loading movies from ${directory}.`, { label: 'DiskScanner' })
+    return glob.promise(globString).then((mediaOnDisk) => {
+      const removedFilenames = _.difference(existingFilenames, mediaOnDisk)
 
-    // Load all movies
-    const movies = await this.Movies.find()
-    const movieFilenames = movies.map((movie) => movie.filename)
+      logger.debug('Found removed movies:', { label: 'DiskScanner' })
+      logger.debug(removedFilenames, { label: 'DiskScanner' })
 
-    // Filter removed movies
-    const removedFilenames = _.difference(movieFilenames, mediaOnDisk)
+      const updatedFilenames = existingFilenames.filter((filename) =>
+        mediaOnDisk.includes(filename)
+      )
 
-    this.app.debug('Found removed movies:', { label: 'DiskScannerService' })
-    this.app.debug(removedFilenames, { label: 'DiskScannerService' })
+      logger.debug('Found existing movies:', { label: 'DiskScanner' })
+      logger.debug(updatedFilenames, { label: 'DiskScanner' })
 
-    // Filter existing movies
-    const updatedMovies = movies.filter((movie) => mediaOnDisk.includes(movie.filename))
-    const updatedFilenames = updatedMovies.map((movie) => movie.filename)
+      const createdFilenames = _.difference(mediaOnDisk, updatedFilenames)
 
-    // Filter new movies
-    const createdFilenames = _.difference(mediaOnDisk, updatedFilenames)
+      logger.debug('Found new movies:', { label: 'DiskScanner' })
+      logger.debug(createdFilenames, { label: 'DiskScanner' })
 
-    this.app.debug('Found new movies:', { label: 'DiskScannerService' })
-    this.app.debug(createdFilenames, { label: 'DiskScannerService' })
-
-    this.app.debug('Found existing movies:', { label: 'DiskScannerService' })
-    this.app.debug(updatedFilenames, { label: 'DiskScannerService' })
-
-    return {
-      created: _.compact(createdFilenames),
-      updated: _.compact(updatedFilenames),
-      removed: _.compact(removedFilenames),
-    }
-  }
-
-  createMediaFromMediainfo(filename) {
-    return this.loadMediainfoFromFile(filename).then((metadata) => this.Movies.create(metadata, {}))
+      return {
+        created: _.compact(createdFilenames),
+        updated: _.compact(updatedFilenames),
+        removed: _.compact(removedFilenames),
+      }
+    })
   }
 
   /**
-   * DiskScannerService#loadMediainfoFromFile
+   * DiskScanner#loadMediainfoFromFile
    *
    * Loads media metadata, artwork and directory files from disk.
    *
    * @since 0.2.0
-   * @memberof DiskScannerService
+   * @memberof DiskScanner
    * @param {String} filename Filename of the media to load.
    * @returns Promise Promise to resolve metadata from a file.
    */
   loadMediainfoFromFile(filename) {
-    this.app.info('Loading requested movie metadata from the disk.', {
-      label: 'DiskScannerService',
+    logger.info('Loading requested movie metadata from the disk.', {
+      label: 'DiskScanner',
     })
-    this.app.debug(filename, { label: 'DiskScannerService' })
+    logger.debug(filename, { label: 'DiskScanner' })
 
     if (!filename) return Promise.reject(new TypeError('Filename must be defined and not empty.'))
 
@@ -345,28 +199,28 @@ class Service {
         if (defaultAudioTracks[0])
           movie.audioTag = `${legibleTag(defaultAudioTracks[0].codecType)} ${
             defaultAudioTracks[0].audioChannels
-          }ch`
+            }ch`
 
         return movie
       })
       .catch((err) => {
-        this.app.warn(`Unable to find movie "${filename}".`, {
-          label: 'DiskScannerService',
+        logger.warn(`Unable to find movie "${filename}".`, {
+          label: 'DiskScanner',
         })
-        this.app.warn(err.message, {
-          label: 'DiskScannerService',
+        logger.warn(err.message, {
+          label: 'DiskScanner',
         })
         throw err
       })
   }
 
   /**
-   * DiskScannerService#loadMetadataFromNfo
+   * DiskScanner#loadMetadataFromNfo
    *
    * Loads media metadata from local nfo file
    *
    * @since 0.2.0
-   * @memberof DiskScannerService
+   * @memberof DiskScanner
    * @param {String} filename Filename of the nfo file to load.
    * @returns Promise Promise to resolve metadata from nfo.
    */
@@ -384,11 +238,11 @@ class Service {
         let uniqueid = nfo.uniqueid
         nfo.uniqueid = {}
 
-        let imdbidIndex = _.findIndex(uniqueid, function(o) {
+        let imdbidIndex = _.findIndex(uniqueid, function (o) {
           return o.startsWith('tt')
         })
 
-        let tmdbidIndex = _.findIndex(uniqueid, function(o) {
+        let tmdbidIndex = _.findIndex(uniqueid, function (o) {
           return o.match(/^\d/)
         })
 
@@ -398,44 +252,18 @@ class Service {
         return nfo
       })
       .catch((e) => {
-        this.app.error(e)
-        this.app.warn(`Unable to read nfo @ ${filename}`, {
+        logger.error(e)
+        logger.warn(`Unable to read nfo @ ${filename}`, {
           label: 'DiskFileService',
         })
-        this.app.debug(e.message, {
+        logger.debug(e.message, {
           label: 'DiskFileService',
         })
-        this.app.debug(e.stack, {
+        logger.debug(e.stack, {
           label: 'DiskFileService',
         })
         return null
       })
-  }
-
-  /**
-   * DiskScannerService#saveMediainfo
-   *
-   * Updates mkv file properties with data.  If id is present, filename is extracted from
-   * that movie object.
-   *
-   * @param {any} id
-   * @returns Promise
-   * @memberof DiskScannerService
-   */
-  async saveMediainfo(id, mediainfo) {
-    this.app.info(`Patching movie #${id} metadata to file.`, { label: 'MediaFileService' })
-
-    const exec = util.promisify(childProcess.exec)
-
-    const movieData = await this.Movies.get(id)
-    return exec(
-      `mkvpropedit -v ${shellwords.escape(movieData.filename)} ${this.generateInfoCommand(
-        mediainfo
-      )}`
-    ).catch((err) => {
-      this.app.error(err, { label: 'MediaFileService' })
-      return Promise.reject(err)
-    })
   }
 
   generateInfoCommand(data) {
@@ -445,23 +273,23 @@ class Service {
 
     data.tracks.forEach((track) => {
       command += ` --edit track:${track.number + 1}`
-      ;[
-        ['name', track.name],
-        ['language', track.language],
-      ].forEach((field) => {
-        if (field[1]) {
+        ;[
+          ['name', track.name],
+          ['language', track.language],
+        ].forEach((field) => {
+          if (field[1]) {
+            command += ` --set "${field[0]}=${field[1]}"`
+          } else {
+            command += ` --delete ${field[0]}`
+          }
+        })
+        ;[
+          ['flag-default', track.isDefault ? 1 : 0],
+          ['flag-enabled', track.isEnabled ? 1 : 0],
+          ['flag-forced', track.isForced ? 1 : 0],
+        ].forEach((field) => {
           command += ` --set "${field[0]}=${field[1]}"`
-        } else {
-          command += ` --delete ${field[0]}`
-        }
-      })
-      ;[
-        ['flag-default', track.isDefault ? 1 : 0],
-        ['flag-enabled', track.isEnabled ? 1 : 0],
-        ['flag-forced', track.isForced ? 1 : 0],
-      ].forEach((field) => {
-        command += ` --set "${field[0]}=${field[1]}"`
-      })
+        })
     })
 
     return command
@@ -525,15 +353,15 @@ class Service {
 
     commandObj.command.push(commandObj.trackOrder.slice(0, -1))
 
-    this.app.debug("Executing 'mkvmerge' command")
-    this.app.debug(`    ${commandObj.command}`)
+    logger.debug("Executing 'mkvmerge' command")
+    logger.debug(`    ${commandObj.command}`)
 
     return commandObj.command
   }
 
   mux(id, data) {
-    this.app.silly('Called MediaFile#mux with:', { label: 'MediaFileService' })
-    this.app.silly({ id: id, data: data }, { label: 'MediaFileService' })
+    logger.silly('Called MediaFile#mux with:', { label: 'MediaFileService' })
+    logger.silly({ id: id, data: data }, { label: 'MediaFileService' })
 
     const rename = util.promisify(fs.rename)
     const unlink = util.promisify(fs.unlink)
@@ -551,26 +379,25 @@ class Service {
 
     updateEvent.on('exit', (code) => {
       if (code === 1 || code === 0) {
-        this.app.debug(`Backing up ${data.filename} to ${data.filename + 'bak'}.`, {
+        logger.debug(`Backing up ${data.filename} to ${data.filename + 'bak'}.`, {
           label: 'MediaFileService#mux',
         })
         rename(data.filename, data.filename + 'bak')
           .catch((err) => {
-            this.app.error(`Unable to rename ${data.filename} to ${data.filename + 'bak'}.`, {
+            logger.error(`Unable to rename ${data.filename} to ${data.filename + 'bak'}.`, {
               label: 'MediaFileService#mux',
             })
             muxEvent.emit('error', new Error('Unable to rename MKV file to back up.'))
             return Promise.reject(err)
           })
           .then((val) => {
-            this.app.debug(
-              `Renaming ${data.filename.slice(0, -3) + 'rmbtmp'} to ${data.filename}.`,
-              { label: 'MediaFileService#mux' }
-            )
+            logger.debug(`Renaming ${data.filename.slice(0, -3) + 'rmbtmp'} to ${data.filename}.`, {
+              label: 'MediaFileService#mux',
+            })
             return rename(data.filename.slice(0, -3) + 'rmbtmp', data.filename)
           })
           .catch((err) => {
-            this.app.error(
+            logger.error(
               `Unable to rename ${data.filename.slice(0, -3) + 'rmbtmp'} to ${data.filename}.`,
               { label: 'MediaFileService#mux' }
             )
@@ -581,7 +408,7 @@ class Service {
             return unlink(data.filename + 'bak')
           })
           .catch((err) => {
-            this.app.error(`Unable to remove backup ${data.filename + 'bak'}.`, {
+            logger.error(`Unable to remove backup ${data.filename + 'bak'}.`, {
               label: 'MediaFileService#mux',
             })
           })
@@ -613,7 +440,7 @@ class Service {
 }
 
 module.exports = function moduleExport(options) {
-  return new Service(options)
+  return new DiskScanner(options)
 }
 
-module.exports.Service = Service
+module.exports.Service = DiskScanner

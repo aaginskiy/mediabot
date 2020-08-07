@@ -7,9 +7,29 @@ const fs = require('fs')
 const TmdbScraper = require('@mediabot/tmdb')
 let tmdb
 const xml2js = require('xml2js')
-const { get } = require('lodash')
+const { get, cloneDeep } = require('lodash')
+const logger = require('../../../logger')
 
-class Service {
+/**
+ * @typedef RemoteMovieInfo
+ * @property {integer} id IMDB ID
+ * @property {string} tmdbId TMDB ID
+ * @property {string} title Movie title
+ * @property {string} originalTitle Original movie title
+ * @property {string} originalLanguage Original movie language
+ * @property {string} tagline Movie tagline
+ * @property {string} plot Movie plot
+ * @property {string} outline Movie outline
+ * @property {integer} runtime Movie runtime
+ * @property {integer} year Movie release year
+ * @property {string} releaseDate Movie release date
+ * @property {Array<string>} genres List of movie genres
+ * @property {Array<string>} studios List of movie studios
+ * @property {string} fanart Movie fanart URL
+ * @property {string} poster Movie poster URL
+ */
+
+class MediaScraper {
   constructor(options) {
     this.options = options || {}
   }
@@ -52,7 +72,7 @@ class Service {
    * @returns {Object} Promise Promise that resolves to metadata
    */
   scrapeMovieByTmdbId(id) {
-    this.app.info(`Loading information for movie (TMDB ID: ${id}) from TMDB.`, {
+    logger.info(`Loading information for movie (TMDB ID: ${id}) from TMDB.`, {
       label: 'MediaScraperService',
     })
     return tmdb
@@ -81,11 +101,11 @@ class Service {
         return movie
       })
       .catch((err) => {
-        this.app.error(`Unable to scrape movie (TMDB ID: ${id}) from TMDB.`)
-        this.app.debug(err.message, {
+        logger.error(`Unable to scrape movie (TMDB ID: ${id}) from TMDB.`)
+        logger.debug(err.message, {
           label: 'MediaScraperService',
         })
-        this.app.debug(err.stack, {
+        logger.debug(err.stack, {
           label: 'MediaScraperService',
         })
         throw err
@@ -104,8 +124,8 @@ class Service {
    * @param {Number} year Release year of the movie to search
    * @returns {Object} Promise Promise that resolves to metadata
    */
-  scrapeMoviebyName(name, year) {
-    this.app.info(`Loading information for movie (${name} - ${year}) from TMDB.`, {
+  scrapeMovieByName(name, year) {
+    logger.info(`Loading information for movie (${name} - ${year}) from TMDB.`, {
       label: 'MediaScraperService',
     })
     return this.findTmdbId(name, year)
@@ -113,7 +133,7 @@ class Service {
       .then((res) => {
         let movie = {}
 
-        movie.id = res.imdb_id
+        movie.id = res.idmdb_id
         movie.tmdbid = res.id
         movie.title = res.title
         movie.originaltitle = res.original_title
@@ -131,11 +151,11 @@ class Service {
         return movie
       })
       .catch((err) => {
-        this.app.error(`Unable to scrape movie (${name} - ${year}) from TMDB.`)
-        this.app.debug(err.message, {
+        logger.error(`Unable to scrape movie (${name} - ${year}) from TMDB.`)
+        logger.debug(err.message, {
           label: 'MediaScraperService',
         })
-        this.app.debug(err.stack, {
+        logger.debug(err.stack, {
           label: 'MediaScraperService',
         })
         throw err
@@ -150,12 +170,9 @@ class Service {
   }
 
   async autoScrapeMovie(name, year, filename) {
-    this.app.debug(
-      `Auto scraping movie with name: ${name}, year: ${year}, filename: ${filename}.`,
-      {
-        label: 'MediaScrapeService',
-      }
-    )
+    logger.debug(`Auto scraping movie with name: ${name}, year: ${year}, filename: ${filename}.`, {
+      label: 'MediaScrapeService',
+    })
     const writeFile = util.promisify(fs.writeFile)
 
     return this.autoSearchMovie(name, year)
@@ -180,10 +197,10 @@ class Service {
         return writeFile(`${dir}/${name}.nfo`, this.buildXmlNfo(movie))
       })
       .catch((err) => {
-        this.app.error(err.message, {
+        logger.error(err.message, {
           label: 'MediaScrapeService',
         })
-        this.app.debug(err.stack, {
+        logger.debug(err.stack, {
           label: 'MediaScrapeService',
         })
         throw err
@@ -191,13 +208,14 @@ class Service {
   }
 
   async autoScrapeMovieByTmdbId(id, filename) {
-    this.app.info(`Auto scraping movie with TMDB ID: ${id}.`, {
+    logger.info(`Auto scraping movie with TMDB ID: ${id}.`, {
       label: 'MediaScrapeService',
     })
     const writeFile = util.promisify(fs.writeFile)
-
+    let returnMovie
     return this.scrapeMovieByTmdbId(id)
       .then((movie) => {
+        returnMovie = cloneDeep(movie)
         movie.uniqueid = []
         if (movie.id) movie.uniqueid.push({ $: { type: 'imdb' }, _: movie.id })
         if (movie.tmdbid) movie.uniqueid.push({ $: { type: 'tmdb' }, _: movie.tmdbid })
@@ -219,11 +237,14 @@ class Service {
         )
         return writeFile(`${dir}/${name}.nfo`, this.buildXmlNfo(movie))
       })
+      .then((val) => {
+        return returnMovie
+      })
       .catch((err) => {
-        this.app.error(err.message, {
+        logger.error(err.message, {
           label: 'MediaScrapeService',
         })
-        this.app.debug(err.stack, {
+        logger.debug(err.stack, {
           label: 'MediaScrapeService',
         })
         throw err
@@ -236,10 +257,10 @@ class Service {
       got
         .stream(uri)
         .on('error', (err) => {
-          this.app.error(err.message, {
+          logger.error(err.message, {
             label: 'MediaScrapeService',
           })
-          this.app.debug(err.stack, {
+          logger.debug(err.stack, {
             label: 'MediaScrapeService',
           })
           file.end()
@@ -248,10 +269,10 @@ class Service {
         .pipe(
           file
             .on('error', (err) => {
-              this.app.error(err.message, {
+              logger.error(err.message, {
                 label: 'MediaScrapeService',
               })
-              this.app.debug(err.stack, {
+              logger.debug(err.stack, {
                 label: 'MediaScrapeService',
               })
               reject(err)
@@ -263,7 +284,7 @@ class Service {
 }
 
 module.exports = function moduleExport(options) {
-  return new Service(options)
+  return new MediaScraper(options)
 }
 
-module.exports.Service = Service
+module.exports.Service = MediaScraper

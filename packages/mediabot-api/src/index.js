@@ -1,5 +1,6 @@
 /* eslint-disable no-console */
 const app = require('./app')
+const logger = require('./logger')
 const port = app.get('port')
 const host = app.get('host')
 const server = app.listen(port)
@@ -9,5 +10,5 @@ process.on('unhandledRejection', (reason, p) =>
 )
 
 server.on('listening', () =>
-  app.info(`Feathers application started on http://${host}:${port}`, {label: 'MovieBotServer'})
+  logger.info(`Feathers application started on http://${host}:${port}`, { label: 'MovieBotServer' })
 )

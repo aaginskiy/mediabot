@@ -12,16 +12,16 @@ function updateContextData(data, app) {
       data.function = 'scanMediaLibrary'
       data.args = [app.get('movieDirectory')]
       break
-    case 'RefreshAllMediainfo':
+    case 'RefreshAllMovies':
       data.priority = 'high'
-      data.service = 'utils/disk-scanner'
-      data.function = 'refreshAllMediainfo'
+      data.service = 'utils/controller'
+      data.function = 'refreshAllMovies'
       data.args = [app.get('movieDirectory')]
       break
-    case 'RefreshMediainfo':
+    case 'RefreshMovie':
       data.priority = 'high'
-      data.service = 'utils/disk-scanner'
-      data.function = 'refreshMediainfo'
+      data.service = 'utils/controller'
+      data.function = 'refreshMovie'
       break
     case 'AutoFixMedia':
       data.priority = 'normal'
@@ -33,10 +33,10 @@ function updateContextData(data, app) {
       data.service = 'media-scraper'
       data.function = 'autoScrapeMovie'
       break
-    case 'ScanScrapeMedia':
-      data.priority = 'high'
-      data.service = 'utils/disk-scanner'
-      data.function = 'scanScrapeSingleMedia'
+    case 'ScanScrapeMovie':
+      data.priority = 'low'
+      data.service = 'utils/controller'
+      data.function = 'scanScrapeSingleMovieByTmdbId'
       break
     default:
       throw new NotImplemented(`Command '${data.name}' is not implemented.`)

@@ -1,7 +1,7 @@
 // A hook that logs service method before, after and error
 
-module.exports = function () {
-  return function (hook) {
+module.exports = function() {
+  return function(hook) {
     var app = hook.app
 
     let message = `${hook.type}: ${hook.path} - Method: ${hook.method}`
@@ -10,16 +10,16 @@ module.exports = function () {
       message += `: ${hook.error.message}`
     }
 
-    app.info(message)
-    app.debug('hook.data', hook.data)
-    app.debug('hook.params', hook.params)
+    logger.info(message)
+    logger.debug('hook.data', hook.data)
+    logger.debug('hook.params', hook.params)
 
     if (hook.result) {
-      app.debug('hook.result', hook.result)
+      logger.debug('hook.result', hook.result)
     }
 
     if (hook.error) {
-      app.error(hook.error)
+      logger.error(hook.error)
     }
   }
 }

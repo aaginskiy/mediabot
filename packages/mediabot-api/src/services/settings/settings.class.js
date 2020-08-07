@@ -22,19 +22,19 @@ class Service {
     //       console.log(this.app.get(key))
     //     })
 
-    //     this.app.info('Loaded settings from configuration file.', {
+    //     logger.info('Loaded settings from configuration file.', {
     //       label: 'SettingsService'
     //     })
     //     return settings
     //   })
     //   .catch(err => {
-    //     this.app.error(`Unable to load settings from configuration file.`, {
+    //     logger.error(`Unable to load settings from configuration file.`, {
     //       label: 'SettingsService'
     //     })
-    //     this.app.error(err.message, {
+    //     logger.error(err.message, {
     //       label: 'SettingsService'
     //     })
-    //     this.app.debug(err.stack, {
+    //     logger.debug(err.stack, {
     //       label: 'SettingsService'
     //     })
     //     throw err
@@ -62,15 +62,15 @@ class Service {
 
     return writeFile(configFile, JSON.stringify(data))
       .then(() => {
-        this.app.info('Saved settings to configuration file.', { label: 'SettingsService' })
+        logger.info('Saved settings to configuration file.', { label: 'SettingsService' })
         return this.create(data, params)
       })
       .catch((err) => {
-        this.app.error(`Unable to save settings to configuration file.`, {
+        logger.error(`Unable to save settings to configuration file.`, {
           label: 'SettingsService',
         })
-        this.app.error(err.message, { label: 'SettingsService' })
-        this.app.debug(err.stack, { label: 'SettingsService' })
+        logger.error(err.message, { label: 'SettingsService' })
+        logger.debug(err.stack, { label: 'SettingsService' })
         throw err
       })
   }

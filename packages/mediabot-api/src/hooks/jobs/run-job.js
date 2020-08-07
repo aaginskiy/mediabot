@@ -1,5 +1,6 @@
 const { checkContext, getByDot } = require('feathers-hooks-common')
 const EventEmitter = require('events')
+const logger = require('../../logger')
 
 module.exports = function(options = {}) {
   return async (context) => {
@@ -7,10 +8,9 @@ module.exports = function(options = {}) {
 
     if (context.params.runJob === true) {
       let result = getByDot(context, 'result')
-      console.log(result)
       let service = context.app.service(result.service)
 
-      context.app.info(
+      logger.info(
         `Running Job #${context.id} - ${service}#${result.function} with ${result.args}`,
         { label: 'JobService' }
       )

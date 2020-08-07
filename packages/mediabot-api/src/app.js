@@ -6,6 +6,7 @@ const fs = require('fs')
 // Set up base app
 const feathers = require('@feathersjs/feathers')
 const express = require('@feathersjs/express')
+const logger = require('./logger')
 const app = express(feathers())
 
 // Load config file
@@ -17,8 +18,6 @@ if (argv['config']) {
 } else {
   configLocation = path.join(__dirname, '../config/')
 }
-
-if (!process.env.NODE_ENV) process.env.NODE_ENV = 'development'
 
 let dataLocation
 
@@ -70,10 +69,6 @@ const services = require('./services')
 const appHooks = require('./app.hooks')
 const channels = require('./channels')
 
-const winston = require('winston')
-// const moment = require('moment');
-const logger = require('feathers-logger')
-
 // Load app configuration
 app.configure(configuration())
 // Enable CORS, security, compression, favicon and body parsing
@@ -100,65 +95,6 @@ app.use(handler())
 
 app.hooks(appHooks)
 
-const prettyPrint = winston.format((info, opts) => {
-  if (typeof info.message !== 'string') {
-    info.message = JSON.stringify(info.message, null, 2)
-    info.isString = false
-  } else {
-    info.isString = true
-  }
-  return info
-})
-
-const logFormat = winston.format.combine(
-  prettyPrint(),
-  winston.format.timestamp(),
-  winston.format.colorize(),
-  winston.format.align(),
-  winston.format.printf((info) => {
-    if (info.isString) {
-      return `${info.timestamp} [${info.label}] ${info.level}: ${info.message}`
-    } else {
-      return info.message
-    }
-  })
-)
-
-const wlog = winston.createLogger({
-  level: 'info',
-  format: winston.format.json(),
-  transports: [
-    new winston.transports.File({
-      filename: 'logs/error.log',
-      level: 'error',
-    }),
-    new winston.transports.File({
-      filename: 'logs/combined.log',
-    }),
-  ],
-})
-
-if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV.toLowerCase() !== 'test') {
-  wlog.add(
-    new winston.transports.Console({
-      level: 'debug',
-      format: logFormat,
-    })
-  )
-}
-
-if (process.env.NODE_ENV.toLowerCase() === 'test') {
-  wlog.add(
-    new winston.transports.File({
-      filename: 'test/logs/mocha.log',
-      level: 'debug',
-      format: logFormat,
-    })
-  )
-}
-
-app.configure(logger(wlog))
-
-app.silly = wlog.silly
+app.logger = logger
 
 module.exports = app

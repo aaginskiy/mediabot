@@ -1,7 +1,5 @@
 /* global describe it afterEach beforeEach beforeAll afterAll expect jest */
 const feathers = require('@feathersjs/feathers')
-const logger = require('feathers-logger')
-const memory = require('feathers-memory')
 const DiskScannerService = require('../disk-scanner.service')
 
 const childProcess = require('child_process')
@@ -22,33 +20,10 @@ describe("'Disk Scanner' service", () => {
 
   beforeAll(async () => {
     app = feathers()
-    app.configure(logger())
-    app.info = jest.fn()
-    app.debug = jest.fn()
-    app.silly = jest.fn()
-    app.warn = jest.fn()
-    app.error = jest.fn()
-    app.use('/movies', memory())
-    app.use('/jobs', memory())
-    app.use('/utils/media-scraper', memory())
-    app.use('/utils/metadata-editor', memory())
     app.configure(DiskScannerService)
     app.setup()
 
     DiskScanner = app.service('/utils/disk-scanner')
-    MediaScraper = app.service('/utils/media-scraper')
-    MetadataEditor = app.service('/utils/metadata-editor')
-    MediaScraper.autoSearchMovie = jest.fn()
-    MediaScraper.autoSearchMovie.mockReturnValue(null)
-
-    MediaScraper.scrapeTmdbMovie = jest.fn()
-    MediaScraper.scrapeTmdbMovie.mockReturnValue(null)
-
-    MetadataEditor.checkRules = jest.fn()
-    MetadataEditor.checkRules.mockReturnValue(true)
-
-    Movies = app.service('/movies')
-    Jobs = app.service('/jobs')
 
     this.movie = require('../__fixtures__/zathura.movie.json') // eslint-disable-line global-require
 
@@ -124,23 +99,9 @@ describe("'Disk Scanner' service", () => {
     jest.spyOn(childProcess, 'spawn').mockReturnValue(this.eventStub)
   })
 
-  beforeEach(() => {
-    return Movies.create([
-      {
-        title: 'Ready to Delete',
-        filename: '/fake/system/delete/delete.mkv',
-      },
-      {
-        title: 'Existing Movie #1',
-        filename: '/fake/system/zathura3/zathura3.mkv',
-      },
-    ])
-  })
-
   afterEach(() => {
     childProcess.exec.mockClear()
     childProcess.spawn.mockClear()
-    return Movies.remove(null)
   })
 
   it('register the service', () => expect(DiskScanner).toBeTruthy())
@@ -163,16 +124,19 @@ describe("'Disk Scanner' service", () => {
     })
 
     it('finds new movies', async () => {
-      const result = await app.service('/utils/disk-scanner').findAllMediaFiles('/fake/system')
+      const result = await app.service('/utils/disk-scanner').findAllMediaFiles('/fake/system', [])
 
       expect(result).toHaveProperty('created', expect.toBeArray())
-      expect(result.created).toBeArrayOfSize(2)
+      expect(result.created).toBeArrayOfSize(3)
       expect(result.created[0]).toBe('/fake/system/zathura1/zathura1.mkv')
       expect(result.created[1]).toBe('/fake/system/zathura2/zathura2.mkv')
+      expect(result.created[2]).toBe('/fake/system/zathura3/zathura3.mkv')
     })
 
     it('finds existing movies', async () => {
-      let result = await app.service('/utils/disk-scanner').findAllMediaFiles('/fake/system')
+      let result = await app
+        .service('/utils/disk-scanner')
+        .findAllMediaFiles('/fake/system', ['/fake/system/zathura3/zathura3.mkv'])
 
       expect(result).toHaveProperty('updated', expect.toBeArray())
       expect(result.updated).toBeArrayOfSize(1)
@@ -180,7 +144,9 @@ describe("'Disk Scanner' service", () => {
     })
 
     it('finds removed movies', async () => {
-      let result = await app.service('/utils/disk-scanner').findAllMediaFiles('/fake/system')
+      let result = await app
+        .service('/utils/disk-scanner')
+        .findAllMediaFiles('/fake/system', ['/fake/system/delete/delete.mkv'])
 
       expect(result).toHaveProperty('removed', expect.toBeArray())
       expect(result.removed).toBeArrayOfSize(1)
@@ -241,23 +207,6 @@ describe("'Disk Scanner' service", () => {
       let result = await app.service('/utils/disk-scanner').loadMetadataFromNfo(this.nfoFilename)
 
       expect(result).toEqual(nfoJson)
-    })
-  })
-
-  describe('#createMediaFromMediainfo', () => {
-    it('creates media from loaded metadata', async () => {
-      jest.spyOn(Movies, 'create')
-
-      await DiskScanner.createMediaFromMediainfo('/fake/system/zathura1/zathura1.mkv')
-
-      expect(Movies.create).toBeCalledWith(
-        expect.objectContaining({
-          title: 'Zathura: A Space Adventure (2005)',
-        }),
-        expect.anything()
-      )
-
-      Movies.create.mockRestore()
     })
   })
 
@@ -466,18 +415,8 @@ describe("'Disk Scanner' service", () => {
     })
   })
 
-  describe('#saveMediainfo', () => {
-    let goodFileId
-    beforeEach(() =>
-      Movies.create({
-        title: 'Modified Existing Movie #1',
-        filename: 'good_filename.mkv',
-      }).then((res) => {
-        goodFileId = res.id
-      })
-    )
-
-    afterEach(() => Movies.remove(null))
+  describe.skip('#saveMediainfo', () => {
+    let goodFileId = 0
 
     it('should call mkvpropedit with the right command', () =>
       DiskScanner.saveMediainfo(goodFileId, this.data).then(() =>

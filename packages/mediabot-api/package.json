@@ -27,8 +27,10 @@
     "jest:watch": "jest --watch --verbose false",
     "release": "standard-version",
     "lint": "standard --fix",
-    "start:monitor": "nodemon src/",
-    "start": "node src/"
+    "start:watch": "NODE_ENV=production nodemon src/",
+    "start": "NODE_ENV=production node src/",
+    "dev:watch": "NODE_ENV=development nodemon src/",
+    "dev": "NODE_ENV=development node src/"
   },
   "dependencies": {
     "@feathersjs/authentication-oauth": "^4.5.4",
@@ -43,7 +45,6 @@
     "compression": "^1.7.1",
     "cors": "^2.8.4",
     "feathers-hooks-common": "^4.11.1",
-    "feathers-logger": "^0.3.1",
     "feathers-memory": "^2.1.3",
     "feathers-nedb": "^3.0.0",
     "fluent-ffmpeg": "^2.1.2",
@@ -61,10 +62,12 @@
     "shellwords": "^0.1.1",
     "to": "^0.2.9",
     "update": "^0.7.4",
-    "winston": "^3.0.0-rc1",
+    "winston": "^3",
     "xml2js": "^0.4.19"
   },
   "devDependencies": {
+    "@types/lodash": "^4.14.158",
+    "@types/node": "^14.0.27",
     "coveralls": "^3.0.0",
     "git-cz": "^4.7.0",
     "jest": "^26",

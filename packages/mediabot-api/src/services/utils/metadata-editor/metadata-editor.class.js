@@ -16,7 +16,7 @@ class Service {
 
   executeRules(movie, rules) {
     if (!rules || !Array.isArray(rules)) {
-      this.app.error('No rules provided to execute.', { label: 'MetadataEditorService' })
+      logger.error('No rules provided to execute.', { label: 'MetadataEditorService' })
       return movie
     }
 
@@ -136,9 +136,9 @@ class Service {
 
   autoFixMetadata(filename, rules) {
     return this.DiskScannerService.loadMediainfoFromFile(filename).then((metadata) => {
-      this.app.debug(metadata)
+      logger.debug(metadata)
       let executedMetadata = this.executeRules(metadata, rules)
-      this.app.debug(executedMetadata)
+      logger.debug(executedMetadata)
       return executedMetadata
     })
   }

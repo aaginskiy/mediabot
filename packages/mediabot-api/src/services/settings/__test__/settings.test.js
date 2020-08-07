@@ -15,10 +15,10 @@ describe("'Settings' service", () => {
     app.configure(settings)
     app.configure(logger())
     app.log = console.log
-    app.info = console.log
-    app.warn = console.log
-    app.error = console.log
-    app.debug = console.log
+    logger.info = console.log
+    logger.warn = console.log
+    logger.error = console.log
+    logger.debug = console.log
 
     app.setup()
 

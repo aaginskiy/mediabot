@@ -45,7 +45,7 @@ describe.skip("'Scrape' service", () => {
   beforeAll(() => {
     app = feathers()
     app.configure(logger())
-    app.silly = console.log
+    logger.silly = console.log
     app.configure(MediaScraper)
     app.setup()
   })

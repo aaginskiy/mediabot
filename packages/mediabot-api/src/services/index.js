@@ -15,6 +15,8 @@ const settings = require('./settings/settings.service.js')
 
 const jobWorkers = require('./job-workers/job-workers.service.js')
 
+const utilsController = require('./utils/controller/controller.service.js');
+
 module.exports = function () {
   const app = this
   app.configure(settings)
@@ -33,4 +35,5 @@ module.exports = function () {
   app.service('job-workers').startJobs()
   app.configure(image)
   app.configure(webhook)
+  app.configure(utilsController);
 }
