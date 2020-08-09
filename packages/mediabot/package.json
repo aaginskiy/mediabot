@@ -24,16 +24,17 @@
     "yarn": ">= 0.18.0"
   },
   "scripts": {
+    "docs": "jsdoc -c .jsdoc.js",
+    "typedoc": "typedoc --out docs src",
     "test": "jest --coverage",
-    "test:ci": "NODE_ENV=test jest --verbose true --silent --coverage",
+    "test:ci": "NODE_ENV=test jest --verbose true --silent --coverage && coveralls < coverage/lcov.info",
     "test:watch": "jest --watch --verbose false",
     "start:watch": "NODE_ENV=production nodemon lib/",
     "start": "NODE_ENV=production node lib/",
     "dev:watch": "NODE_ENV=development ts-node-dev --no-notify src/",
     "dev": "NODE_ENV=development node lib/",
     "compile": "shx rm -rf lib/ && tsc",
-    "commit": "yarn compile && yarn git-cz --disable-emoji",
-    "lint": "eslint src/. test/. --config .eslintrc.js --ext .ts --fix"
+    "lint": "eslint src/. --config .eslintrc.js --ext .ts --fix"
   },
   "types": "lib/",
   "dependencies": {
@@ -64,6 +65,7 @@
     "@typescript-eslint/eslint-plugin": "^3.8.0",
     "@typescript-eslint/parser": "^3.8.0",
     "axios": "^0.19.2",
+    "better-docs": "^2.3.0",
     "coveralls": "^3.1.0",
     "eslint": "^7.4.0",
     "git-cz": "^4.7.0",
@@ -74,8 +76,10 @@
     "nock": "^13.0.3",
     "shx": "^0.3.2",
     "streamtest": "^2.0.0",
+    "taffydb": "^2.7.3",
     "ts-jest": "^26.1.4",
     "ts-node-dev": "^1.0.0-pre.56",
+    "typedoc": "^0.18.0",
     "typescript": "^3.9.6"
   }
 }

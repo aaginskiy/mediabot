@@ -15,7 +15,7 @@ import MediaScraper from '../media-scraper'
 describe('media-scraper utility', () => {
   let scraper: MediaScraper
 
-  beforeAll(done => {
+  beforeAll((done) => {
     scraper = new MediaScraper('fakeapikey')
 
     nock('https://api.themoviedb.org/3')
@@ -61,10 +61,9 @@ describe('media-scraper utility', () => {
 
   describe('findTmdbId', () => {
     it('should throw TypeError if name is not provided', () =>
-      expect(scraper.findTmdbId(null, null)).rejects.toThrow(TypeError))
+      expect(scraper.findTmdbId('')).rejects.toThrow(TypeError))
 
-    it('should throw Error if TMDB returns error', () =>
-      expect(scraper.findTmdbId('Bad Movie', null)).rejects.toThrow())
+    it('should throw Error if TMDB returns error', () => expect(scraper.findTmdbId('Bad Movie')).rejects.toThrow())
 
     it('should return ID of the first movie in results', () =>
       expect(scraper.findTmdbId('Avengers Infinity War', 2018)).resolves.toBe(299536))
@@ -87,7 +86,7 @@ describe('media-scraper utility', () => {
   })
 
   describe('scrapeSaveMovieByTmdbId', () => {
-    beforeEach(done => {
+    beforeEach((done) => {
       mocked(fs.writeFile).mockClear()
       mocked(fs.createWriteStream).mockClear()
       done()
@@ -193,7 +192,7 @@ describe('media-scraper utility', () => {
   })
 
   describe('scrapeSaveMovieByName', () => {
-    beforeEach(done => {
+    beforeEach((done) => {
       mocked(fs.writeFile).mockClear()
       mocked(fs.createWriteStream).mockClear()
       done()
@@ -308,6 +307,6 @@ describe('media-scraper utility', () => {
     })
 
     it('should throw Error if TMDB returns error', () =>
-      expect(scraper.scrapeSaveMovieByName('Bad Movie', null, 'random filename')).rejects.toThrow())
+      expect(scraper.scrapeSaveMovieByName('Bad Movie', undefined, 'random filename')).rejects.toThrow())
   })
 })

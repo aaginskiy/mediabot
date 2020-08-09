@@ -31,7 +31,7 @@ interface RemoteMovieInfoXml extends RemoteMovieInfo {
   uniqueid?: Array<any>
 }
 
-export default class MediaScraper {
+class MediaScraper {
   tmdb: MovieDB
 
   constructor(tmdbApiKey: string) {
@@ -39,13 +39,11 @@ export default class MediaScraper {
   }
 
   /**
-   * MediaScraper#findTmdbId
-   *
    * Seaches for movie by name and optional year.  Returns the TMDB ID of the movie.
    *
    * @since 0.2.0
    */
-  async findTmdbId(name: string, year: number): Promise<number> {
+  async findTmdbId(name: string, year?: number | undefined): Promise<number> {
     logger.verbose(`Searching TMDB ID of movie ${name} (${year})`, {
       label: 'MediaScraper',
     })
@@ -61,8 +59,8 @@ export default class MediaScraper {
 
     return this.tmdb.search
       .movies(args)
-      .then(res => res.data.results[0].id)
-      .catch(err => {
+      .then((res) => res.data.results[0].id)
+      .catch((err) => {
         logger.error(`Unable to find TMDB ID for movie ${name} (${year})`, {
           label: 'MediaScraper',
         })
@@ -72,8 +70,6 @@ export default class MediaScraper {
   }
 
   /**
-   * MediaScraper#scrapeMovieByTmdbId
-   *
    * Scrapes movie information by TMDB ID.
    *
    * @since 0.2.0
@@ -91,7 +87,7 @@ export default class MediaScraper {
 
     return this.tmdb.movie
       .getDetails(args)
-      .then(res => {
+      .then((res) => {
         const movieInfo = res.data
         const releaseYear = new Date(movieInfo.release_date).getFullYear()
         const movie: RemoteMovieInfo = {
@@ -107,8 +103,8 @@ export default class MediaScraper {
           year: releaseYear,
           releaseDate: movieInfo.release_date,
           rating: movieInfo.vote_average,
-          genres: movieInfo.genres.map(genre => genre.name),
-          studios: movieInfo.production_companies.map(studio => studio.name),
+          genres: movieInfo.genres.map((genre) => genre.name),
+          studios: movieInfo.production_companies.map((studio) => studio.name),
           fanart: movieInfo.backdrop_path,
           poster: movieInfo.poster_path,
         }
@@ -125,22 +121,18 @@ export default class MediaScraper {
   }
 
   /**
-   * MediaScraper#scrapeMoviebyName
-   *
    * Scrapes movie information by name and optional year
    *
    * @since 0.2.0
    */
-  async scrapeMovieByName(name: string, year: number): Promise<RemoteMovieInfo> {
+  async scrapeMovieByName(name: string, year: number | undefined): Promise<RemoteMovieInfo> {
     logger.info(`Loading information for movie ${name} (${year}) from TMDB.`, {
       label: 'MediaScraper',
     })
-    return this.findTmdbId(name, year).then(id => this.scrapeMovieByTmdbId(id))
+    return this.findTmdbId(name, year).then((id) => this.scrapeMovieByTmdbId(id))
   }
 
   /**
-   * MediaScraper#scrapeSaveMovieByTmdbId
-   *
    * Scrapes movie information by TMDB ID. If missing, saves xml nfo, poster, and fanart.
    *
    * @since 0.2.0
@@ -175,19 +167,17 @@ export default class MediaScraper {
   }
 
   /**
-   * MediaScraper#scrapeSaveMovieByTmdbId
-   *
    * Scrapes movie information by TMDB ID. If missing, saves xml nfo, poster, and fanart.
    *
    * @since 0.2.0
    */
   async scrapeSaveMovieByName(
     name: string,
-    year: number,
+    year: number | undefined,
     filename: string,
     forced?: boolean
   ): Promise<RemoteMovieInfo> {
-    return this.findTmdbId(name, year).then(id => this.scrapeSaveMovieByTmdbId(id, filename, forced))
+    return this.findTmdbId(name, year).then((id) => this.scrapeSaveMovieByTmdbId(id, filename, forced))
   }
 
   buildXmlNfo(movie: RemoteMovieInfoXml): string {
@@ -201,7 +191,7 @@ export default class MediaScraper {
     return new Promise((resolve, reject) => {
       const file = fs.createWriteStream(filename, { emitClose: true })
       file
-        .on('error', err => {
+        .on('error', (err) => {
           console.log(err)
           reject(err)
         })
@@ -211,7 +201,7 @@ export default class MediaScraper {
       // console.log(file)
       got
         .stream(uri)
-        .on('error', err => {
+        .on('error', (err) => {
           file.end()
           reject(err)
         })
@@ -219,3 +209,5 @@ export default class MediaScraper {
     })
   }
 }
+
+export default MediaScraper

@@ -9,4 +9,5 @@ module.exports = {
   watchman: false,
   setupFilesAfterEnv: ['jest-extended'],
   coverageReporters: ['text-summary', 'lcov', 'html'],
+  coveragePathIgnorePatterns: ['/node_modules/', 'src/logger.ts', 'src/channels.ts'],
 }

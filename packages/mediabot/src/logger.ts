@@ -12,20 +12,6 @@ const prettyPrint = format((info) => {
   return info
 })
 
-const logFormatColor = format.combine(
-  prettyPrint(),
-  format.timestamp(),
-  format.colorize(),
-  format.align(),
-  format.printf((info) => {
-    if (info.isString) {
-      return `${info.timestamp} [${info.label}] ${info.level}: ${info.message}`
-    } else {
-      return info.message
-    }
-  })
-)
-
 const logFormat = format.combine(
   prettyPrint(),
   format.timestamp(),
@@ -38,6 +24,8 @@ const logFormat = format.combine(
     }
   })
 )
+
+const logFormatColor = format.combine(format.colorize(), logFormat)
 
 // Configure the Winston logger. For the complete documentation see https://github.com/winstonjs/winston
 const logger = createLogger({
@@ -62,13 +50,6 @@ if (process.env.NODE_ENV.toLowerCase() === 'test') {
   //   })
   // )
 } else {
-  logger.add(
-    new transports.Console({
-      level: 'debug',
-      format: logFormatColor,
-    })
-  )
-
   logger.add(
     new transports.File({
       filename: 'logs/error.log',

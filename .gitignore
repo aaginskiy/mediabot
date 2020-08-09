@@ -12,6 +12,8 @@ packages/mediabot-api/config/default.json
 src/api/services/webhook/__tests__/
 .vscode
 ._*
+docs
+.jsdoc.js
 
 
 # Runtime data

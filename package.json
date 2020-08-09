@@ -32,6 +32,7 @@
   },
   "scripts": {
     "bootstrap": "lerna bootstrap --use-workspaces",
-    "test": "lerna run test:ci"
+    "test": "lerna run test:ci",
+    "commit": "yarn workspace mediabot lint && yarn workspace mediabot compile && yarn git-cz --disable-emoji && git push"
   }
 }
