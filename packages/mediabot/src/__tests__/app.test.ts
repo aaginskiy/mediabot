@@ -29,7 +29,6 @@ describe('Feathers application tests (with jest)', () => {
     // expect.assertions(1)
 
     const { data } = await axios.get(getUrl())
-    console.log()
 
     expect(data.indexOf('<html lang="en">')).not.toBe(-1)
   })

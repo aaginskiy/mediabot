@@ -5,9 +5,13 @@ const port = app.get('port')
 const server = app.listen(port)
 
 process.on('unhandledRejection', (reason, p) =>
-  logger.error('Unhandled Rejection at: Promise ', p, reason)
+  logger.info(`Unhandled Rejection at: Promise ${p} ${reason}`, {
+    label: 'Boot',
+  })
 )
 
 server.on('listening', () =>
-  logger.info('Feathers application started on http://%s:%d', app.get('host'), port)
+  logger.info(`Mediabot started on http://${app.get('host')}:${port}`, {
+    label: 'Boot',
+  })
 )
