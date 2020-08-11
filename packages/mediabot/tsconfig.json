@@ -8,5 +8,5 @@
     "esModuleInterop": true
   },
   "includes": ["src/**/*.ts"],
-  "exclude": ["test", "**/__mocks__", "**/__fixtures__", "**/__tests__"]
+  "exclude": ["test", "**/__mocks__", "**/__fixtures__", "**/__tests__", "src/**/*.test.ts"]
 }

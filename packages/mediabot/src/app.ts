@@ -47,6 +47,7 @@ if (!fs.existsSync(configFile)) {
       fs.mkdirSync(configLocation)
     }
 
+    console.log(configLocation)
     fs.writeFileSync(configFile, JSON.stringify(defaultConfigExample, null, '  '))
   } catch (error) {
     logger.error(error.message, {
