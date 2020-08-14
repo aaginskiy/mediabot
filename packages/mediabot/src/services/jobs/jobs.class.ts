@@ -7,9 +7,10 @@ declare module '../../declarations' {
     id: string
     name: string
     args: Array<any>
-    status: string
+    status: 'queued' | 'running' | 'completed' | 'failed'
     progress: number
     error: string
+    statusMessage: string
   }
 }
 

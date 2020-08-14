@@ -9,7 +9,7 @@ declare module '../../declarations' {
   interface JobWorkerData {
     id: string
     jobId: string
-    status: string
+    status: 'idle' | 'active'
   }
 }
 
@@ -26,6 +26,7 @@ export class JobWorkers extends Service<JobWorkerData> {
   async scheduleJobs(): Promise<Paginated<JobWorkerData> | Array<JobWorkerData>> {
     const response = await this.find({ query: { status: 'idle' } })
     let workers: JobWorkerData[]
+    const JobService: Jobs = this.app.service('jobs')
 
     if (Array.isArray(response)) {
       workers = response
@@ -34,7 +35,7 @@ export class JobWorkers extends Service<JobWorkerData> {
     }
 
     if (workers.length) {
-      const response = await this.app.service('jobs').find({
+      const response = await JobService.find({
         query: {
           status: 'queued',
           $sort: {
@@ -58,17 +59,16 @@ export class JobWorkers extends Service<JobWorkerData> {
             .service('jobs')
             [job.name](...job.args)
             .on('progress', async (progress: number) => {
-              this.app.service('jobs').patch(job.id, { progress: progress })
+              JobService.patch(job.id, { progress: progress })
             })
             .on('done', async (message: string) => {
-              this.app.service('jobs').patch(job.id, { status: 'completed', statusMessage: message })
+              JobService.patch(job.id, { status: 'completed', statusMessage: message })
             })
             .on('error', async (message: string) => {
-              this.app.service('jobs').patch(job.id, { status: 'failed', statusMessage: message })
+              JobService.patch(job.id, { status: 'failed', statusMessage: message })
             })
-
           await this.patch(worker.id, { jobId: job.id, status: 'active' })
-          await this.app.service('jobs').patch(job.id, { status: 'running' })
+          await JobService.patch(job.id, { status: 'running' })
         }
       })
     }
