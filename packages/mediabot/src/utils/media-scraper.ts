@@ -7,6 +7,7 @@ const writeFile = util.promisify(fs.writeFile)
 import xml2js from 'xml2js'
 import { cloneDeep } from 'lodash'
 import logger from '../logger'
+import { RemoteMovieInfo, RemoteMovieInfoXml } from '../declarations'
 
 declare module '../declarations' {
   interface RemoteMovieInfo {

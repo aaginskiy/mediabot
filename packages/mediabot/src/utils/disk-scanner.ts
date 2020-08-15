@@ -414,12 +414,12 @@ async function loadMetadataFromNfo(filename: string): Promise<RemoteMovieInfo> {
     nfo.fanart = xml2nfo.movie.fanart
     nfo.poster = xml2nfo.movie.poster
 
-    const imdbidIndex = findIndex(uniqueid, function(o) {
+    const imdbidIndex = findIndex(uniqueid, function(o: string) {
       return o.startsWith('tt')
     })
 
-    const tmdbidIndex = findIndex(uniqueid, function(o) {
-      return o.match(/^\d/)
+    const tmdbidIndex = findIndex(uniqueid, function(o: string) {
+      return !!o.match(/^\d/)
     })
 
     nfo.id = uniqueid[imdbidIndex]

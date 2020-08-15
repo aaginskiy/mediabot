@@ -348,7 +348,7 @@ describe('media-scraper utility', () => {
 
   describe('loadMetadataFromNfo', () => {
     it('loads metadata from NFO', async () => {
-      let result = await DiskScanner.loadMetadataFromNfo(
+      const result = await DiskScanner.loadMetadataFromNfo(
         '/movies/Avengers Infinity War (2019)/Avengers Infinity War (2018).nfo'
       )
 
