@@ -5,7 +5,7 @@ import { EventEmitter } from 'events'
 import JobWorkerService from './job-workers.service'
 import MemoryService from 'feathers-memory'
 import { Application } from '@feathersjs/express'
-import { JobWorkerData, JobData } from '../../declarations'
+// import { JobWorkerData, JobData } from '../../declarations'
 
 const app: Application = express(feathers())
 app.use('/jobs', MemoryService({ paginate: false, multi: true }))
