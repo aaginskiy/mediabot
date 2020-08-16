@@ -10,25 +10,6 @@ import logger from '../logger'
 import { RemoteMovieInfo, RemoteMovieInfoXml } from '../declarations'
 
 declare module '../declarations' {
-  interface RemoteMovieInfo {
-    id: string | null
-    tmdbId: number | null
-    title: string
-    originalTitle: string
-    originalLanguage: string
-    tagline: string | null
-    plot: string | null
-    outline: string | null
-    runtime: number | null
-    year: number
-    releaseDate: string
-    rating: number
-    genres: Array<string>
-    studios: Array<string>
-    fanart: string | null
-    poster: string | null
-  }
-
   interface RemoteMovieInfoXml extends RemoteMovieInfo {
     uniqueid?: Array<any>
   }

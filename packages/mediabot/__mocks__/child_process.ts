@@ -1,7 +1,7 @@
 const child_process = jest.requireActual('child_process')
 
 // Load fixtures
-import nfoAvengersEndGame from '../src/utils/__fixtures__/Avengers End Game (2019).mkvmerge'
+import nfoAvengersEndGame from '../src/utils/__fixtures__/movies/Avengers End Game (2019)/Avengers End Game (2019).mkvmerge'
 
 const backupExec = child_process.exec
 const backupSpawn = child_process.spawn

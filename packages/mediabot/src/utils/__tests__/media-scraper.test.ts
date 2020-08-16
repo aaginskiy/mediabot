@@ -5,10 +5,10 @@ import streamtest from 'streamtest'
 import fs from 'fs'
 
 // Load fixtures
-import tmdbResponseAvengersInfinityWar from '../__fixtures__/Avengers Infinity War (2018).tmdbResponse'
-import searchResponseAvengersInfinityWar from '../__fixtures__/Avengers Infinity War (2018).searchResponse'
-import remoteMovieInfoAvengersInfinityWar from '../__fixtures__/Avengers Infinity War (2018).tmdbinfo'
-import nfoAvengersInfinityWar from '../__fixtures__/Avengers Infinity War (2018).nfo'
+import tmdbResponseAvengersInfinityWar from '../__fixtures__/movies/Avengers Infinity War (2018)/Avengers Infinity War (2018).tmdbResponse'
+import searchResponseAvengersInfinityWar from '../__fixtures__/movies/Avengers Infinity War (2018)/Avengers Infinity War (2018).searchResponse'
+import remoteMovieInfoAvengersInfinityWar from '../__fixtures__/movies/Avengers Infinity War (2018)/Avengers Infinity War (2018).tmdbinfo'
+import nfoAvengersInfinityWar from '../__fixtures__/movies/Avengers Infinity War (2018)/Avengers Infinity War (2018).nfo'
 
 import MediaScraper from '../media-scraper'
 
