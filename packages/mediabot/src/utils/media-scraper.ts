@@ -6,7 +6,8 @@ import fs from 'fs'
 const writeFile = util.promisify(fs.writeFile)
 import xml2js from 'xml2js'
 import { cloneDeep } from 'lodash'
-import logger from '../logger'
+import Log from '../logger'
+const logger = new Log('MediaScraper')
 import { RemoteMovieInfo, RemoteMovieInfoXml } from '../declarations'
 
 declare module '../declarations' {
@@ -28,9 +29,7 @@ class MediaScraper {
    * @since 0.2.0
    */
   async findTmdbId(name: string, year?: number | undefined): Promise<number> {
-    logger.verbose(`Searching TMDB ID of movie ${name} (${year})`, {
-      label: 'MediaScraper',
-    })
+    logger.verbose(`Searching TMDB ID of movie ${name} (${year})`)
 
     if (!name) throw new TypeError('Parameter "name" must be provided')
 
@@ -45,9 +44,7 @@ class MediaScraper {
       .movies(args)
       .then((res) => res.data.results[0].id)
       .catch((err) => {
-        logger.error(`Unable to find TMDB ID for movie ${name} (${year})`, {
-          label: 'MediaScraper',
-        })
+        logger.error(`Unable to find TMDB ID for movie ${name} (${year})`)
 
         throw err
       })
@@ -59,9 +56,7 @@ class MediaScraper {
    * @since 0.2.0
    */
   async scrapeMovieByTmdbId(id: number): Promise<RemoteMovieInfo> {
-    logger.verbose(`Loading information for movie (TMDB ID: ${id}) from TMDB.`, {
-      label: 'MediaScraper',
-    })
+    logger.verbose(`Loading information for movie (TMDB ID: ${id}) from TMDB.`)
 
     const args = {
       pathParameters: {
@@ -96,9 +91,7 @@ class MediaScraper {
         return movie
       })
       .catch((err: Error) => {
-        logger.error(`Unable to load information for movie (TMDB ID: ${id}) from TMDB.`, {
-          label: 'MediaScraper',
-        })
+        logger.error(`Unable to load information for movie (TMDB ID: ${id}) from TMDB.`)
 
         throw err
       })
@@ -110,9 +103,7 @@ class MediaScraper {
    * @since 0.2.0
    */
   async scrapeMovieByName(name: string, year: number | undefined): Promise<RemoteMovieInfo> {
-    logger.info(`Loading information for movie ${name} (${year}) from TMDB.`, {
-      label: 'MediaScraper',
-    })
+    logger.info(`Loading information for movie ${name} (${year}) from TMDB.`)
     return this.findTmdbId(name, year).then((id) => this.scrapeMovieByTmdbId(id))
   }
 

@@ -4,6 +4,7 @@ import RuleFactory from '../__fixtures__/rules/rule-factory'
 import movieAvengersInfinityWar from '../__fixtures__/movies/Avengers Infinity War (2018)/Avengers Infinity War (2018).movie'
 import { cloneDeep } from 'lodash'
 import { Rule } from '../../declarations'
+import { mocked } from 'ts-jest/utils'
 
 const removeNonEngAudioRule: Rule = {
   type: 'track',
@@ -75,7 +76,7 @@ const setNonOriginalLanguageAudioEngRule: Rule = {
 }
 
 describe("'Metadata Editor' service", () => {
-  describe('#checkTrackRule', () => {
+  describe('checkTrackRule', () => {
     describe('when conditions match', () => {
       it('returns true if rule is matched', () => {
         const track = TrackFactory.createTrack({ isMuxed: false })
@@ -100,7 +101,7 @@ describe("'Metadata Editor' service", () => {
     })
   })
 
-  describe('#checkRules', () => {
+  describe('checkRules', () => {
     it('returns false if any rule is not followed', () => {
       const movie = cloneDeep(movieAvengersInfinityWar)
       const rule = RuleFactory.createRule(removeNonEngAudioRule)
@@ -133,7 +134,7 @@ describe("'Metadata Editor' service", () => {
     })
   })
 
-  describe('#executeTrackRule', () => {
+  describe('executeTrackRule', () => {
     describe('when conditions match', () => {
       it('returns track unmodified if rule is matched', () => {
         const track = TrackFactory.createTrack({ isMuxed: false })
@@ -157,11 +158,10 @@ describe("'Metadata Editor' service", () => {
     })
   })
 
-  describe('#executeRules', () => {
+  describe('executeRules', () => {
     it('correctly sets track for removal', () => {
       const movie = cloneDeep(movieAvengersInfinityWar)
       const rule = RuleFactory.createRule(removeNonEngAudioRule)
-      console.log(MetadataEditor.executeRules(movie, [rule]).mediaFiles.tracks[2])
 
       expect(MetadataEditor.executeRules(movie, [rule]).mediaFiles.tracks[2]).toHaveProperty('isMuxed', false)
     })
@@ -181,6 +181,18 @@ describe("'Metadata Editor' service", () => {
 
         expect(MetadataEditor.executeRules(movie, [rule]).mediaFiles.tracks[2]).toHaveProperty('language', 'eng')
       })
+    })
+  })
+
+  describe('__checkCondition', () => {
+    it('should not call matchers if rule value is object', () => {
+      const movie = cloneDeep(movieAvengersInfinityWar)
+      const rule = RuleFactory.createRule(removeNonOriginalLanguageAudioRule)
+      jest.spyOn(MetadataEditor, 'checkNotEql')
+      MetadataEditor.checkEntry(movie.mediaFiles.tracks[2], rule.conditions)
+
+      expect(mocked(MetadataEditor.checkNotEql)).not.toBeCalled()
+      mocked(MetadataEditor.checkNotEql).mockReset()
     })
   })
 })

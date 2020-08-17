@@ -1,5 +1,6 @@
 import fg from 'fast-glob'
-import logger from '../logger'
+import Log from '../logger'
+const logger = new Log('DiskScanner')
 import { difference, compact } from 'lodash'
 import shellwords from 'shellwords-ts'
 import childProcess from 'child_process'
@@ -96,26 +97,26 @@ function parseFilename(filename: string): { title?: string; year?: number } {
 async function findAllMediaFiles(directory: string, existingFilenames: string[]): Promise<MediaList> {
   const globString = `${directory}/**/*.mkv`
 
-  logger.info(`Loading movies from ${directory}.`, { label: 'DiskScanner' })
+  logger.info(`Loading movies from ${directory}.`)
   const mediaOnDisk = await fg(globString)
 
   // Filter removed movies
   const removedFilenames = difference(existingFilenames, mediaOnDisk)
 
-  logger.verbose('Found removed movies:', { label: 'DiskScannerService' })
-  logger.verbose(removedFilenames.toString(), { label: 'DiskScannerService' })
+  logger.verbose('Found removed movies:')
+  logger.verbose(removedFilenames.toString())
 
   // Filter existing movies
   const updatedFilenames = existingFilenames.filter((filename) => mediaOnDisk.includes(filename))
 
-  logger.verbose('Found existing movies:', { label: 'DiskScannerService' })
-  logger.verbose(updatedFilenames.toString(), { label: 'DiskScannerService' })
+  logger.verbose('Found existing movies:')
+  logger.verbose(updatedFilenames.toString())
 
   // Filter new movies
   const createdFilenames = difference(mediaOnDisk, updatedFilenames)
 
-  logger.verbose('Found new movies:', { label: 'DiskScannerService' })
-  logger.verbose(createdFilenames.toString(), { label: 'DiskScannerService' })
+  logger.verbose('Found new movies:')
+  logger.verbose(createdFilenames.toString())
 
   return {
     created: compact(createdFilenames),
@@ -130,8 +131,8 @@ async function findAllMediaFiles(directory: string, existingFilenames: string[])
  * @since 0.2.0
  */
 async function loadMediainfoFromFile(filename: string): Promise<Mediainfo> {
-  logger.info('Loading requested movie metadata from the disk.', { label: 'DiskScanner' })
-  logger.info(`Filename: ${filename}`, { label: 'DiskScanner' })
+  logger.info('Loading requested movie metadata from the disk.')
+  logger.info(`Filename: ${filename}`)
 
   if (!filename) throw new TypeError('Filename must be defined and not empty.')
 
@@ -172,8 +173,6 @@ async function loadMediainfoFromFile(filename: string): Promise<Mediainfo> {
 
     const filePath = path.parse(filename)
 
-    mediaInfo.dir = filePath.dir
-
     mediaInfo.files = await readdir(filePath.dir)
 
     if (mediaInfo.files.includes(filePath.name + '-poster.jpg')) {
@@ -210,12 +209,8 @@ async function loadMediainfoFromFile(filename: string): Promise<Mediainfo> {
 
     return mediaInfo
   } catch (error) {
-    logger.error(`Unable to load media info for "${filename}".`, {
-      label: 'DiskScannerService',
-    })
-    logger.error(error.message, {
-      label: 'DiskScannerService',
-    })
+    logger.error(`Unable to load media info for "${filename}".`)
+    logger.error(error.message)
     throw error
   }
 }
@@ -227,15 +222,15 @@ async function loadMediainfoFromFile(filename: string): Promise<Mediainfo> {
  * @memberof DiskScanner
  */
 async function writeMediainfo(filename: string, mediainfo: Mediainfo): Promise<Mediainfo> {
-  logger.info('Updating file media info without merging.', { label: 'DiskScanner' })
-  logger.info(`Filename: ${filename}`, { label: 'DiskScanner' })
+  logger.info('Updating file media info without merging.')
+  logger.info(`Filename: ${filename}`)
 
   const infoOptions = generateInfoOptions(mediainfo)
 
   return exec(`mkvpropedit -v ${shellwords.escape(filename)} ${infoOptions}`)
     .then(() => mediainfo)
     .catch((err) => {
-      logger.error(err, { label: 'MediaFileService' })
+      logger.error(err)
       return Promise.reject(err)
     })
 }
@@ -246,13 +241,13 @@ async function writeMediainfo(filename: string, mediainfo: Mediainfo): Promise<M
  * @memberof DiskScanner
  */
 function muxMediaFile(filename: string, mediainfo: Mediainfo): EventEmitter {
-  logger.info('Called MediaFile#mux with:', { label: 'DiskScanner' })
+  logger.info('Called MediaFile#mux with:')
 
   const muxEvent = new EventEmitter()
   const command = generateMergeCommand(mediainfo)
   const bin = command.shift()
   if (!bin) {
-    logger.warn('Missing command to merge', { label: 'DiskScanner' })
+    logger.warn('Missing command to merge')
     muxEvent.emit('error', 'Missing command to merge')
     return muxEvent
   }
@@ -267,14 +262,12 @@ function muxMediaFile(filename: string, mediainfo: Mediainfo): EventEmitter {
       }
     })
   } else {
-    logger.warn('Unable to connect to stdout of mkvmerge', { label: 'DiskScanner' })
+    logger.warn('Unable to connect to stdout of mkvmerge')
   }
 
   updateEvent.on('exit', async (code: number) => {
     if (code === 1 || code === 0) {
-      logger.verbose(`Backing up ${mediainfo.filename} to ${mediainfo.filename + 'bak'}.`, {
-        label: 'DiskScanner',
-      })
+      logger.verbose(`Backing up ${mediainfo.filename} to ${mediainfo.filename + 'bak'}.`)
 
       try {
         await rename(mediainfo.filename, mediainfo.filename + 'bak')
@@ -465,9 +458,7 @@ async function loadMetadataFromNfo(filename: string): Promise<RemoteMovieInfo> {
 
     return nfo
   } catch (error) {
-    logger.error(`Unable to read nfo @ ${filename}`, {
-      label: 'DiskScanner',
-    })
+    logger.error(`Unable to read nfo @ ${filename}`)
     throw error
   }
 }

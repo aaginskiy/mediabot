@@ -1,6 +1,7 @@
 import { set, get } from 'lodash'
 import { Track, Rule, safeTrackParameters, MovieInfo, Movie, RuleEntry, entryValue } from '../declarations'
-import logger from '../logger'
+import Log from '../logger'
+const logger = new Log('MetadataEditor')
 
 const safeTrackParameters: safeTrackParameters[] = [
   'title',
@@ -13,40 +14,28 @@ const safeTrackParameters: safeTrackParameters[] = [
   'isEnabled',
   'isForced',
   'isMuxed',
+  '',
 ]
 
-function checkCondition(track: Track, rule: Rule): boolean {
-  return rule.conditions.reduce<boolean>((accumulater, condition) => {
+function checkEntry(track: Track, entries: RuleEntry[]): boolean {
+  return entries.reduce<boolean>((accumulater, condition) => {
     if (typeof condition.value === 'object') {
-      logger.warn('Skipping condition check: value must not be an object ', {
-        label: 'MetadataEditor',
-      })
+      logger.warn('Skipping condition check: value must not be an object ')
       return accumulater
     }
-    const key = 'match' + condition.type
+    const key = 'check' + condition.type
 
-    return isValidMatcher(key) && validParameter(condition.parameter)
-      ? accumulater && matchers[key](get(track, condition.parameter), condition.value)
+    return isValidChecker(key) && validParameter(condition.parameter)
+      ? accumulater && checkers[key](track, condition.parameter, condition.value)
       : accumulater
   }, true)
 }
 
 function checkTrackRule(track: Track, rule: Rule): boolean {
-  if (checkCondition(track, rule)) {
-    return rule.actions.reduce<boolean>((accumulater, action) => {
-      if (typeof action.value === 'object') {
-        logger.warn('Skipping condition check: value must not be an object ', {
-          label: 'MetadataEditor',
-        })
-        return accumulater
-      }
-      const key = 'check' + action.type
-      return isValidChecker(key) ? accumulater && checkers[key](track, action.parameter, action.value) : accumulater
-    }, true)
+  if (checkEntry(track, rule.conditions)) {
+    return checkEntry(track, rule.actions)
   } else {
-    logger.verbose('Skipping rule: conditions did not match', {
-      label: 'MetadataEditor',
-    })
+    logger.verbose('Skipping rule: conditions did not match')
     return true
   }
 }
@@ -77,12 +66,10 @@ function checkRules(movie: Movie, rules: Rule[]): boolean {
 
 function executeTrackRule(track: Track, rule: Rule): Track {
   let modifiedTrack = track
-  if (checkCondition(track, rule)) {
+  if (checkEntry(track, rule.conditions)) {
     rule.actions.forEach((action) => {
       if (typeof action.value === 'object') {
-        logger.warn('Skipping condition check: value must not be an object ', {
-          label: 'MetadataEditor',
-        })
+        logger.warn('Skipping condition check: value must not be an object ')
         return true
       }
       const key = 'execute' + action.type
@@ -108,33 +95,30 @@ function executeRules(movie: Movie, rules: Rule[]): Movie {
   return movie
 }
 
-/** Checkers */
 const checkers = {
   checkSet,
   checkRemove,
+  checkEql,
+  checkNotEql,
 }
 
-function checkSet(track: Track, parameter: string | undefined, value: entryValue): boolean {
+function checkSet(track: Track, parameter: string, value: entryValue): boolean {
   return validParameter(parameter) ? get(track, parameter) === value : true
 }
 
 function validParameter(parameter: string | undefined): parameter is string {
   if (parameter === undefined) {
-    logger.warn(`Skipping check 'checkSet': requires '${parameter}' to exist`, {
-      label: 'MetadataEditor',
-    })
+    logger.warn(`Skipping check 'checkSet': requires '${parameter}' to exist`)
     return false
   } else if (!(safeTrackParameters as string[]).includes(parameter)) {
-    logger.warn(`Skipping check 'checkSet': '${parameter}' is not valid`, {
-      label: 'MetadataEditor',
-    })
+    logger.warn(`Skipping check 'checkSet': '${parameter}' is not valid`)
     return false
   } else {
     return true
   }
 }
 
-function checkRemove(track: Track, _parameter: string | undefined, _value: entryValue): boolean {
+function checkRemove(track: Track, _parameter: string, _value: entryValue): boolean {
   return get(track, 'isMuxed') === false
 }
 
@@ -142,35 +126,12 @@ function isValidChecker(key: string): key is keyof typeof checkers {
   return key in checkers
 }
 
-/** Matchers */
-const matchers = {
-  matchEql,
-  matchNotEql,
+function checkEql(track: Track, parameter: string, value: entryValue): boolean {
+  return get(track, parameter) === value
 }
 
-function matchEql(
-  actualVal: string | number | boolean | undefined,
-  checkVal: string | number | boolean | undefined
-): boolean {
-  return actualVal === checkVal
-}
-
-function matchNotEql(
-  actualVal: string | number | boolean | undefined,
-  checkVal: string | number | boolean | undefined
-): boolean {
-  return actualVal !== checkVal
-}
-
-function isValidMatcher(key: string): key is keyof typeof matchers {
-  if (key in matchers) {
-    return true
-  } else {
-    logger.warn(`Skipping check: condition matcher '${key}' does not exist`, {
-      label: 'MetadataEditor',
-    })
-    return false
-  }
+function checkNotEql(track: Track, parameter: string, value: entryValue): boolean {
+  return get(track, parameter) !== value
 }
 
 /** Executors */
@@ -197,4 +158,6 @@ export default {
   checkRules,
   executeTrackRule,
   executeRules,
+  checkNotEql,
+  checkEntry,
 }
