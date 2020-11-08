@@ -31,7 +31,7 @@
     "test:watch": "jest --watch --verbose false",
     "start:watch": "NODE_ENV=production nodemon lib/",
     "start": "NODE_ENV=production node lib/",
-    "dev:watch": "NODE_ENV=development ts-node-dev --no-notify src/",
+    "dev:watch": "NODE_ENV=development ts-node-dev --files --no-notify src/",
     "dev": "NODE_ENV=development node lib/",
     "compile": "shx rm -rf lib/ && tsc",
     "lint": "eslint src/. --config .eslintrc.js --ext .ts --fix"
@@ -44,6 +44,7 @@
     "@feathersjs/feathers": "^4.5.3",
     "@feathersjs/socketio": "^4.5.4",
     "@feathersjs/transport-commons": "^4.5.7",
+    "change-case": "^4.1.1",
     "compression": "^1.7.4",
     "cors": "^2.8.5",
     "fast-glob": "^3.2.4",

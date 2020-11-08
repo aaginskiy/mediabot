@@ -1,15 +1,18 @@
 import { Service, NedbServiceOptions } from 'feathers-nedb'
-import { Application } from '../../declarations'
+import { Application, MovieData, Mediainfo, RemoteMovieInfo } from '../../declarations'
 
-declare interface Movie {
-  id: string
-  title: string
-  year: number
-  filename: string
-  mediaInfo: string
+declare module '../../declarations' {
+  interface MovieData {
+    id?: string
+    title: string
+    year: number
+    filename: string
+    remoteInfo: RemoteMovieInfo
+    mediaInfo: Mediainfo
+  }
 }
 
-export class Movies extends Service<Movie> {
+export class Movies extends Service<MovieData> {
   //eslint-disable-next-line @typescript-eslint/no-unused-vars
   constructor(options: Partial<NedbServiceOptions>, app: Application) {
     super(options)

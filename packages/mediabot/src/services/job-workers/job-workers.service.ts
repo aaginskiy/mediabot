@@ -1,6 +1,6 @@
 // Initializes the `job-workers` service on path `/job-workers`
 import { ServiceAddons } from '@feathersjs/feathers'
-import { Application } from '../../declarations'
+import { Application, ServiceTypes } from '../../declarations'
 import { JobWorkers } from './job-workers.class'
 import hooks from './job-workers.hooks'
 import feathers from '@feathersjs/feathers'
@@ -22,7 +22,11 @@ export default function(app: Application | feathers.Application): void {
   app.use('/job-workers', new JobWorkers(options, app))
 
   // Get our initialized service so that we can register hooks
-  const service = app.service('job-workers')
+  const service: ServiceTypes['job-workers'] = app.service('job-workers')
 
   service.hooks(hooks)
+
+  service.create([{ status: 'idle' }, { status: 'idle' }, { status: 'idle' }, { status: 'idle' }])
+  
+  service.startJobs()
 }

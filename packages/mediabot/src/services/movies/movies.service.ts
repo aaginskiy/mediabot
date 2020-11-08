@@ -17,6 +17,7 @@ export default function(app: Application): void {
     Model: createModel(app),
     id: 'id',
     paginate: app.get('paginate'),
+    multi: ['create', 'update', 'remove'],
   }
 
   // Initialize our service with any options it requires

@@ -5,9 +5,9 @@
     "default": 10,
     "max": 50
   },
-  "movieDirectory": "",
+  "movieDirectory": "/mnt/cache/nas/movies/uhd",
   "mediaParser": {
-    "tmdbApiKey": "fakeapikey",
+    "tmdbApiKey": "9cc56c731a06623343d19ce2f7a3c982",
     "movie": {
       "include": {
         "title": true,

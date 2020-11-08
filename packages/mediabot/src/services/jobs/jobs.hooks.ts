@@ -20,14 +20,18 @@ export default {
             rec.function = 'scanMediaLibrary'
             rec.args = [app.get('movieDirectory')]
             break
-          case 'refreshAllMovies':
+          case 'addMovie':
             rec.priority = 'high'
-            rec.function = 'refreshAllMovies'
-            rec.args = [app.get('movieDirectory')]
+            rec.function = 'addMovie'
             break
           case 'refreshMovie':
             rec.priority = 'high'
             rec.function = 'refreshMovie'
+            break
+          case 'refreshAllMovies':
+            rec.priority = 'high'
+            rec.function = 'refreshAllMovies'
+            rec.args = [app.get('movieDirectory')]
             break
           case 'autoFixMovie':
             rec.priority = 'normal'
@@ -50,7 +54,7 @@ export default {
       }),
     ],
     update: [disallow()],
-    patch: [disallow('external'), keep('status', 'progress', 'error'), required('status', 'progress', 'error')],
+    patch: [disallow('external'), keep('status', 'progress', 'statusMessage')],
     remove: [],
   },
 

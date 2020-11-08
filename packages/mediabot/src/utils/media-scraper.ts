@@ -195,7 +195,7 @@ class MediaScraper {
       const file = fs.createWriteStream(filename, { emitClose: true })
       file
         .on('error', (err) => {
-          console.log(err)
+          // console.log(err)
           reject(err)
         })
         .on('close', () => {

@@ -8,7 +8,7 @@ export default {
     create: [],
     update: [],
     patch: [disallow()],
-    remove: [disallow()],
+    remove: [],
   },
 
   after: {

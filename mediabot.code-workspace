@@ -1,20 +1,21 @@
 {
   "folders": [
     {
-      "name": "✨ root",
-      "path": "."
-    },
-    {
       "name": "📦 mediabot",
       "path": "packages/mediabot"
     },
     {
       "name": "📦 mediabot-gui",
       "path": "packages/mediabot-gui"
+    },
+    {
+      "name": "✨ root",
+      "path": "."
     }
   ],
   "settings": {
     "jest.pathToJest": "node_modules/.bin/jest",
-    "jest.disabledWorkspaceFolders": ["✨ root", "📦 mediabot-gui"]
+    "jest.disabledWorkspaceFolders": ["✨ root", "📦 mediabot-gui"],
+    "typescript.tsdk": "node_modules/typescript/lib"
   }
 }

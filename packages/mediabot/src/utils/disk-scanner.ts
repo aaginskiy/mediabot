@@ -12,45 +12,83 @@ import fs from 'fs'
 const readdir = util.promisify(fs.readdir)
 const rename = util.promisify(fs.rename)
 const readFile = util.promisify(fs.readFile)
-import { RemoteMovieInfo } from '../declarations'
+import { RemoteMovieInfo, Mediainfo, MediaList, Track } from '../declarations'
 import xml2js from 'xml2js'
+import { capitalCase } from 'change-case'
 
-declare interface MediaList {
-  created: string[]
-  updated: string[]
-  removed: string[]
+declare module '../declarations' {
+  interface Mediainfo {
+    videoTag: string
+    audioTag: string
+    landscape?: string
+    files: string[]
+    fanart?: string
+    poster?: string
+    dir: string
+    title: string
+    filename: string
+    tracks: Track[]
+    nfo: string
+  }
+
+  interface MediaList {
+    created: string[]
+    updated: string[]
+    removed: string[]
+  }
+
+  interface Track {
+    title: string
+    language: string
+    number: number
+    newNumber: number
+    trackType: string
+    codecType: string
+    audioChannels?: number
+    bps?: number
+    isDefault: boolean
+    isEnabled: boolean
+    isForced: boolean
+    isMuxed: boolean
+  }
 }
 
-declare interface Mediainfo {
-  videoTag: string
-  audioTag: string
-  landscape?: string
-  files: string[]
-  fanart?: string
-  poster?: string
-  dir: string
-  title: string
-  filename: string
-  tracks: Track[]
-  nfo: string
+/**
+ * Parse filename for movie title and year
+ *
+ * @since 0.2.0
+ */
+function parseFilename(filename: string): { title?: string; year?: number } {
+  let title: string | undefined, year: number | undefined
+
+  const folderName = path
+    .dirname(filename)
+    .split(path.sep)
+    .pop()
+
+  if (folderName) {
+    const reTitle = /^(?<title>.*)\((?<year>(19|20)\d{2})\)$/i
+    const reArticle = /^(?<title>.*),\s+(?<article>(the|a|an))$/i
+    const matchTitle = reTitle.exec(folderName)
+
+    year = matchTitle?.groups?.year ? parseInt(matchTitle?.groups?.year) : undefined
+    const intermediateTile = matchTitle?.groups?.title?.replace(/\./gi, ' ')?.trim()
+    if (intermediateTile) {
+      const matchArticle = reArticle.exec(intermediateTile)
+      title = matchArticle ? matchArticle.groups?.article + ' ' + matchArticle.groups?.title : intermediateTile
+      title = title ? capitalCase(title) : title
+    }
+  } else {
+    title = undefined
+    year = undefined
+  }
+  return {
+    title,
+    year,
+  }
 }
 
-declare interface Track {
-  title: string
-  language: string
-  number: number
-  newNumber: number
-  trackType: string
-  codecType: string
-  audioChannels?: number
-  bps?: number
-  isDefault: boolean
-  isEnabled: boolean
-  isForced: boolean
-  isMuxed: boolean
-}
-
-/**ass DiskScanner
+/**
  * Scans directory recursively for any media files
  *
  * @since 0.2.0
@@ -141,7 +179,7 @@ async function loadMediainfoFromFile(filename: string): Promise<Mediainfo> {
     if (mediaInfo.files.includes(filePath.name + '-poster.jpg')) {
       mediaInfo.poster = filePath.name + '-poster.jpg'
     } else if (mediaInfo.files.includes('poster.jpg')) {
-      mediaInfo.fanart = 'poster.jpg'
+      mediaInfo.poster = 'poster.jpg'
     }
 
     if (mediaInfo.files.includes(filePath.name + '-fanart.jpg')) {
@@ -434,10 +472,4 @@ async function loadMetadataFromNfo(filename: string): Promise<RemoteMovieInfo> {
   }
 }
 
-export default {
-  findAllMediaFiles,
-  loadMediainfoFromFile,
-  writeMediainfo,
-  muxMediaFile,
-  loadMetadataFromNfo,
-}
+export { findAllMediaFiles, loadMediainfoFromFile, writeMediainfo, muxMediaFile, loadMetadataFromNfo, parseFilename }

@@ -4,7 +4,14 @@ jest.mock('fs')
 import { mocked } from 'ts-jest/utils'
 import childProcess from 'child_process'
 import 'jest-extended'
-import DiskScanner from '../disk-scanner'
+import {
+  findAllMediaFiles,
+  loadMediainfoFromFile,
+  writeMediainfo,
+  muxMediaFile,
+  loadMetadataFromNfo,
+  parseFilename,
+} from '../disk-scanner'
 import { cloneDeep, merge } from 'lodash'
 
 import mediainfoAvengersInfinityWar from '../__fixtures__/Avengers Infinity War (2018).mediainfo'
@@ -12,9 +19,31 @@ import mkvpropeditAvengersInfinityWar from '../__fixtures__/Avengers Infinity Wa
 import tmdbAvengersInfinityWar from '../__fixtures__/Avengers Infinity War (2018).tmdbinfo'
 
 describe('media-scraper utility', () => {
+  describe('parseFilename', () => {
+    it('parses year from regular directory name with space', () => {
+      const result = parseFilename('/movies/Avengers Endgame (2019)/Avengers Endgame (2019).mkv')
+      expect(result.year).toBe(2019)
+    })
+
+    it('parses year from regular directory name with period', () => {
+      const result = parseFilename('/movies/Avengers.Endgame.(2019)/Avengers.Endgame.(2019).mkv')
+      expect(result.year).toBe(2019)
+    })
+
+    it('parses year from regular directory name with space', () => {
+      const result = parseFilename('/movies/Avengers Endgame (2019)/Avengers Endgame (2019).mkv')
+      expect(result.title).toBe('Avengers Endgame')
+    })
+
+    it('parses year from regular directory name with period', () => {
+      const result = parseFilename('/movies/Avengers.Endgame.(2019)/Avengers.Endgame.(2019).mkv')
+      expect(result.title).toBe('Avengers Endgame')
+    })
+  })
+
   describe('findAllMediaFiles', () => {
     it('finds new media files', async () => {
-      const result = await DiskScanner.findAllMediaFiles('/movies', [
+      const result = await findAllMediaFiles('/movies', [
         '/movies/Avengers Infinity War (2018)/Avengers Infinity War (2018).mkv',
         '/movies/Removed Movie (2018)/Removed Movie (2018).mkv',
       ])
@@ -25,7 +54,7 @@ describe('media-scraper utility', () => {
     })
 
     it('finds existing movies', async () => {
-      const result = await DiskScanner.findAllMediaFiles('/movies', [
+      const result = await findAllMediaFiles('/movies', [
         '/movies/Avengers Infinity War (2018)/Avengers Infinity War (2018).mkv',
         '/movies/Removed Movie (2018)/Removed Movie (2018).mkv',
       ])
@@ -36,7 +65,7 @@ describe('media-scraper utility', () => {
     })
 
     it('finds removed movies', async () => {
-      const result = await DiskScanner.findAllMediaFiles('/movies', [
+      const result = await findAllMediaFiles('/movies', [
         '/movies/Avengers Infinity War (2018)/Avengers Infinity War (2018).mkv',
         '/movies/Removed Movie (2018)/Removed Movie (2018).mkv',
       ])
@@ -48,31 +77,30 @@ describe('media-scraper utility', () => {
   })
 
   describe('loadMetadataFromFile', () => {
-    it('throws a TypeError if filename is empty', () =>
-      expect(DiskScanner.loadMediainfoFromFile('')).rejects.toThrow(TypeError))
+    it('throws a TypeError if filename is empty', () => expect(loadMediainfoFromFile('')).rejects.toThrow(TypeError))
 
     it('throws an error when file is not found', () =>
-      expect(
-        DiskScanner.loadMediainfoFromFile('/movies/Removed Movie (2018)/Removed Movie (2018).mkv')
-      ).rejects.toThrow('Command failed'))
+      expect(loadMediainfoFromFile('/movies/Removed Movie (2018)/Removed Movie (2018).mkv')).rejects.toThrow(
+        'Command failed'
+      ))
 
     it('throws an error of JSON cannot be read', () =>
-      expect(DiskScanner.loadMediainfoFromFile('/movies/Bad JSON (2018)/Bad JSON (2018).mkv')).rejects.toThrow(
+      expect(loadMediainfoFromFile('/movies/Bad JSON (2018)/Bad JSON (2018).mkv')).rejects.toThrow(
         'Unexpected token u in JSON at position 0'
       ))
 
     it('returns an object', () =>
       expect(
-        DiskScanner.loadMediainfoFromFile('/movies/Avengers Infinity War (2018)/Avengers Infinity War (2018).mkv')
+        loadMediainfoFromFile('/movies/Avengers Infinity War (2018)/Avengers Infinity War (2018).mkv')
       ).toBeObject())
 
     it("has 'dir' property", () =>
       expect(
-        DiskScanner.loadMediainfoFromFile('/movies/Avengers Infinity War (2018)/Avengers Infinity War (2018).mkv')
+        loadMediainfoFromFile('/movies/Avengers Infinity War (2018)/Avengers Infinity War (2018).mkv')
       ).resolves.toHaveProperty('dir', '/movies/Avengers Infinity War (2018)'))
 
     it("has 'files' (Array) property", async () => {
-      const mediainfo = await DiskScanner.loadMediainfoFromFile(
+      const mediainfo = await loadMediainfoFromFile(
         '/movies/Avengers Infinity War (2018)/Avengers Infinity War (2018).mkv'
       )
       expect(mediainfo.files).toBeArray()
@@ -81,27 +109,27 @@ describe('media-scraper utility', () => {
 
     it("has 'poster' property", () =>
       expect(
-        DiskScanner.loadMediainfoFromFile('/movies/Avengers Infinity War (2018)/Avengers Infinity War (2018).mkv')
+        loadMediainfoFromFile('/movies/Avengers Infinity War (2018)/Avengers Infinity War (2018).mkv')
       ).resolves.toHaveProperty('poster', 'Avengers Infinity War (2018)-poster.jpg'))
 
     it("has 'fanart' property", () =>
       expect(
-        DiskScanner.loadMediainfoFromFile('/movies/Avengers Infinity War (2018)/Avengers Infinity War (2018).mkv')
+        loadMediainfoFromFile('/movies/Avengers Infinity War (2018)/Avengers Infinity War (2018).mkv')
       ).resolves.toHaveProperty('fanart', 'Avengers Infinity War (2018)-fanart.jpg'))
 
     it("has 'nfo' property", () =>
       expect(
-        DiskScanner.loadMediainfoFromFile('/movies/Avengers Infinity War (2018)/Avengers Infinity War (2018).mkv')
+        loadMediainfoFromFile('/movies/Avengers Infinity War (2018)/Avengers Infinity War (2018).mkv')
       ).resolves.toHaveProperty('nfo', 'Avengers Infinity War (2018).nfo'))
 
     it("sets 'videoTag' to default video", () =>
       expect(
-        DiskScanner.loadMediainfoFromFile('/movies/Avengers Infinity War (2018)/Avengers Infinity War (2018).mkv')
+        loadMediainfoFromFile('/movies/Avengers Infinity War (2018)/Avengers Infinity War (2018).mkv')
       ).resolves.toHaveProperty('videoTag', 'MPEG-H/HEVC/H.265'))
 
     it("sets 'audioTag' to default audio", () =>
       expect(
-        DiskScanner.loadMediainfoFromFile('/movies/Avengers Infinity War (2018)/Avengers Infinity War (2018).mkv')
+        loadMediainfoFromFile('/movies/Avengers Infinity War (2018)/Avengers Infinity War (2018).mkv')
       ).resolves.toHaveProperty('audioTag', 'TrueHD Atmos 8ch'))
   })
 
@@ -112,7 +140,7 @@ describe('media-scraper utility', () => {
     })
 
     it('should set the media title', () => {
-      DiskScanner.writeMediainfo(
+      writeMediainfo(
         '/movies/Avengers Infinity War (2018)/Avengers Infinity War (2018).mkv',
         mediainfoAvengersInfinityWar
       )
@@ -123,7 +151,7 @@ describe('media-scraper utility', () => {
     })
 
     it('should delete track parameters when they are empty', () => {
-      DiskScanner.writeMediainfo(
+      writeMediainfo(
         '/movies/Avengers Infinity War (2018)/Avengers Infinity War (2018).mkv',
         mediainfoAvengersInfinityWar
       )
@@ -136,12 +164,12 @@ describe('media-scraper utility', () => {
       const data = cloneDeep(mediainfoAvengersInfinityWar)
       data.tracks = []
 
-      DiskScanner.writeMediainfo('/movies/Avengers Infinity War (2018)/Avengers Infinity War (2018).mkv', data)
+      writeMediainfo('/movies/Avengers Infinity War (2018)/Avengers Infinity War (2018).mkv', data)
       expect(mocked(childProcess.exec).mock.calls[0][0]).not.toContain('--edit track')
     })
 
     it('should set each track parameter when not empty', () => {
-      DiskScanner.writeMediainfo(
+      writeMediainfo(
         '/movies/Avengers Infinity War (2018)/Avengers Infinity War (2018).mkv',
         mediainfoAvengersInfinityWar
       )
@@ -152,7 +180,7 @@ describe('media-scraper utility', () => {
     })
 
     it('should call mkvpropedit with the right command', () =>
-      DiskScanner.writeMediainfo(
+      writeMediainfo(
         '/movies/Avengers Infinity War (2018)/Avengers Infinity War (2018).mkv',
         mediainfoAvengersInfinityWar
       ).then(() => expect(childProcess.exec).toBeCalledWith(mkvpropeditAvengersInfinityWar, expect.anything())))
@@ -167,13 +195,13 @@ describe('media-scraper utility', () => {
     })
 
     it('should call mkvmerge with options', () => {
-      DiskScanner.muxMediaFile('/movies/Avengers Infinity War (2019)/Avengers Infinity War (2018).mkv', mergeFixture)
+      muxMediaFile('/movies/Avengers Infinity War (2019)/Avengers Infinity War (2018).mkv', mergeFixture)
       expect(mocked(childProcess.spawn).mock.calls[0][1]).toBeArray()
     })
 
     it("should call mkvmerge with option ' -D' if no video tracks to mux", () => {
       mergeFixture.tracks[0].isMuxed = false
-      DiskScanner.muxMediaFile('/movies/Avengers Infinity War (2019)/Avengers Infinity War (2018).mkv', mergeFixture)
+      muxMediaFile('/movies/Avengers Infinity War (2019)/Avengers Infinity War (2018).mkv', mergeFixture)
 
       expect(mocked(childProcess.spawn).mock.calls[0][1]).toContain('-D')
     })
@@ -182,7 +210,7 @@ describe('media-scraper utility', () => {
       mergeFixture.tracks[1].isMuxed = false
       mergeFixture.tracks[2].isMuxed = false
       mergeFixture.tracks[3].isMuxed = false
-      DiskScanner.muxMediaFile('/movies/Avengers Infinity War (2019)/Avengers Infinity War (2018).mkv', mergeFixture)
+      muxMediaFile('/movies/Avengers Infinity War (2019)/Avengers Infinity War (2018).mkv', mergeFixture)
 
       expect(mocked(childProcess.spawn).mock.calls[0][1]).toContain('-A')
     })
@@ -191,13 +219,13 @@ describe('media-scraper utility', () => {
       mergeFixture.tracks[4].isMuxed = false
       mergeFixture.tracks[5].isMuxed = false
       mergeFixture.tracks[6].isMuxed = false
-      DiskScanner.muxMediaFile('/movies/Avengers Infinity War (2019)/Avengers Infinity War (2018).mkv', mergeFixture)
+      muxMediaFile('/movies/Avengers Infinity War (2019)/Avengers Infinity War (2018).mkv', mergeFixture)
 
       expect(mocked(childProcess.spawn).mock.calls[0][1]).toContain('-S')
     })
 
     it("should call mkvmerge with option ' -d track.number' if one video track to mux", () => {
-      DiskScanner.muxMediaFile('/movies/Avengers Infinity War (2019)/Avengers Infinity War (2018).mkv', mergeFixture)
+      muxMediaFile('/movies/Avengers Infinity War (2019)/Avengers Infinity War (2018).mkv', mergeFixture)
       const index = mocked(childProcess.spawn).mock.calls[0][1].indexOf('-d')
 
       expect(mocked(childProcess.spawn).mock.calls[0][1]).toContain('-d')
@@ -205,7 +233,7 @@ describe('media-scraper utility', () => {
     })
 
     it("should call mkvmerge with option ' -a track.number' if one audio track to mux", () => {
-      DiskScanner.muxMediaFile('/movies/Avengers Infinity War (2019)/Avengers Infinity War (2018).mkv', mergeFixture)
+      muxMediaFile('/movies/Avengers Infinity War (2019)/Avengers Infinity War (2018).mkv', mergeFixture)
       const index = mocked(childProcess.spawn).mock.calls[0][1].indexOf('-a')
 
       expect(mocked(childProcess.spawn).mock.calls[0][1]).toContain('-a')
@@ -213,7 +241,7 @@ describe('media-scraper utility', () => {
     })
 
     it("should call mkvmerge with option ' -s track.number' if one subtitles track to mux", () => {
-      DiskScanner.muxMediaFile('/movies/Avengers Infinity War (2019)/Avengers Infinity War (2018).mkv', mergeFixture)
+      muxMediaFile('/movies/Avengers Infinity War (2019)/Avengers Infinity War (2018).mkv', mergeFixture)
       const index = mocked(childProcess.spawn).mock.calls[0][1].indexOf('-s')
 
       expect(mocked(childProcess.spawn).mock.calls[0][1]).toContain('-s')
@@ -221,7 +249,7 @@ describe('media-scraper utility', () => {
     })
 
     it("should call mkvmerge with option ' -M' to remove attachments", () => {
-      DiskScanner.muxMediaFile('/movies/Avengers Infinity War (2019)/Avengers Infinity War (2018).mkv', mergeFixture)
+      muxMediaFile('/movies/Avengers Infinity War (2019)/Avengers Infinity War (2018).mkv', mergeFixture)
 
       expect(mocked(childProcess.spawn).mock.calls[0][1]).toContain('-M')
     })
@@ -229,14 +257,14 @@ describe('media-scraper utility', () => {
     it('should reorder tracks by newNumber', () => {
       mergeFixture.tracks[1].newNumber = 3
       mergeFixture.tracks[2].newNumber = 2
-      DiskScanner.muxMediaFile('/movies/Avengers Infinity War (2019)/Avengers Infinity War (2018).mkv', mergeFixture)
+      muxMediaFile('/movies/Avengers Infinity War (2019)/Avengers Infinity War (2018).mkv', mergeFixture)
 
       expect(mocked(childProcess.spawn).mock.calls[0][1]).toContain('--track-order')
       expect(mocked(childProcess.spawn).mock.calls[0][1]).toContain('0:0,0:2,0:1,0:3,0:4,0:5,0:6')
     })
 
     it('should output to temporary file', () => {
-      DiskScanner.muxMediaFile('/movies/Avengers Infinity War (2019)/Avengers Infinity War (2018).mkv', mergeFixture)
+      muxMediaFile('/movies/Avengers Infinity War (2019)/Avengers Infinity War (2018).mkv', mergeFixture)
 
       expect(mocked(childProcess.spawn).mock.calls[0][1]).toContain(
         '"/movies/Avengers Infinity War (2019)/Avengers Infinity War (2018).rmbtmp"'
@@ -244,7 +272,7 @@ describe('media-scraper utility', () => {
     })
 
     it('should set title', () => {
-      DiskScanner.muxMediaFile('/movies/Avengers Infinity War (2019)/Avengers Infinity War (2018).mkv', mergeFixture)
+      muxMediaFile('/movies/Avengers Infinity War (2019)/Avengers Infinity War (2018).mkv', mergeFixture)
       const index = mocked(childProcess.spawn).mock.calls[0][1].indexOf('--title')
 
       expect(mocked(childProcess.spawn).mock.calls[0][1]).toContain('--title')
@@ -253,7 +281,7 @@ describe('media-scraper utility', () => {
 
     it('should call progress function with integer percent on progress', (done) => {
       const spy = jest.fn()
-      const muxEvent = DiskScanner.muxMediaFile(
+      const muxEvent = muxMediaFile(
         '/movies/Avengers Infinity War (2019)/Avengers Infinity War (2018).mkv',
         mergeFixture
       )
@@ -271,7 +299,7 @@ describe('media-scraper utility', () => {
 
     it("should emit 'error' when 'error' message is received", (done) => {
       const spy = jest.fn()
-      const muxEvent = DiskScanner.muxMediaFile(
+      const muxEvent = muxMediaFile(
         '/movies/Avengers Infinity War (2019)/Avengers Infinity War (2018).mkv',
         mergeFixture
       )
@@ -287,7 +315,7 @@ describe('media-scraper utility', () => {
 
     it("should emit 'done' when 'exit' message is received with code 0", (done) => {
       const spy = jest.fn()
-      const muxEvent = DiskScanner.muxMediaFile(
+      const muxEvent = muxMediaFile(
         '/movies/Avengers Infinity War (2019)/Avengers Infinity War (2018).mkv',
         mergeFixture
       )
@@ -308,7 +336,7 @@ describe('media-scraper utility', () => {
 
     it("should emit 'done' when 'exit' message is received with code 1", (done) => {
       const spy = jest.fn()
-      const muxEvent = DiskScanner.muxMediaFile(
+      const muxEvent = muxMediaFile(
         '/movies/Avengers Infinity War (2019)/Avengers Infinity War (2018).mkv',
         mergeFixture
       )
@@ -329,7 +357,7 @@ describe('media-scraper utility', () => {
 
     it("should resolve when 'exit' message is received with code 2", (done) => {
       const spy = jest.fn()
-      const muxEvent = DiskScanner.muxMediaFile(
+      const muxEvent = muxMediaFile(
         '/movies/Avengers Infinity War (2019)/Avengers Infinity War (2018).mkv',
         mergeFixture
       )
@@ -348,9 +376,7 @@ describe('media-scraper utility', () => {
 
   describe('loadMetadataFromNfo', () => {
     it('loads metadata from NFO', async () => {
-      const result = await DiskScanner.loadMetadataFromNfo(
-        '/movies/Avengers Infinity War (2019)/Avengers Infinity War (2018).nfo'
-      )
+      const result = await loadMetadataFromNfo('/movies/Avengers Infinity War (2019)/Avengers Infinity War (2018).nfo')
 
       expect(result).toEqual(tmdbAvengersInfinityWar)
     })
