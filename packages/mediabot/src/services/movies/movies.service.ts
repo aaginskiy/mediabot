@@ -8,7 +8,7 @@ import hooks from './movies.hooks'
 // Add this service to the service type index
 declare module '../../declarations' {
   interface ServiceTypes {
-    movies: Movies & ServiceAddons<any>
+    'api/movies': Movies & ServiceAddons<any>
   }
 }
 
@@ -21,10 +21,10 @@ export default function(app: Application): void {
   }
 
   // Initialize our service with any options it requires
-  app.use('/movies', new Movies(options, app))
+  app.use('/api/movies', new Movies(options, app))
 
   // Get our initialized service so that we can register hooks
-  const service = app.service('movies')
+  const service = app.service('api/movies')
 
   service.hooks(hooks)
 }

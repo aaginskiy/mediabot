@@ -50,6 +50,7 @@ function buildValue(entries: RuleEntry[], movie: MovieInfo): RuleEntry[] {
 }
 
 function checkRules(movie: Movie, rules: Rule[]): boolean {
+  if (!rules) return true
   let checkStatus = true
   rules.forEach((rule) => {
     rule.conditions = buildValue(rule.conditions, movie)
@@ -81,6 +82,8 @@ function executeTrackRule(track: Track, rule: Rule): Track {
 }
 
 function executeRules(movie: Movie, rules: Rule[]): Movie {
+  if (!rules) return movie
+
   rules.forEach((rule) => {
     rule.conditions = buildValue(rule.conditions, movie)
 

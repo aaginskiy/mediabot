@@ -5,17 +5,34 @@ export interface ServiceTypes {}
 // The application instance type that will be used everywhere else
 export type Application = ExpressFeathers<ServiceTypes>
 
+interface MediaList {
+  created: string[]
+  updated: string[]
+  removed: string[]
+}
+
 interface MovieInfo {
-  title?: string
-  year?: number
-  imdbId?: string
-  tmdbId?: string
-  originalTitle?: string
-  originalLanguage?: string
+  imdbId: string
+  tmdbId: number
+  title: string
+  originalTitle: string
+  originalLanguage: string
+  tagline: string
+  plot: string
+  outline: string
+  runtime: number
+  year: number
+  releaseDate: string
+  rating: number
+  genres: Array<string>
+  studios: Array<string>
+  fanart: string
+  poster: string
 }
 
 interface Movie extends MovieInfo {
-  id?: string
+  id: string
+  filename: string
   mediaFiles: Mediainfo
 }
 
@@ -28,6 +45,7 @@ interface Mediainfo {
   poster?: string
   title: string
   filename: string
+  dir: string
   tracks: Track[]
   nfo?: string
 }
@@ -48,22 +66,22 @@ interface Track {
 }
 
 interface RemoteMovieInfo {
-  id: string | null
-  tmdbId: number | null
+  imdbId?: string
+  tmdbId?: number
   title: string
   originalTitle: string
   originalLanguage: string
-  tagline: string | null
-  plot: string | null
-  outline: string | null
-  runtime: number | null
+  tagline?: string
+  plot?: string
+  outline?: string
+  runtime?: number
   year: number
   releaseDate: string
   rating: number
   genres: Array<string>
   studios: Array<string>
-  fanart: string | null
-  poster: string | null
+  fanart?: string
+  poster?: string
 }
 
 interface Rule {

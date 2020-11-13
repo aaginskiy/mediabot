@@ -70,22 +70,22 @@ class MediaScraper {
         const movieInfo = res.data
         const releaseYear = new Date(movieInfo.release_date).getFullYear()
         const movie: RemoteMovieInfo = {
-          id: movieInfo.imdb_id,
+          imdbId: movieInfo.imdb_id ? movieInfo.imdb_id : undefined,
           tmdbId: movieInfo.id,
           title: movieInfo.title,
           originalTitle: movieInfo.original_title,
           originalLanguage: movieInfo.original_language,
-          tagline: movieInfo.tagline,
-          plot: movieInfo.overview,
-          outline: movieInfo.overview,
-          runtime: movieInfo.runtime,
+          tagline: movieInfo.tagline ? movieInfo.tagline : undefined,
+          plot: movieInfo.overview ? movieInfo.overview : undefined,
+          outline: movieInfo.overview ? movieInfo.overview : undefined,
+          runtime: movieInfo.runtime ? movieInfo.runtime : undefined,
           year: releaseYear,
           releaseDate: movieInfo.release_date,
           rating: movieInfo.vote_average,
           genres: movieInfo.genres.map((genre) => genre.name),
           studios: movieInfo.production_companies.map((studio) => studio.name),
-          fanart: movieInfo.backdrop_path,
-          poster: movieInfo.poster_path,
+          fanart: movieInfo.backdrop_path ? movieInfo.backdrop_path : undefined,
+          poster: movieInfo.poster_path ? movieInfo.poster_path : undefined,
         }
 
         return movie
@@ -120,11 +120,11 @@ class MediaScraper {
       const movie: RemoteMovieInfoXml = cloneDeep(returnMovie)
 
       movie.uniqueid = [
-        { $: { type: 'imdb' }, _: movie.id },
+        { $: { type: 'imdb' }, _: movie.imdbId },
         { $: { type: 'tmdb' }, _: movie.tmdbId },
       ]
 
-      delete movie.id
+      delete movie.imdbId
       delete movie.tmdbId
 
       if (!fs.existsSync(`${dir}/${name}.nfo`) || forced) await writeFile(`${dir}/${name}.nfo`, this.buildXmlNfo(movie))

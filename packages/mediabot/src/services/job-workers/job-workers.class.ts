@@ -3,7 +3,8 @@ import { Application, JobData, JobWorkerData } from '../../declarations'
 import { Paginated } from '@feathersjs/feathers'
 import feathers from '@feathersjs/feathers'
 import { Jobs } from '../jobs/jobs.class'
-import logger from '../../logger'
+import Log from '../../logger'
+const logger = new Log('JobWorker')
 
 // Add this service to the service type index
 declare module '../../declarations' {
@@ -69,34 +70,28 @@ export class JobWorkers extends Service<JobWorkerData> {
                 await this.patch(worker.id, { jobId: undefined, status: 'idle' })
               })
               .on('error', async (e: Error) => {
-                await this.patch(worker.id, { jobId: undefined, status: 'idle' })
-                logger.error(`JobID #${job.id} (${job.name}) failed due to error.`, {
-                  label: 'JobWorker',
-                })
-                logger.error(e.message, {
-                  label: 'JobWorker',
-                })
-                if (e.stack)
-                  logger.debug(e.stack, {
-                    label: 'JobWorker',
-                  })
-                await JobService.patch(job.id, { status: 'failed', statusMessage: e.message })
+                logger.error(`JobID #${job.id} (${job.name}) failed due to error.`)
+                logger.error(e.message)
+                if (e.stack) logger.debug(e.stack)
+                console.log('test1')
+                await Promise.all([
+                  JobService.patch(job.id, { status: 'failed', statusMessage: e.message }),
+                  this.patch(worker.id, { jobId: undefined, status: 'idle' }),
+                ])
+
+                console.log('test2')
               })
 
             await this.patch(worker.id, { jobId: job.id, status: 'active' })
             await JobService.patch(job.id, { status: 'running' })
           } catch (e) {
-            logger.error(`JobID #${job.id} (${job.name}) failed due to error.`, {
-              label: 'JobWorker',
-            })
-            logger.error(e.message, {
-              label: 'JobWorker',
-            })
-            logger.debug(e.stack, {
-              label: 'JobWorker',
-            })
-            await JobService.patch(job.id, { status: 'failed', statusMessage: e.message })
-            await this.patch(worker.id, { jobId: undefined, status: 'idle' })
+            logger.error(`JobID #${job.id} (${job.name}) failed due to error.`)
+            logger.error(e.message)
+            logger.debug(e.stack)
+            await Promise.all([
+              JobService.patch(job.id, { status: 'failed', statusMessage: e.message }),
+              this.patch(worker.id, { jobId: undefined, status: 'idle' }),
+            ])
           }
         }
       })

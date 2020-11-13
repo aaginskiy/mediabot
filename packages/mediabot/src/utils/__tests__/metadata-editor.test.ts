@@ -132,6 +132,18 @@ describe("'Metadata Editor' service", () => {
         expect(MetadataEditor.checkRules(movie, [rule])).toBe(true)
       })
     })
+
+    it('returns true if no rules provided', () => {
+      const movie = cloneDeep(movieAvengersInfinityWar)
+      movie.mediaFiles.tracks[2].language = 'eng'
+      expect(MetadataEditor.checkRules(movie, [])).toBe(true)
+    })
+
+    it('returns true if rules are undefined', () => {
+      const movie = cloneDeep(movieAvengersInfinityWar)
+      movie.mediaFiles.tracks[2].language = 'eng'
+      expect(MetadataEditor.checkRules(movie, undefined)).toBe(true)
+    })
   })
 
   describe('executeTrackRule', () => {
@@ -181,6 +193,20 @@ describe("'Metadata Editor' service", () => {
 
         expect(MetadataEditor.executeRules(movie, [rule]).mediaFiles.tracks[2]).toHaveProperty('language', 'eng')
       })
+    })
+
+    it('returns unmodified movie if no rules provided', () => {
+      const movie = cloneDeep(movieAvengersInfinityWar)
+      movie.mediaFiles.tracks[2].isMuxed = false
+
+      expect(MetadataEditor.executeRules(movie, []).mediaFiles.tracks[2]).toHaveProperty('isMuxed', false)
+    })
+
+    it('returns unmodified movie if rules are undefined', () => {
+      const movie = cloneDeep(movieAvengersInfinityWar)
+      movie.mediaFiles.tracks[2].isMuxed = false
+
+      expect(MetadataEditor.executeRules(movie, undefined).mediaFiles.tracks[2]).toHaveProperty('isMuxed', false)
     })
   })
 

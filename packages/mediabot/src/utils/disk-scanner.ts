@@ -17,43 +17,6 @@ import { RemoteMovieInfo, Mediainfo, MediaList, Track } from '../declarations'
 import xml2js from 'xml2js'
 import { capitalCase } from 'change-case'
 
-declare module '../declarations' {
-  interface Mediainfo {
-    videoTag: string
-    audioTag: string
-    landscape?: string
-    files: string[]
-    fanart?: string
-    poster?: string
-    dir: string
-    title: string
-    filename: string
-    tracks: Track[]
-    nfo: string
-  }
-
-  interface MediaList {
-    created: string[]
-    updated: string[]
-    removed: string[]
-  }
-
-  interface Track {
-    title: string
-    language: string
-    number: number
-    newNumber: number
-    trackType: string
-    codecType: string
-    audioChannels?: number
-    bps?: number
-    isDefault: boolean
-    isEnabled: boolean
-    isForced: boolean
-    isMuxed: boolean
-  }
-}
-
 /**
  * Parse filename for movie title and year
  *
@@ -145,6 +108,7 @@ async function loadMediainfoFromFile(filename: string): Promise<Mediainfo> {
 
     mediaInfo.title = stdout.container?.properties?.title
     mediaInfo.filename = stdout.file_name
+    mediaInfo.dir = path.dirname(mediaInfo.filename)
     mediaInfo.tracks = []
 
     // Cycle through tracks and add updates
@@ -453,7 +417,7 @@ async function loadMetadataFromNfo(filename: string): Promise<RemoteMovieInfo> {
       return !!o.match(/^\d/)
     })
 
-    nfo.id = uniqueid[imdbidIndex]
+    nfo.imdbId = uniqueid[imdbidIndex]
     nfo.tmdbId = parseInt(uniqueid[tmdbidIndex])
 
     return nfo

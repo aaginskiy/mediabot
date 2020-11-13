@@ -73,31 +73,31 @@ class Log {
   }
 
   error(message: string): void {
-    this.originalLogger.error(message, { label: this.originalLogger })
+    this.originalLogger.error(message, { label: this.currentLabel })
   }
 
   warn(message: string): void {
-    this.originalLogger.warn(message, { label: this.originalLogger })
+    this.originalLogger.warn(message, { label: this.currentLabel })
   }
 
   info(message: string): void {
-    this.originalLogger.info(message, { label: this.originalLogger })
+    this.originalLogger.info(message, { label: this.currentLabel })
   }
 
   http(message: string): void {
-    this.originalLogger.http(message, { label: this.originalLogger })
+    this.originalLogger.http(message, { label: this.currentLabel })
   }
 
   verbose(message: string): void {
-    this.originalLogger.verbose(message, { label: this.originalLogger })
+    this.originalLogger.verbose(message, { label: this.currentLabel })
   }
 
   debug(message: string): void {
-    this.originalLogger.debug(message, { label: this.originalLogger })
+    this.originalLogger.debug(message, { label: this.currentLabel })
   }
 
   silly(message: string): void {
-    this.originalLogger.silly(message, { label: this.originalLogger })
+    this.originalLogger.silly(message, { label: this.currentLabel })
   }
 }
 

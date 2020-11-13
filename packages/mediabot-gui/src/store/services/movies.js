@@ -26,7 +26,7 @@ class Movie extends BaseModel {
     return format(this.createdAt, 'MMM do, hh:mm:ss')
   }
 }
-const servicePath = 'movies'
+const servicePath = 'api/movies'
 const servicePlugin = makeServicePlugin({
   Model: Movie,
   service: feathersClient.service(servicePath),

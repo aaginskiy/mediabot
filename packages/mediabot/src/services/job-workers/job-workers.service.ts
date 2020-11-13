@@ -25,8 +25,4 @@ export default function(app: Application | feathers.Application): void {
   const service: ServiceTypes['job-workers'] = app.service('job-workers')
 
   service.hooks(hooks)
-
-  service.create([{ status: 'idle' }, { status: 'idle' }, { status: 'idle' }, { status: 'idle' }])
-  
-  service.startJobs()
 }

@@ -21,7 +21,7 @@ export default {
     type: 'Matroska',
   },
   errors: [],
-  file_name: '/movies/UHD/Avengers Endgame (2019)/Avengers Endgame (2019).Remux-2160p.HEVC.TrueHD.gpLEGi0N.mkv',
+  file_name: '/movies/Avengers Infinity War (2018)/Avengers Infinity War (2018).mkv',
   global_tags: [],
   identification_format_version: 12,
   track_tags: [],
