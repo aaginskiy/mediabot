@@ -1,4 +1,4 @@
-import { createLogger, format, transports } from 'winston'
+import { createLogger, format, transports, Logger } from 'winston'
 
 if (!process.env.NODE_ENV) process.env.NODE_ENV = 'development'
 
@@ -63,5 +63,42 @@ if (process.env.NODE_ENV.toLowerCase() === 'test') {
     })
   )
 }
+class Log {
+  originalLogger: Logger
+  currentLabel: string
 
-export default logger
+  constructor(label: string) {
+    this.currentLabel = label
+    this.originalLogger = logger
+  }
+
+  error(message: string): void {
+    this.originalLogger.error(message, { label: this.currentLabel })
+  }
+
+  warn(message: string): void {
+    this.originalLogger.warn(message, { label: this.currentLabel })
+  }
+
+  info(message: string): void {
+    this.originalLogger.info(message, { label: this.currentLabel })
+  }
+
+  http(message: string): void {
+    this.originalLogger.http(message, { label: this.currentLabel })
+  }
+
+  verbose(message: string): void {
+    this.originalLogger.verbose(message, { label: this.currentLabel })
+  }
+
+  debug(message: string): void {
+    this.originalLogger.debug(message, { label: this.currentLabel })
+  }
+
+  silly(message: string): void {
+    this.originalLogger.silly(message, { label: this.currentLabel })
+  }
+}
+
+export default Log

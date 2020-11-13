@@ -14,9 +14,9 @@ import {
 } from '../disk-scanner'
 import { cloneDeep, merge } from 'lodash'
 
-import mediainfoAvengersInfinityWar from '../__fixtures__/Avengers Infinity War (2018).mediainfo'
-import mkvpropeditAvengersInfinityWar from '../__fixtures__/Avengers Infinity War (2018).mkvpropedit'
-import tmdbAvengersInfinityWar from '../__fixtures__/Avengers Infinity War (2018).tmdbinfo'
+import mediainfoAvengersInfinityWar from '../__fixtures__/movies/Avengers Infinity War (2018)/Avengers Infinity War (2018).mediainfo'
+import mkvpropeditAvengersInfinityWar from '../__fixtures__/movies/Avengers Infinity War (2018)/Avengers Infinity War (2018).mkvpropedit'
+import tmdbAvengersInfinityWar from '../__fixtures__/movies/Avengers Infinity War (2018)/Avengers Infinity War (2018).tmdbinfo'
 
 describe('media-scraper utility', () => {
   describe('parseFilename', () => {

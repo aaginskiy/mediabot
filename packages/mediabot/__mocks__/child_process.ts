@@ -1,7 +1,8 @@
 const child_process = jest.requireActual('child_process')
+import { EventEmitter } from 'events'
 
 // Load fixtures
-import nfoAvengersEndGame from '../src/utils/__fixtures__/Avengers End Game (2019).mkvmerge'
+import nfoAvengersEndGame from '../src/utils/__fixtures__/movies/Avengers End Game (2019)/Avengers End Game (2019).mkvmerge'
 
 const backupExec = child_process.exec
 const backupSpawn = child_process.spawn
@@ -32,8 +33,10 @@ child_process.exec = jest.fn().mockImplementation((command, options, callback) =
 
 child_process.spawn = jest.fn().mockImplementation((command, args, options) => {
   if (command === 'mkvmerge') {
-    emitter = new child_process.ChildProcess()
-    emitter.stdout = new child_process.ChildProcess()
+    // emitter = new child_process.ChildProcess()
+    // emitter.stdout = new child_process.ChildProcess()
+    emitter = new EventEmitter()
+    emitter.stdout = new EventEmitter()
     return emitter
   } else {
     backupSpawn(command, args, options)

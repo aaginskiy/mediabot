@@ -1,5 +1,5 @@
 export default {
-  id: 'tt4154756',
+  imdbId: 'tt4154756',
   tmdbId: 299536,
   title: 'Avengers: Infinity War',
   originalTitle: 'Avengers: Infinity War',

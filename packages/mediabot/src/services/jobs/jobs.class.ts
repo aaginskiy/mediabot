@@ -1,9 +1,10 @@
 import { Service, NedbServiceOptions } from 'feathers-nedb'
-import { Application, JobData, ServiceTypes, MovieData, RemoteMovieInfo } from '../../declarations'
+import { Application, JobData, Movie, ServiceTypes } from '../../declarations'
 import { findAllMediaFiles, loadMediainfoFromFile, parseFilename } from '../../utils/disk-scanner'
 import MediaScraper from '../../utils/media-scraper'
 import { EventEmitter } from 'events'
-import logger from '../../logger'
+import Log from '../../logger'
+const logger = new Log('JobService')
 
 // Add this service to the service type index
 declare module '../../declarations' {
@@ -22,6 +23,7 @@ export class Jobs extends Service<JobData> {
   app: any
   scraper: MediaScraper
   MovieService: ServiceTypes['movies']
+
   //eslint-disable-next-line @typescript-eslint/no-unused-vars
   constructor(options: Partial<NedbServiceOptions>, app: Application) {
     super(options)
@@ -68,35 +70,39 @@ export class Jobs extends Service<JobData> {
     return scanEmitter
   }
 
-  async _createMovieObject(filename: string): Promise<Partial<MovieData>> {
+  async _createMovieObject(filename: string): Promise<Partial<Movie>> {
     const parsedFilename = parseFilename(filename)
-    const movie: Partial<MovieData> = {}
+    const movie: Partial<Movie> = {}
 
     if (!parsedFilename.title) throw new Error(`Unable to detect movie name from filename (${filename})`)
 
     try {
-      movie.remoteInfo = await this.scraper.scrapeSaveMovieByName(parsedFilename.title, parsedFilename.year, filename)
-
-      movie.title = movie.remoteInfo.title
-      movie.year = movie.year
+      const remoteInfo = await this.scraper.scrapeSaveMovieByName(parsedFilename.title, parsedFilename.year, filename)
+      movie.imdbId = remoteInfo.imdbId
+      movie.tmdbId = remoteInfo.tmdbId
+      movie.title = remoteInfo.title
+      movie.originalTitle = remoteInfo.originalTitle
+      movie.originalLanguage = remoteInfo.originalLanguage
+      movie.tagline = remoteInfo.tagline
+      movie.plot = remoteInfo.plot
+      movie.outline = remoteInfo.outline
+      movie.runtime = remoteInfo.runtime
+      movie.year = remoteInfo.year
+      movie.releaseDate = remoteInfo.releaseDate
+      movie.rating = remoteInfo.rating
+      movie.genres = remoteInfo.genres
+      movie.studios = remoteInfo.studios
     } catch (e) {
-      logger.warn(`Unable to scrape remote info for "${filename}".`, {
-        label: 'AddMovieJob',
-      })
-      logger.warn(e.message, {
-        label: 'AddMovieJob',
-      })
-      if (e.stack)
-        logger.debug(e.stack, {
-          label: 'AddMovieJob',
-        })
+      logger.warn(`Unable to scrape remote info for "${filename}".`)
+      logger.warn(e.message)
+      if (e.stack) logger.debug(e.stack)
 
       movie.title = parsedFilename.title
       movie.year = parsedFilename.year
     }
 
     try {
-      movie.mediaInfo = await loadMediainfoFromFile(filename)
+      movie.mediaFiles = await loadMediainfoFromFile(filename)
       return movie
     } catch (e) {
       throw e

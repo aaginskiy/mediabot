@@ -12,7 +12,8 @@ import socketio from '@feathersjs/socketio'
 
 import { Application } from './declarations'
 import defaultConfigExample from '../default-config.example'
-import logger from './logger'
+import Log from './logger'
+const logger = new Log('main')
 import middleware from './middleware'
 import services from './services'
 import appHooks from './app.hooks'
@@ -35,12 +36,8 @@ app.set('dataLocation', dataLocation)
 const configFile = path.join(configLocation, './default.json')
 
 if (!fs.existsSync(configFile)) {
-  logger.error(`No configuration found in ${configLocation}`, {
-    label: 'Settings',
-  })
-  logger.info(`Writing default configuration to ${configLocation}`, {
-    label: 'Settings',
-  })
+  logger.error(`No configuration found in ${configLocation}`)
+  logger.info(`Writing default configuration to ${configLocation}`)
 
   try {
     if (!fs.existsSync(configLocation)) {
@@ -50,9 +47,7 @@ if (!fs.existsSync(configFile)) {
     console.log(configLocation)
     fs.writeFileSync(configFile, JSON.stringify(defaultConfigExample, null, '  '))
   } catch (error) {
-    logger.error(error.message, {
-      label: 'Settings',
-    })
+    logger.error(error.message)
   }
 }
 

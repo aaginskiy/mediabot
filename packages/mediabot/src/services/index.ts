@@ -9,4 +9,8 @@ export default function(app: Application): void {
   app.configure(movies)
   app.configure(jobWorkers)
   app.configure(jobs)
+
+  app.service('job-workers').create([{ status: 'idle' }, { status: 'idle' }, { status: 'idle' }, { status: 'idle' }])
+
+  app.service('job-workers').startJobs()
 }

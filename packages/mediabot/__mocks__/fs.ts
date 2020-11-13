@@ -9,7 +9,7 @@ const backupReaddir = fs.readdir
 const backupRename = fs.rename
 const backupReadFile = fs.readFile
 
-import nfoAvengersInfinityWar from '../src/utils/__fixtures__/Avengers Infinity War (2018).nfo'
+import nfoAvengersInfinityWar from '../src/utils/__fixtures__/movies/Avengers Infinity War (2018)/Avengers Infinity War (2018).nfo'
 
 fs.readFile = jest.fn().mockImplementation((path, options, callback) => {
   if (!callback && options) callback = options

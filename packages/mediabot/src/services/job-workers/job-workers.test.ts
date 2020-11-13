@@ -147,8 +147,11 @@ describe("'Job Worker' service", () => {
     })
 
     it('should mark job failed when error', async () => {
+      // console.log(await jobs.find(null))
       await jobworker.scheduleJobs()
       emitter.emit('error', 'error message')
+      // await new Promise((r) => setTimeout(r, 50)
+      console.log('t3')
       return expect(jobs.patch).toHaveBeenLastCalledWith(1, { status: 'failed', statusMessage: 'error message' })
     })
 
