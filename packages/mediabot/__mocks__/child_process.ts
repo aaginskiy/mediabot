@@ -6,7 +6,7 @@ import nfoAvengersEndGame from '../src/utils/__fixtures__/movies/Avengers End Ga
 
 const backupExec = child_process.exec
 const backupSpawn = child_process.spawn
-let emitter
+let emitter: any
 
 child_process.exec = jest.fn().mockImplementation((command, options, callback) => {
   if (!callback && options) callback = options
@@ -47,7 +47,7 @@ child_process.__emit = function(type: string, message: string | Error) {
   emitter.emit(type, message)
 }
 
-child_process.__stdout_emit = function(type, message) {
+child_process.__stdout_emit = function(type: string, message: string) {
   emitter.stdout.emit(type, message)
 }
 

@@ -16,7 +16,10 @@ export default function(app: Application): void {
   const options = {
     Model: createModel(app),
     id: 'id',
-    paginate: app.get('paginate'),
+    paginate: {
+      default: 10,
+      max: 50,
+    },
     multi: ['create', 'update', 'remove'],
   }
 

@@ -8,7 +8,7 @@ import hooks from './jobs.hooks'
 // Add this service to the service type index
 declare module '../../declarations' {
   interface ServiceTypes {
-    jobs: Jobs & ServiceAddons<any>
+    'api/jobs': Jobs & ServiceAddons<any>
   }
 }
 
@@ -21,10 +21,10 @@ export default function(app: Application): void {
   }
 
   // Initialize our service with any options it requires
-  app.use('/jobs', new Jobs(options, app))
+  app.use('api/jobs', new Jobs(options, app))
 
   // Get our initialized service so that we can register hooks
-  const service = app.service('jobs')
+  const service = app.service('api/jobs')
 
   service.hooks(hooks)
 }

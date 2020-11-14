@@ -20,21 +20,20 @@ declare module '../../declarations' {
 }
 
 export class Jobs extends Service<JobData> {
-  app: any
+  app: Application
   scraper: MediaScraper
-  MovieService: ServiceTypes['movies']
 
   //eslint-disable-next-line @typescript-eslint/no-unused-vars
   constructor(options: Partial<NedbServiceOptions>, app: Application) {
     super(options)
     this.app = app
     this.scraper = new MediaScraper(app.settings?.mediaParser?.tmdbApiKey)
-    this.MovieService = this.app.service('movies')
   }
 
   scanMediaLibrary(): EventEmitter {
     const scanEmitter = new EventEmitter()
-    const MovieService: ServiceTypes['movies'] = this.app.service('movies')
+    const MovieService = this.app.service('api/movies')
+
     MovieService.find({
       paginate: false,
     })
@@ -111,9 +110,10 @@ export class Jobs extends Service<JobData> {
 
   addMovie(filename: string): EventEmitter {
     const addEmitter = new EventEmitter()
+    const MovieService = this.app.service('api/movies')
 
     this._createMovieObject(filename)
-      .then((movie) => this.MovieService.create(movie))
+      .then((movie) => MovieService.create(movie))
       .then(() => addEmitter.emit('done'))
       .catch((e) => addEmitter.emit('error', e))
 
@@ -122,10 +122,11 @@ export class Jobs extends Service<JobData> {
 
   refreshMovie(filename: string): EventEmitter {
     const refreshEmitter = new EventEmitter()
+    const MovieService = this.app.service('api/movies')
 
     this._createMovieObject(filename)
       .then((movie) => {
-        return this.MovieService.patch(null, movie, {
+        return MovieService.patch(null, movie, {
           query: {
             filename: {
               $in: filename,

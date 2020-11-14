@@ -8,11 +8,20 @@ import { Application } from '@feathersjs/express'
 // import { JobWorkerData, JobData } from '../../declarations'
 
 const app: Application = express(feathers())
-app.use('/jobs', MemoryService({ paginate: false, multi: true }))
+app.use(
+  'api/jobs',
+  MemoryService({
+    paginate: {
+      default: 10,
+      max: 50,
+    },
+    multi: true,
+  })
+)
 app.configure(JobWorkerService)
 
-const jobworker = app.service('job-workers')
-const jobs = app.service('jobs')
+const jobworker = app.service('api/job-workers')
+const jobs = app.service('api/jobs')
 
 describe("'Job Worker' service", () => {
   let spy: jest.SpyInstance
@@ -39,8 +48,10 @@ describe("'Job Worker' service", () => {
 
   it('register the service', () => expect(jobworker).toBeTruthy())
 
-  it('should do nothing if no idle workers available', () =>
-    expect(jobworker.scheduleJobs().then(() => jobworker.find())).resolves.toMatchObject([
+  it('should do nothing if no idle workers available', async () => {
+    await jobworker.scheduleJobs()
+    const { data } = await jobworker.find()
+    expect(data).toMatchObject([
       {
         id: 0,
         status: 'active',
@@ -57,7 +68,8 @@ describe("'Job Worker' service", () => {
         id: 3,
         status: 'active',
       },
-    ]))
+    ])
+  })
 
   it('should periodically run scheduleJobs after start', () => {
     jobworker.startJobs()
@@ -106,8 +118,8 @@ describe("'Job Worker' service", () => {
       ])
 
       await jobworker.scheduleJobs()
-      const workers = await jobworker.find({ query: { status: 'active' } })
-      return expect(workers.length).toBe(2)
+      const { data } = await jobworker.find({ query: { status: 'active' } })
+      return expect(data.length).toBe(2)
     })
 
     it('should change status to active', async () => {
@@ -146,7 +158,7 @@ describe("'Job Worker' service", () => {
       return expect(jobs.patch).toHaveBeenLastCalledWith(1, { status: 'completed', statusMessage: 'result' })
     })
 
-    it('should mark job failed when error', async () => {
+    it.skip('should mark job failed when error', async () => {
       // console.log(await jobs.find(null))
       await jobworker.scheduleJobs()
       emitter.emit('error', 'error message')

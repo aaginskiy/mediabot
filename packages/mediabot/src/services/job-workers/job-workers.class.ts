@@ -1,8 +1,6 @@
 import { Service, MemoryServiceOptions } from 'feathers-memory'
-import { Application, JobData, JobWorkerData } from '../../declarations'
+import { Application, JobData, JobName, JobWorkerData } from '../../declarations'
 import { Paginated } from '@feathersjs/feathers'
-import feathers from '@feathersjs/feathers'
-import { Jobs } from '../jobs/jobs.class'
 import Log from '../../logger'
 const logger = new Log('JobWorker')
 
@@ -13,22 +11,28 @@ declare module '../../declarations' {
     jobId: string
     status: 'idle' | 'active'
   }
+
+  type JobName = 'scanMediaLibrary' | 'addMovie' | 'refreshMovie'
 }
 
 export class JobWorkers extends Service<JobWorkerData> {
-  app: Application | feathers.Application
+  app: Application
   runner!: NodeJS.Timeout
 
   //eslint-disable-next-line @typescript-eslint/no-unused-vars
-  constructor(options: Partial<MemoryServiceOptions>, app: Application | feathers.Application) {
+  constructor(options: Partial<MemoryServiceOptions>, app: Application) {
     super(options)
     this.app = app
+  }
+
+  isValidJobName(name: string): name is JobName {
+    return ['scanMediaLibrary', 'addMovie', 'refreshMovie'].includes(name)
   }
 
   async scheduleJobs(): Promise<Paginated<JobWorkerData> | Array<JobWorkerData>> {
     const response = await this.find({ query: { status: 'idle' } })
     let workers: JobWorkerData[]
-    const JobService: Jobs = this.app.service('jobs')
+    const JobService = this.app.service('api/jobs')
 
     if (Array.isArray(response)) {
       workers = response
@@ -58,9 +62,8 @@ export class JobWorkers extends Service<JobWorkerData> {
 
         if (job) {
           try {
-            this.app
-              .service('jobs')
-              [job.name](...job.args)
+            const tempJobService: any = JobService
+            tempJobService[job.name](...job.args)
               .on('progress', async (progress: number) => {
                 JobService.patch(job.id, { progress: progress })
               })

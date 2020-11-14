@@ -10,7 +10,9 @@ export default function(app: Application): void {
   app.configure(jobWorkers)
   app.configure(jobs)
 
-  app.service('job-workers').create([{ status: 'idle' }, { status: 'idle' }, { status: 'idle' }, { status: 'idle' }])
+  app
+    .service('api/job-workers')
+    .create([{ status: 'idle' }, { status: 'idle' }, { status: 'idle' }, { status: 'idle' }])
 
-  app.service('job-workers').startJobs()
+  app.service('api/job-workers').startJobs()
 }
