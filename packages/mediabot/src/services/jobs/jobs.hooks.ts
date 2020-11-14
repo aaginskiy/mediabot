@@ -20,10 +20,6 @@ export default {
             rec.function = 'scanMediaLibrary'
             rec.args = [app.get('movieDirectory')]
             break
-          case 'addMovie':
-            rec.priority = 'high'
-            rec.function = 'addMovie'
-            break
           case 'refreshMovie':
             rec.priority = 'high'
             rec.function = 'refreshMovie'

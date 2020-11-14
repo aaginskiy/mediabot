@@ -1,6 +1,7 @@
 import { Service, NedbServiceOptions } from 'feathers-nedb'
-import { Application, JobData, Movie, ServiceTypes } from '../../declarations'
+import { Application, JobData, Movie } from '../../declarations'
 import { findAllMediaFiles, loadMediainfoFromFile, parseFilename } from '../../utils/disk-scanner'
+import MetadataEditor from '../../utils/metadata-editor'
 import MediaScraper from '../../utils/media-scraper'
 import { EventEmitter } from 'events'
 import Log from '../../logger'
@@ -30,48 +31,53 @@ export class Jobs extends Service<JobData> {
     this.scraper = new MediaScraper(app.settings?.mediaParser?.tmdbApiKey)
   }
 
-  scanMediaLibrary(): EventEmitter {
-    const scanEmitter = new EventEmitter()
+  async _scanMediaLibrary(): Promise<JobData | JobData[]> {
     const MovieService = this.app.service('api/movies')
-
-    MovieService.find({
+    let existingMovies = await MovieService.find({
       paginate: false,
     })
-      .then((existingMovies) => {
-        if (!Array.isArray(existingMovies)) existingMovies = existingMovies.data
 
-        const existingMovieFilenames = existingMovies.map((movie) => movie.filename)
-        return findAllMediaFiles(this.app.get('movieDirectory'), existingMovieFilenames)
-      })
-      .then((mediafiles) => {
-        if (mediafiles.removed.length > 0)
-          MovieService.remove(null, {
-            query: {
-              filename: {
-                $in: mediafiles.removed,
-              },
-            },
-          })
+    if (!Array.isArray(existingMovies)) existingMovies = existingMovies.data
 
-        const createJobs = mediafiles.created.map((file) => {
-          return { name: 'addMovie', args: [file] }
-        })
+    const existingMovieFilenames = existingMovies.map((movie) => movie.filename)
+    const mediafiles = await findAllMediaFiles(this.app.get('movieDirectory'), existingMovieFilenames)
+    const createMovieData = mediafiles.created.map((filename) => ({ filename }))
 
-        const updateJobs = mediafiles.updated.map((file) => {
-          return { name: 'refreshMovie', args: [file] }
-        })
+    await Promise.all([
+      MovieService.remove(null, {
+        query: {
+          filename: {
+            $in: mediafiles.removed,
+          },
+        },
+      }),
+      MovieService.create(createMovieData),
+    ])
 
-        return Promise.all([this.create(updateJobs), this.create(createJobs)])
-      })
+    let movies = await MovieService.find({
+      paginate: false,
+    })
+
+    if (!Array.isArray(movies)) movies = movies.data
+    const updateJobs = movies.map((movie) => {
+      return { name: 'refreshMovie', args: [movie.id, movie.filename] }
+    })
+
+    return this.create(updateJobs)
+  }
+
+  scanMediaLibrary(): EventEmitter {
+    const scanEmitter = new EventEmitter()
+    this._scanMediaLibrary()
       .then(() => scanEmitter.emit('done'))
       .catch((e) => scanEmitter.emit('error', e))
 
     return scanEmitter
   }
 
-  async _createMovieObject(filename: string): Promise<Partial<Movie>> {
+  async _createMovieObject(filename: string): Promise<Movie> {
     const parsedFilename = parseFilename(filename)
-    const movie: Partial<Movie> = {}
+    const movie: Movie = { filename }
 
     if (!parsedFilename.title) throw new Error(`Unable to detect movie name from filename (${filename})`)
 
@@ -102,38 +108,38 @@ export class Jobs extends Service<JobData> {
 
     try {
       movie.mediaFiles = await loadMediainfoFromFile(filename)
-      return movie
     } catch (e) {
       throw e
     }
+
+    try {
+      const rules = this.app.get('movieFixRules')
+      movie.fixed = MetadataEditor.checkRules(movie, rules)
+    } catch (e) {
+      throw e
+    }
+
+    return movie
   }
 
-  addMovie(filename: string): EventEmitter {
-    const addEmitter = new EventEmitter()
-    const MovieService = this.app.service('api/movies')
+  // addMovie(filename: string): EventEmitter {
+  //   const addEmitter = new EventEmitter()
+  //   const MovieService = this.app.service('api/movies')
 
-    this._createMovieObject(filename)
-      .then((movie) => MovieService.create(movie))
-      .then(() => addEmitter.emit('done'))
-      .catch((e) => addEmitter.emit('error', e))
+  //   this._createMovieObject(filename)
+  //     .then((movie) => MovieService.create(movie))
+  //     .then(() => addEmitter.emit('done'))
+  //     .catch((e) => addEmitter.emit('error', e))
 
-    return addEmitter
-  }
+  //   return addEmitter
+  // }
 
-  refreshMovie(filename: string): EventEmitter {
+  refreshMovie(id: string, filename: string): EventEmitter {
     const refreshEmitter = new EventEmitter()
     const MovieService = this.app.service('api/movies')
 
     this._createMovieObject(filename)
-      .then((movie) => {
-        return MovieService.patch(null, movie, {
-          query: {
-            filename: {
-              $in: filename,
-            },
-          },
-        })
-      })
+      .then((movie) => MovieService.update(id, movie))
       .then(() => refreshEmitter.emit('done'))
       .catch((e) => refreshEmitter.emit('error', e))
 

@@ -10,9 +10,7 @@
       src="https://cdn.vuetifyjs.com/images/cards/docks.jpg"
     >
     </v-img>
-    <v-card-title class="text-truncate">{{
-      movie.title
-    }}</v-card-title>
+    <v-card-title class="text-truncate">{{ movie.title }}</v-card-title>
   </v-card>
 </template>
 

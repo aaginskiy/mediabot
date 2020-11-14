@@ -20,7 +20,7 @@ export default function(app: Application): void {
       default: 10,
       max: 50,
     },
-    multi: ['create', 'update', 'remove'],
+    multi: ['create', 'patch', 'remove'],
   }
 
   // Initialize our service with any options it requires

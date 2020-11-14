@@ -50,13 +50,14 @@ function buildValue(entries: RuleEntry[], movie: MovieInfo): RuleEntry[] {
 }
 
 function checkRules(movie: Movie, rules: Rule[]): boolean {
+  logger.info(`Checking metadata for movie (ID: ${movie.filename})`)
   if (!rules) return true
   let checkStatus = true
   rules.forEach((rule) => {
     rule.conditions = buildValue(rule.conditions, movie)
     rule.actions = buildValue(rule.actions, movie)
 
-    if (rule.type === 'track') {
+    if (rule.type === 'track' && movie.mediaFiles) {
       movie.mediaFiles.tracks.forEach((track) => {
         checkStatus = checkStatus && checkTrackRule(track, rule)
       })
@@ -89,7 +90,7 @@ function executeRules(movie: Movie, rules: Rule[]): Movie {
 
     rule.actions = buildValue(rule.actions, movie)
 
-    if (rule.type === 'track') {
+    if (rule.type === 'track' && movie.mediaFiles) {
       movie.mediaFiles.tracks = movie.mediaFiles.tracks.map((track) => {
         return executeTrackRule(track, rule)
       })

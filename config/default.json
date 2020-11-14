@@ -40,5 +40,27 @@
         "movieset": "tmdb"
       }
     }
-  }
+  },
+  "movieFixRules": [{
+  "type": "track",
+  "conditions": [
+    {
+      "type": "Eql",
+      "parameter": "trackType",
+      "value": "subtitles"
+    },
+    {
+      "type": "NotEql",
+      "parameter": "language",
+      "value": "eng"
+    }
+  ],
+  "actions": [
+    {
+      "type": "Remove",
+      "parameter": "",
+      "value": ""
+    }
+  ]
+}]
 }

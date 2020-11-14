@@ -12,28 +12,29 @@ interface MediaList {
 }
 
 interface MovieInfo {
-  imdbId: string
-  tmdbId: number
-  title: string
-  originalTitle: string
-  originalLanguage: string
-  tagline: string
-  plot: string
-  outline: string
-  runtime: number
-  year: number
-  releaseDate: string
-  rating: number
-  genres: Array<string>
-  studios: Array<string>
-  fanart: string
-  poster: string
+  imdbId?: string
+  tmdbId?: number
+  title?: string
+  originalTitle?: string
+  originalLanguage?: string
+  tagline?: string
+  plot?: string
+  outline?: string
+  runtime?: number
+  year?: number
+  releaseDate?: string
+  rating?: number
+  genres?: Array<string>
+  studios?: Array<string>
+  fanart?: string
+  poster?: string
 }
 
 interface Movie extends MovieInfo {
-  id: string
+  id?: string
   filename: string
-  mediaFiles: Mediainfo
+  fixed?: boolean
+  mediaFiles?: Mediainfo
 }
 
 interface Mediainfo {
@@ -90,7 +91,7 @@ interface Rule {
   actions: Array<RuleEntry>
 }
 
-type entryValue = string | number | boolean
+type entryValue = string | number | boolean | undefined
 type validPath = ''
 
 type locationTypeEmpty = ''
