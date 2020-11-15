@@ -8,6 +8,8 @@ yarn-error.log*
 *.db
 test/data
 config/config.json
+config/default.json
+config/cache
 packages/mediabot-api/config/default.json
 src/api/services/webhook/__tests__/
 .vscode

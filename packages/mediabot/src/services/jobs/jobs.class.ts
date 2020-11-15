@@ -108,6 +108,9 @@ export class Jobs extends Service<JobData> {
 
     try {
       movie.mediaFiles = await loadMediainfoFromFile(filename)
+      movie.dir = movie.mediaFiles.dir
+      movie.poster = movie.mediaFiles.poster
+      movie.fanart = movie.mediaFiles.fanart
     } catch (e) {
       throw e
     }
@@ -122,24 +125,19 @@ export class Jobs extends Service<JobData> {
     return movie
   }
 
-  // addMovie(filename: string): EventEmitter {
-  //   const addEmitter = new EventEmitter()
-  //   const MovieService = this.app.service('api/movies')
-
-  //   this._createMovieObject(filename)
-  //     .then((movie) => MovieService.create(movie))
-  //     .then(() => addEmitter.emit('done'))
-  //     .catch((e) => addEmitter.emit('error', e))
-
-  //   return addEmitter
-  // }
-
   refreshMovie(id: string, filename: string): EventEmitter {
     const refreshEmitter = new EventEmitter()
     const MovieService = this.app.service('api/movies')
 
     this._createMovieObject(filename)
       .then((movie) => MovieService.update(id, movie))
+      .then((movie) => {
+        return this.scraper.cacheImages(
+          movie.id,
+          { poster: `${movie.dir}/${movie.poster}`, fanart: `${movie.dir}/${movie.fanart}` },
+          this.app.get('imageCacheLocation')
+        )
+      })
       .then(() => refreshEmitter.emit('done'))
       .catch((e) => refreshEmitter.emit('error', e))
 

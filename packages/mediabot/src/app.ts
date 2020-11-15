@@ -30,6 +30,7 @@ const dataLocation =
     : path.join(configLocation, './data/')
 
 app.set('configLocation', configLocation)
+app.set('imageCacheLocation', `${configLocation}cache/images`)
 
 app.set('dataLocation', dataLocation)
 

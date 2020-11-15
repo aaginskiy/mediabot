@@ -6,6 +6,11 @@ module.exports = {
         target: 'http://localhost:3030',
         ws: true,
         changeOrigin: true
+      },
+      '^/image': {
+        target: 'http://localhost:3030',
+        ws: false,
+        changeOrigin: true
       }
     }
   }

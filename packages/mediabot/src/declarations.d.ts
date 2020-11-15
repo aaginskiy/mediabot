@@ -33,6 +33,9 @@ interface MovieInfo {
 interface Movie extends MovieInfo {
   id?: string
   filename: string
+  dir?: string
+  poster?: string
+  fanart?: string
   fixed?: boolean
   mediaFiles?: Mediainfo
 }

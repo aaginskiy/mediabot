@@ -3,6 +3,7 @@ import got from 'got'
 import util from 'util'
 import path from 'path'
 import fs from 'fs'
+import sharp from 'sharp'
 const writeFile = util.promisify(fs.writeFile)
 import xml2js from 'xml2js'
 import { cloneDeep } from 'lodash'
@@ -139,6 +140,19 @@ class MediaScraper {
     } catch (error) {
       throw error
     }
+  }
+
+  async cacheImages(
+    id: string | undefined,
+    images: { poster: string | undefined; fanart: string | undefined },
+    cacheLocation: string
+  ) {
+    if (!id) return new Error('Cannot cache images for undefined ID')
+
+    return sharp(images.poster)
+      .resize(200)
+      .toFormat('jpeg')
+      .toFile(`${cacheLocation}/${id}-poster-200.jpg`)
   }
 
   /**

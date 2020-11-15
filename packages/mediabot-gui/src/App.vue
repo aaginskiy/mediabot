@@ -1,13 +1,10 @@
 <template>
   <v-app>
-    <v-app-bar dark app clipped-left>
-      <v-app-bar-nav-icon @click="drawer = !drawer"></v-app-bar-nav-icon>
-
-      <v-toolbar-title>Application</v-toolbar-title>
+    <v-app-bar dark app clipped-left color="blue">
+      <v-toolbar-title>FIXARR</v-toolbar-title>
     </v-app-bar>
-    <v-navigation-drawer app dark clipped permanent>
+    <v-navigation-drawer app dark clipped permanent color="grey darken-3">
       <v-list dense nav>
-
         <v-list-item link to="/movies">
           <v-list-item-icon>
             <v-icon>mdi-movie</v-icon>
