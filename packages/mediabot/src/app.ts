@@ -75,6 +75,27 @@ app.configure(socketio())
 app.configure(middleware)
 // Set up our services (see `services/index.js`)
 app.configure(services)
+
+app.get('/image/:name', function(req, res, next) {
+  const options = {
+    root: `${configLocation}cache/images`,
+    dotfiles: 'deny',
+    headers: {
+      'x-timestamp': Date.now(),
+      'x-sent': true,
+    },
+  }
+
+  const fileName = req.params.name
+
+  res.sendFile(fileName, options, function(err) {
+    if (err) {
+      next(err)
+    } else {
+      console.log('Sent:', fileName)
+    }
+  })
+})
 // Set up event channels (see channels.js)
 app.configure(channels)
 

@@ -8,6 +8,7 @@ const got_1 = __importDefault(require("got"));
 const util_1 = __importDefault(require("util"));
 const path_1 = __importDefault(require("path"));
 const fs_1 = __importDefault(require("fs"));
+const sharp_1 = __importDefault(require("sharp"));
 const writeFile = util_1.default.promisify(fs_1.default.writeFile);
 const xml2js_1 = __importDefault(require("xml2js"));
 const lodash_1 = require("lodash");
@@ -118,6 +119,14 @@ class MediaScraper {
         catch (error) {
             throw error;
         }
+    }
+    async cacheImages(id, images, cacheLocation) {
+        if (!id)
+            return new Error('Cannot cache images for undefined ID');
+        return sharp_1.default(images.poster)
+            .resize(200)
+            .toFormat('jpeg')
+            .toFile(`${cacheLocation}/${id}-poster-200.jpg`);
     }
     /**
      * Scrapes movie information by TMDB ID. If missing, saves xml nfo, poster, and fanart.

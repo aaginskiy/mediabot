@@ -49,13 +49,14 @@ function buildValue(entries, movie) {
     });
 }
 function checkRules(movie, rules) {
+    logger.info(`Checking metadata for movie (ID: ${movie.filename})`);
     if (!rules)
         return true;
     let checkStatus = true;
     rules.forEach((rule) => {
         rule.conditions = buildValue(rule.conditions, movie);
         rule.actions = buildValue(rule.actions, movie);
-        if (rule.type === 'track') {
+        if (rule.type === 'track' && movie.mediaFiles) {
             movie.mediaFiles.tracks.forEach((track) => {
                 checkStatus = checkStatus && checkTrackRule(track, rule);
             });
@@ -84,7 +85,7 @@ function executeRules(movie, rules) {
     rules.forEach((rule) => {
         rule.conditions = buildValue(rule.conditions, movie);
         rule.actions = buildValue(rule.actions, movie);
-        if (rule.type === 'track') {
+        if (rule.type === 'track' && movie.mediaFiles) {
             movie.mediaFiles.tracks = movie.mediaFiles.tracks.map((track) => {
                 return executeTrackRule(track, rule);
             });

@@ -1,13 +1,17 @@
-import { disallow } from 'feathers-hooks-common'
+// import { disallow } from 'feathers-hooks-common'
+
+import createdAt from '../../hooks/created-at'
+
+import updatedAt from '../../hooks/updated-at'
 
 export default {
   before: {
     all: [],
     find: [],
     get: [],
-    create: [],
-    update: [],
-    patch: [],
+    create: [createdAt()],
+    update: [updatedAt()],
+    patch: [updatedAt()],
     remove: [],
   },
 

@@ -29,6 +29,7 @@ const dataLocation = process.env.NODE_ENV.toLowerCase() === 'test'
     ? path_1.default.join(__dirname, '../test/data/')
     : path_1.default.join(configLocation, './data/');
 app.set('configLocation', configLocation);
+app.set('imageCacheLocation', `${configLocation}cache/images`);
 app.set('dataLocation', dataLocation);
 const configFile = path_1.default.join(configLocation, './default.json');
 if (!fs_1.default.existsSync(configFile)) {

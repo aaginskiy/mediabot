@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const movies_service_1 = __importDefault(require("./movies/movies.service"));
 const job_workers_service_1 = __importDefault(require("./job-workers/job-workers.service"));
 const jobs_service_1 = __importDefault(require("./jobs/jobs.service"));
+const image_service_1 = __importDefault(require("./image/image.service"));
 // Don't remove this comment. It's needed to format import lines nicely.
 // eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars
 function default_1(app) {
@@ -16,5 +17,6 @@ function default_1(app) {
         .service('api/job-workers')
         .create([{ status: 'idle' }, { status: 'idle' }, { status: 'idle' }, { status: 'idle' }]);
     app.service('api/job-workers').startJobs();
+    app.configure(image_service_1.default);
 }
 exports.default = default_1;

@@ -1,5 +1,5 @@
 import { set, get } from 'lodash'
-import { Track, Rule, safeTrackParameters, MovieInfo, Movie, RuleEntry, entryValue } from '../declarations'
+import { Track, Rule, safeTrackParameters, MovieInfo, Movie, RuleEntry, entryValue, Mediainfo } from '../declarations'
 import Log from '../logger'
 const logger = new Log('MetadataEditor')
 
@@ -83,6 +83,8 @@ function executeTrackRule(track: Track, rule: Rule): Track {
 }
 
 function executeRules(movie: Movie, rules: Rule[]): Movie {
+  movie.previewMediaFiles = movie.mediaFiles
+
   if (!rules) return movie
 
   rules.forEach((rule) => {
@@ -90,8 +92,8 @@ function executeRules(movie: Movie, rules: Rule[]): Movie {
 
     rule.actions = buildValue(rule.actions, movie)
 
-    if (rule.type === 'track' && movie.mediaFiles) {
-      movie.mediaFiles.tracks = movie.mediaFiles.tracks.map((track) => {
+    if (rule.type === 'track' && movie.mediaFiles && movie.previewMediaFiles) {
+      movie.previewMediaFiles.tracks = movie.mediaFiles.tracks.map((track) => {
         return executeTrackRule(track, rule)
       })
     }

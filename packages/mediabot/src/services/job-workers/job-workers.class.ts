@@ -1,5 +1,5 @@
 import { Service, MemoryServiceOptions } from 'feathers-memory'
-import { Application, JobData, JobName, JobWorkerData } from '../../declarations'
+import { Application, JobRecord, JobName, JobWorkerData } from '../../declarations'
 import { Paginated } from '@feathersjs/feathers'
 import Log from '../../logger'
 const logger = new Log('JobWorker')
@@ -49,7 +49,7 @@ export class JobWorkers extends Service<JobWorkerData> {
           },
         },
       })
-      let jobs: JobData[]
+      let jobs: JobRecord[]
 
       if (Array.isArray(response)) {
         jobs = response

@@ -23,10 +23,6 @@ exports.default = {
                         rec.function = 'scanMediaLibrary';
                         rec.args = [app_1.default.get('movieDirectory')];
                         break;
-                    case 'addMovie':
-                        rec.priority = 'high';
-                        rec.function = 'addMovie';
-                        break;
                     case 'refreshMovie':
                         rec.priority = 'high';
                         rec.function = 'refreshMovie';

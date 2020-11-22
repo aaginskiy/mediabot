@@ -5,6 +5,20 @@ export interface ServiceTypes {}
 // The application instance type that will be used everywhere else
 export type Application = ExpressFeathers<ServiceTypes>
 
+type MovieJobName = 'refreshMovie'
+
+interface JobRecord {
+  id: string
+  name: MovieJobName
+  args: Array<any>
+  status: 'queued' | 'running' | 'completed' | 'failed'
+  progress: number
+  movieId?: string
+  error?: string
+  statusMessage?: string
+  createdAt?: Date
+}
+
 interface MediaList {
   created: string[]
   updated: string[]
@@ -38,6 +52,10 @@ interface Movie extends MovieInfo {
   fanart?: string
   fixed?: boolean
   mediaFiles?: Mediainfo
+  previewMediaFiles?: Mediainfo
+  createdAt?: Date
+  updatedAt?: Date
+  isRunning?: { [key in MovieJobName]?: string }
 }
 
 interface Mediainfo {

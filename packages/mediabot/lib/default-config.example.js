@@ -3,10 +3,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = {
     host: 'localhost',
     port: 3030,
-    paginate: {
-        default: 10,
-        max: 50,
-    },
     movieDirectory: '',
     mediaParser: {
         tmdbApiKey: 'fakeapikey',

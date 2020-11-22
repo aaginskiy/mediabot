@@ -2,7 +2,6 @@ import { Application } from '../declarations'
 import movies from './movies/movies.service'
 import jobWorkers from './job-workers/job-workers.service'
 import jobs from './jobs/jobs.service'
-import image from './image/image.service'
 // Don't remove this comment. It's needed to format import lines nicely.
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars
@@ -16,5 +15,4 @@ export default function(app: Application): void {
     .create([{ status: 'idle' }, { status: 'idle' }, { status: 'idle' }, { status: 'idle' }])
 
   app.service('api/job-workers').startJobs()
-  app.configure(image)
 }

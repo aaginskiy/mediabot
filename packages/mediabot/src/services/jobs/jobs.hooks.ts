@@ -2,6 +2,8 @@ import { required, disallow, keep, alterItems } from 'feathers-hooks-common'
 import { NotImplemented } from '@feathersjs/errors'
 import app from '../../app'
 
+import updateIsRunning from '../../hooks/update-is-running'
+
 export default {
   before: {
     all: [],
@@ -23,25 +25,31 @@ export default {
           case 'refreshMovie':
             rec.priority = 'high'
             rec.function = 'refreshMovie'
+            rec.movieId = rec.args[0]
             break
-          case 'refreshAllMovies':
+          case 'previewMovie':
             rec.priority = 'high'
-            rec.function = 'refreshAllMovies'
-            rec.args = [app.get('movieDirectory')]
+            rec.function = 'refreshMovie'
+            rec.movieId = rec.args[0]
             break
-          case 'autoFixMovie':
-            rec.priority = 'normal'
-            rec.function = 'autoFixMovie'
-            break
-          case 'autoScrapeMovie':
-            rec.priority = 'high'
-            rec.service = 'media-scraper'
-            rec.function = 'autoScrapeMovie'
-            break
-          case 'scanScrapeSingleMovieByTmdbId':
-            rec.priority = 'low'
-            rec.function = 'scanScrapeSingleMovieByTmdbId'
-            break
+          // case 'refreshAllMovies':
+          //   rec.priority = 'high'
+          //   rec.function = 'refreshAllMovies'
+          //   rec.args = [app.get('movieDirectory')]
+          //   break
+          // case 'autoFixMovie':
+          //   rec.priority = 'normal'
+          //   rec.function = 'autoFixMovie'
+          //   break
+          // case 'autoScrapeMovie':
+          //   rec.priority = 'high'
+          //   rec.service = 'media-scraper'
+          //   rec.function = 'autoScrapeMovie'
+          //   break
+          // case 'scanScrapeSingleMovieByTmdbId':
+          //   rec.priority = 'low'
+          //   rec.function = 'scanScrapeSingleMovieByTmdbId'
+          //   break
           default:
             throw new NotImplemented(`Command '${rec.name}' is not implemented.`)
         }
@@ -58,10 +66,10 @@ export default {
     all: [],
     find: [],
     get: [],
-    create: [],
-    update: [],
-    patch: [],
-    remove: [],
+    create: [updateIsRunning()],
+    update: [updateIsRunning()],
+    patch: [updateIsRunning()],
+    remove: [updateIsRunning()],
   },
 
   error: {

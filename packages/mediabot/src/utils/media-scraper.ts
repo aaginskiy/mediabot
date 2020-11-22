@@ -149,10 +149,16 @@ class MediaScraper {
   ) {
     if (!id) return new Error('Cannot cache images for undefined ID')
 
-    return sharp(images.poster)
-      .resize(200)
-      .toFormat('jpeg')
-      .toFile(`${cacheLocation}/${id}-poster-200.jpg`)
+    return Promise.all([
+      sharp(images.poster)
+        .resize(200)
+        .toFormat('jpeg')
+        .toFile(`${cacheLocation}/${id}-poster-200.jpg`),
+      sharp(images.fanart)
+        .resize(1920)
+        .toFormat('jpeg')
+        .toFile(`${cacheLocation}/${id}-fanart-1920.jpg`),
+    ])
   }
 
   /**
