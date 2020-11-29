@@ -1,7 +1,7 @@
 import { Service, MemoryServiceOptions } from 'feathers-memory'
 import { Application, JobRecord, JobName, JobWorkerData } from '../../declarations'
 import { Paginated } from '@feathersjs/feathers'
-import Log from '../../logger'
+import { Log } from '@/utils'
 const logger = new Log('JobWorker')
 
 // Add this service to the service type index
@@ -65,6 +65,7 @@ export class JobWorkers extends Service<JobWorkerData> {
             const tempJobService: any = JobService
             tempJobService[job.name](...job.args)
               .on('progress', async (progress: number) => {
+                logger.verbose(`Job #${job.id} reported progress: ${progress}.`)
                 JobService.patch(job.id, { progress: progress })
               })
               .on('done', async (message: string) => {
@@ -76,13 +77,10 @@ export class JobWorkers extends Service<JobWorkerData> {
                 logger.error(`JobID #${job.id} (${job.name}) failed due to error.`)
                 logger.error(e.message)
                 if (e.stack) logger.debug(e.stack)
-                console.log('test1')
                 await Promise.all([
                   JobService.patch(job.id, { status: 'failed', statusMessage: e.message }),
                   this.patch(worker.id, { jobId: undefined, status: 'idle' }),
                 ])
-
-                console.log('test2')
               })
 
             await this.patch(worker.id, { jobId: job.id, status: 'active' })

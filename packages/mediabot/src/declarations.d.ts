@@ -1,4 +1,5 @@
 import { Application as ExpressFeathers } from '@feathersjs/express'
+import * as t from 'io-ts'
 
 // A mapping of service names to types. Will be extended in service files.
 export interface ServiceTypes {}
@@ -51,40 +52,12 @@ interface Movie extends MovieInfo {
   poster?: string
   fanart?: string
   fixed?: boolean
-  mediaFiles?: Mediainfo
-  previewMediaFiles?: Mediainfo
+  fixErrors?: ValidationError[]
+  mediaFiles?: MediaFile
+  previewMediaFiles?: MediaFile
   createdAt?: Date
   updatedAt?: Date
   isRunning?: { [key in MovieJobName]?: string }
-}
-
-interface Mediainfo {
-  videoTag?: string
-  audioTag?: string
-  landscape?: string
-  files: string[]
-  fanart?: string
-  poster?: string
-  title: string
-  filename: string
-  dir: string
-  tracks: Track[]
-  nfo?: string
-}
-
-interface Track {
-  title: string
-  language: string
-  number: number
-  newNumber: number
-  trackType: string
-  codecType: string
-  audioChannels?: number
-  bps?: number
-  isDefault: boolean
-  isEnabled: boolean
-  isForced: boolean
-  isMuxed: boolean
 }
 
 interface RemoteMovieInfo {
@@ -106,12 +79,6 @@ interface RemoteMovieInfo {
   poster?: string
 }
 
-interface Rule {
-  type: 'track'
-  conditions: Array<RuleEntry>
-  actions: Array<RuleEntry>
-}
-
 type entryValue = string | number | boolean | undefined
 type validPath = ''
 
@@ -119,17 +86,3 @@ type locationTypeEmpty = ''
 type locationTypeTrack = 'track'
 
 type safeValuePath = 'title' | 'year' | 'imdbId' | 'tmdbId' | 'originalTitle' | 'originalLanguage'
-
-interface RuleEntry {
-  type: string
-  parameter: safeTrackParameters
-  value: entryValue | { path: safeValuePath }
-}
-
-interface RuleEntryFlat {
-  type: string
-  parameter: safeTrackParameters
-  value: entryValue
-}
-
-type safeTrackParameters = keyof Track | ''

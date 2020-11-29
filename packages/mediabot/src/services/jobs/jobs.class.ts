@@ -1,10 +1,12 @@
 import { Service, NedbServiceOptions } from 'feathers-nedb'
-import { Application, JobRecord, Movie } from '../../declarations'
-import { findAllMediaFiles, loadMediainfoFromFile, parseFilename } from '../../utils/disk-scanner'
-import MetadataEditor from '../../utils/metadata-editor'
-import MediaScraper from '../../utils/media-scraper'
+import { Application, JobRecord, Movie } from '@/declarations'
+import { findAllMediaFiles, loadMediainfoFromFile, parseFilename, muxMediaFile } from '@/utils/disk-scanner'
+import { applyRules } from '@/utils/metadata-editor'
+import MediaScraper from '@/utils/media-scraper'
 import { EventEmitter } from 'events'
-import Log from '../../logger'
+import { Log } from '@/utils'
+import { fold, isLeft, isRight } from 'fp-ts/lib/These'
+import { pipe } from 'fp-ts/lib/pipeable'
 const logger = new Log('JobService')
 
 export class Jobs extends Service<JobRecord> {
@@ -77,7 +79,6 @@ export class Jobs extends Service<JobRecord> {
 
         if (jobIds.length > 0) {
           const progress = ((jobCount - jobIds.length) / jobCount) * 100
-          console.log(parseFloat(progress.toFixed(1)))
           scanEmitter.emit('progress', parseFloat(progress.toFixed(1)))
         } else {
           scanEmitter.emit('done')
@@ -124,16 +125,32 @@ export class Jobs extends Service<JobRecord> {
 
     try {
       movie.mediaFiles = await loadMediainfoFromFile(filename)
+      console.log(movie.mediaFiles)
       movie.dir = movie.mediaFiles.dir
-      movie.poster = movie.mediaFiles.poster
-      movie.fanart = movie.mediaFiles.fanart
+      movie.poster = movie.mediaFiles.art.poster
+      movie.fanart = movie.mediaFiles.art.fanart
     } catch (e) {
       throw e
     }
 
     try {
       const rules = this.app.get('movieFixRules')
-      movie.fixed = MetadataEditor.checkRules(movie, rules)
+      pipe(
+        applyRules(movie.mediaFiles, rules, movie),
+        fold(
+          (e) => {
+            movie.fixed = false
+            movie.fixErrors = e
+          },
+          () => {
+            movie.fixed = true
+          },
+          (e) => {
+            movie.fixed = false
+            movie.fixErrors = e
+          }
+        )
+      )
     } catch (e) {
       throw e
     }
@@ -150,7 +167,10 @@ export class Jobs extends Service<JobRecord> {
       .then((movie) => {
         return this.scraper.cacheImages(
           movie.id,
-          { poster: `${movie.dir}/${movie.poster}`, fanart: `${movie.dir}/${movie.fanart}` },
+          {
+            poster: `${movie.dir}/${movie.mediaFiles?.art.poster}`,
+            fanart: `${movie.dir}/${movie.mediaFiles?.art.fanart}`,
+          },
           this.app.get('imageCacheLocation')
         )
       })
@@ -161,21 +181,56 @@ export class Jobs extends Service<JobRecord> {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  previewMovieFix(id: string, filename: string): EventEmitter {
+  // previewMovieFix(id: string, filename: string): EventEmitter {
+  //   const jobEmitter = new EventEmitter()
+  //   const MovieService = this.app.service('api/movies')
+
+  //   MovieService.get(id)
+  //     .then((movie) => {
+  //       try {
+  //         const rules = this.app.get('movieFixRules')
+  //         movie.previewMediaFiles = MetadataEditor.executeRules(movie, rules)
+  //         return movie
+  //       } catch (e) {
+  //         throw e
+  //       }
+  //     })
+  //     .then((movie) => MovieService.update(id, movie))
+  //     .then(() => jobEmitter.emit('done'))
+  //     .catch((e) => jobEmitter.emit('error', e))
+
+  //   return jobEmitter
+  // }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  autoFixMovie(id: string, filename: string): EventEmitter {
     const jobEmitter = new EventEmitter()
     const MovieService = this.app.service('api/movies')
 
     MovieService.get(id)
       .then((movie) => {
-        try {
-          const rules = this.app.get('movieFixRules')
-          return MetadataEditor.executeRules(movie, rules)
-        } catch (e) {
-          throw e
-        }
+        const rules = this.app.get('movieFixRules')
+        if (!movie.mediaFiles) throw new Error('Movie record does not have associated media file.')
+
+        const validatedMediaFile = applyRules(movie.mediaFiles, rules, movie)
+
+        if (isLeft(validatedMediaFile)) throw new Error(validatedMediaFile.left.toString())
+        if (isRight(validatedMediaFile)) jobEmitter.emit('done', 'media file is already fixed')
+
+        const fixedMediaFiles = validatedMediaFile.right
+
+        const muxEmitter = muxMediaFile(fixedMediaFiles.filename, fixedMediaFiles)
+
+        muxEmitter.on('progress', (progress) => jobEmitter.emit('progress', progress))
+        muxEmitter.on('done', (message) => {
+          this._createMovieObject(movie.filename)
+            .then((refreshedMovie) => MovieService.update(id, refreshedMovie))
+            .then(() => jobEmitter.emit('done'))
+            .catch((e) => jobEmitter.emit('error', e))
+          jobEmitter.emit('done', message)
+        })
+        muxEmitter.on('error', (error) => jobEmitter.emit('error', error))
       })
-      .then((movie) => MovieService.update(id, movie))
-      .then(() => jobEmitter.emit('done'))
       .catch((e) => jobEmitter.emit('error', e))
 
     return jobEmitter

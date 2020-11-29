@@ -1,7 +1,7 @@
 import fg from 'fast-glob'
-import Log from '../logger'
+import { Log } from '@/utils'
 const logger = new Log('DiskScanner')
-import { difference, compact } from 'lodash'
+import { difference, compact, get } from 'lodash'
 import shellwords from 'shellwords-ts'
 import childProcess from 'child_process'
 import { EventEmitter } from 'events'
@@ -13,9 +13,62 @@ import fs from 'fs'
 const readdir = util.promisify(fs.readdir)
 const rename = util.promisify(fs.rename)
 const readFile = util.promisify(fs.readFile)
-import { RemoteMovieInfo, Mediainfo, MediaList, Track } from '../declarations'
+import { RemoteMovieInfo, MediaFile, MediaList, Track } from '../declarations'
 import xml2js from 'xml2js'
 import { capitalCase } from 'change-case'
+import * as t from 'io-ts'
+
+const TrackCodec = t.intersection([
+  t.type({
+    codecType: t.string,
+    isDefault: t.boolean,
+    isForced: t.boolean,
+    isMuxed: t.boolean,
+    language: t.string,
+    newNumber: t.number,
+    number: t.number,
+    title: t.string,
+    trackType: t.string,
+  }),
+  t.partial({
+    audioChannels: t.number,
+    bps: t.number,
+  }),
+])
+
+const MediaFileCodec = t.type({
+  audioTag: t.string,
+  dir: t.string,
+  filename: t.string,
+  files: t.array(t.string),
+  art: t.partial({
+    poster: t.string,
+    fanart: t.string,
+    landscape: t.string,
+  }),
+  nfo: t.string,
+  title: t.string,
+  tracks: t.array(TrackCodec),
+  videoTag: t.string,
+})
+
+const SafeTrackActionParametersCodec = t.keyof({
+  codecType: null,
+  isDefault: null,
+  isForced: null,
+  isMuxed: null,
+  language: null,
+  title: null,
+  '': null,
+})
+
+declare module '@/declarations' {
+  export type Track = t.TypeOf<typeof TrackCodec>
+  export type MediaFile = t.TypeOf<typeof MediaFileCodec>
+  export type SafeTrackActionParameters = t.TypeOf<typeof SafeTrackActionParametersCodec>
+}
+
+export { TrackCodec, MediaFileCodec, SafeTrackActionParametersCodec }
 
 /**
  * Parse filename for movie title and year
@@ -93,7 +146,7 @@ async function findAllMediaFiles(directory: string, existingFilenames: string[])
  *
  * @since 0.2.0
  */
-async function loadMediainfoFromFile(filename: string): Promise<Mediainfo> {
+async function loadMediainfoFromFile(filename: string): Promise<MediaFile> {
   logger.info('Loading requested movie metadata from the disk.')
   logger.info(`Filename: ${filename}`)
 
@@ -104,25 +157,25 @@ async function loadMediainfoFromFile(filename: string): Promise<Mediainfo> {
 
     const res = await exec(`mkvmerge -J ${escapedFilename}`)
     const stdout = JSON.parse(res.stdout)
-    const mediaInfo = {} as Mediainfo
+    const mediaInfo = {} as MediaFile
 
     mediaInfo.title = stdout.container?.properties?.title
     mediaInfo.filename = stdout.file_name
     mediaInfo.dir = path.dirname(mediaInfo.filename)
     mediaInfo.tracks = []
+    mediaInfo.art = {}
 
     // Cycle through tracks and add updates
     each(stdout.tracks, (track) => {
       const processedTrack = {} as Track
 
-      processedTrack.title = track.properties?.track_name
+      processedTrack.title = get(track, 'properties.track_name', '')
       processedTrack.language = track.properties?.language
       processedTrack.number = track.id
       processedTrack.newNumber = processedTrack.number
       processedTrack.trackType = track.type
       processedTrack.codecType = track.codec
       processedTrack.isDefault = track.properties?.default_track
-      processedTrack.isEnabled = track.properties?.enabled_track
       processedTrack.isForced = track.properties?.forced_track
       processedTrack.isMuxed = true
 
@@ -140,15 +193,15 @@ async function loadMediainfoFromFile(filename: string): Promise<Mediainfo> {
     mediaInfo.files = await readdir(filePath.dir)
 
     if (mediaInfo.files.includes(filePath.name + '-poster.jpg')) {
-      mediaInfo.poster = filePath.name + '-poster.jpg'
+      mediaInfo.art.poster = filePath.name + '-poster.jpg'
     } else if (mediaInfo.files.includes('poster.jpg')) {
-      mediaInfo.poster = 'poster.jpg'
+      mediaInfo.art.poster = 'poster.jpg'
     }
 
     if (mediaInfo.files.includes(filePath.name + '-fanart.jpg')) {
-      mediaInfo.fanart = filePath.name + '-fanart.jpg'
+      mediaInfo.art.fanart = filePath.name + '-fanart.jpg'
     } else if (mediaInfo.files.includes('fanart.jpg')) {
-      mediaInfo.fanart = 'fanart.jpg'
+      mediaInfo.art.fanart = 'fanart.jpg'
     }
 
     if (mediaInfo.files.includes(filePath.name + '.nfo')) {
@@ -156,7 +209,7 @@ async function loadMediainfoFromFile(filename: string): Promise<Mediainfo> {
     }
 
     if (mediaInfo.files.includes(filePath.name + '-landscape.jpg'))
-      mediaInfo.landscape = filePath.name + '-landscape.jpg'
+      mediaInfo.art.landscape = filePath.name + '-landscape.jpg'
 
     const defaultVideoTracks = filter(mediaInfo.tracks, {
       trackType: 'video',
@@ -185,7 +238,7 @@ async function loadMediainfoFromFile(filename: string): Promise<Mediainfo> {
  *
  * @memberof DiskScanner
  */
-async function writeMediainfo(filename: string, mediainfo: Mediainfo): Promise<Mediainfo> {
+async function writeMediainfo(filename: string, mediainfo: MediaFile): Promise<MediaFile> {
   logger.info('Updating file media info without merging.')
   logger.info(`Filename: ${filename}`)
 
@@ -204,12 +257,13 @@ async function writeMediainfo(filename: string, mediainfo: Mediainfo): Promise<M
  *
  * @memberof DiskScanner
  */
-function muxMediaFile(filename: string, mediainfo: Mediainfo): EventEmitter {
+function muxMediaFile(filename: string, mediainfo: MediaFile): EventEmitter {
   logger.info('Called MediaFile#mux with:')
 
   const muxEvent = new EventEmitter()
   const command = generateMergeCommand(mediainfo)
   const bin = command.shift()
+  logger.info(command.toString())
   if (!bin) {
     logger.warn('Missing command to merge')
     muxEvent.emit('error', 'Missing command to merge')
@@ -238,7 +292,7 @@ function muxMediaFile(filename: string, mediainfo: Mediainfo): EventEmitter {
         await rename(mediainfo.filename.slice(0, -3) + 'rmbtmp', mediainfo.filename)
         muxEvent.emit('done', `Received 'exit' message with code '${code}' from mkvmerge on '${mediainfo.filename}'`)
       } catch (error) {
-        muxEvent.emit('error', mediainfo.filename)
+        muxEvent.emit('error', error)
       }
     } else {
       const e = new Error(`Received 'exit' message with code '${code}' from mkvmerge on '${mediainfo.filename}'`)
@@ -262,7 +316,7 @@ function legibleTag(tag: string): string {
   return legibleTag
 }
 
-function generateInfoOptions(mediainfo: Mediainfo): string {
+function generateInfoOptions(mediainfo: MediaFile): string {
   let command = `--edit info --set "title=${mediainfo.title}"`
 
   if (!mediainfo.tracks) return command
@@ -281,7 +335,6 @@ function generateInfoOptions(mediainfo: Mediainfo): string {
     })
     ;[
       ['flag-default', track.isDefault ? 1 : 0],
-      ['flag-enabled', track.isEnabled ? 1 : 0],
       ['flag-forced', track.isForced ? 1 : 0],
     ].forEach((field) => {
       command += ` --set "${field[0]}=${field[1]}"`
@@ -291,7 +344,7 @@ function generateInfoOptions(mediainfo: Mediainfo): string {
   return command
 }
 
-function generateMergeCommand(mediainfo: Mediainfo): Array<string> {
+function generateMergeCommand(mediainfo: MediaFile): Array<string> {
   const base = path.basename(mediainfo.filename, '.mkv')
   const dir = path.dirname(mediainfo.filename)
 
@@ -351,9 +404,31 @@ function generateMergeCommand(mediainfo: Mediainfo): Array<string> {
   // TODO: make configurable
   commandObj.command.push('-M')
 
+  sortBy(mediainfo.tracks, 'number').forEach((track) => {
+    commandObj.command.push('--language')
+    commandObj.command.push(`${track.number}:${track.language}`)
+
+    if (typeof track.title !== 'undefined') {
+      commandObj.command.push('--track-name')
+      commandObj.command.push(`'${track.number}:${track.title}'`)
+    }
+
+    commandObj.command.push('--default-track')
+    commandObj.command.push(`${track.number}:${track.isDefault ? 'yes' : 'no'}`)
+
+    // commandObj.command.push('--enabled-track')
+    // commandObj.command.push(`${track.number}:${track.isEnabled ? 'yes' : 'no'}`)
+
+    commandObj.command.push('--forced-track')
+    commandObj.command.push(`${track.number}:${track.isForced ? 'yes' : 'no'}`)
+  })
+
   commandObj.command.push(`"${mediainfo.filename}"`)
-  commandObj.command.push('--title')
-  commandObj.command.push(`"${mediainfo.title}"`)
+
+  if (typeof mediainfo.title !== 'undefined') {
+    commandObj.command.push('--title')
+    commandObj.command.push(`"${mediainfo.title}"`)
+  }
 
   commandObj.command.push('--track-order')
 

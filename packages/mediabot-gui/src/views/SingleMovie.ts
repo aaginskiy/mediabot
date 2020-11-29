@@ -24,7 +24,6 @@ export default createComponent({
       { text: 'Audio Channels', value: 'audioChannels' },
       { text: 'BPS', value: 'bps' },
       { text: 'isDefault', value: 'isDefault' },
-      { text: 'isEnabled', value: 'isEnabled' },
       { text: 'isForced', value: 'isForced' },
       { text: 'isMuxed', value: 'isMuxed' },
     ]

@@ -26,7 +26,7 @@
         </v-img>
       </router-link>
       <v-progress-linear
-        value="100"
+        :value="progress"
         height="10"
         :color="movie.fixed ? 'green' : 'red'"
       ></v-progress-linear>
@@ -50,7 +50,14 @@
         <v-spacer></v-spacer>
         <v-tooltip bottom>
           <template v-slot:activator="{ on, attrs }">
-            <v-btn icon v-bind="attrs" v-on="on" @click="refreshMovie">
+            <v-btn
+              icon
+              v-bind="attrs"
+              v-on="on"
+              :disabled="movie.fixed"
+              @click="autoFixMovie"
+              :loading="autoFixMovieLoading"
+            >
               <v-icon>mdi-book-refresh-outline</v-icon>
             </v-btn>
           </template>

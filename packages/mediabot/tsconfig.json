@@ -5,8 +5,20 @@
     "outDir": "./lib",
     "rootDir": ".",
     "strict": true,
-    "esModuleInterop": true
+    "noImplicitAny": true,
+    "types": [
+      "jest",
+      "@relmify/jest-fp-ts"
+    ],
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": [
+        "src/*"
+      ]
+    },
   },
   "includes": ["src/**/*.ts"],
-  "exclude": ["test", "**/__mocks__", "**/__fixtures__", "**/__tests__", "src/**/*.test.ts"]
+  // "exclude": ["test", "**/__mocks__", "**/__fixtures__", "**/__tests__", "src/**/*.test.ts"]
 }

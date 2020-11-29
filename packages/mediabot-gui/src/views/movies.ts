@@ -51,7 +51,7 @@ export default createComponent({
       }
     })
 
-    const { items: movies, isPending: isPending } = useFind({
+    const { items: movies, isPending: isPending, haveLoaded } = useFind({
       model: Movie,
       params: moviesParams,
     })
@@ -67,6 +67,7 @@ export default createComponent({
       scanMediaLibraryJobLoading,
       movies,
       isPending,
+      haveLoaded,
     }
   },
 })

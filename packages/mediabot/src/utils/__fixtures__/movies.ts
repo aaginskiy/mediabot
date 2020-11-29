@@ -6,6 +6,14 @@ const withNonEnSubtitlesFixed: Movie = {
   filename: '/Movies/UHD/Captain Marvel (2019)/Captain.Marvel (2019).mkv',
   originalLanguage: 'eng',
   mediaFiles: {
+    audioTag: '',
+    videoTag: '',
+    filename: '/Movies/UHD/Captain Marvel (2019)/Captain.Marvel (2019).mkv',
+    dir: '/Movies/UHD/Captain Marvel (2019)',
+    files: [],
+    art: {},
+    nfo: '',
+    title: '',
     tracks: [
       {
         title: '',
@@ -15,7 +23,6 @@ const withNonEnSubtitlesFixed: Movie = {
         trackType: 'video',
         codecType: 'MPEG-H/HEVC/h.265',
         isDefault: true,
-        isEnabled: true,
         isForced: false,
         isMuxed: true,
       },
@@ -27,7 +34,6 @@ const withNonEnSubtitlesFixed: Movie = {
         trackType: 'audio',
         codecType: 'TrueHD Atmos',
         isDefault: true,
-        isEnabled: true,
         isForced: false,
         isMuxed: true,
         audioChannels: 8,
@@ -40,7 +46,6 @@ const withNonEnSubtitlesFixed: Movie = {
         trackType: 'audio',
         codecType: 'AC-3',
         isDefault: false,
-        isEnabled: true,
         isForced: false,
         isMuxed: false,
         audioChannels: 2,
@@ -51,7 +56,8 @@ const withNonEnSubtitlesFixed: Movie = {
 
 const withNonEnSubtitlesUnfixed = cloneDeep(withNonEnSubtitlesFixed)
 
-withNonEnSubtitlesUnfixed.tracks[2].isMuxed = true
+// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+withNonEnSubtitlesUnfixed.mediaFiles!.tracks[2].isMuxed = true
 
 export default {
   withNonEnSubtitlesUnfixed,

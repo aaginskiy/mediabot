@@ -26,7 +26,7 @@
         height="15"
       ></v-progress-linear>
     </v-toolbar>
-    <v-container v-if="isPending" fill-height>
+    <v-container v-if="!haveLoaded" fill-height>
       <v-spacer></v-spacer>
       <div class="sk-chase">
         <div class="sk-chase-dot"></div>
