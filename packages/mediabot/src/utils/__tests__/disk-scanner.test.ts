@@ -17,6 +17,7 @@ import { cloneDeep, merge } from 'lodash'
 import mediainfoAvengersInfinityWar from '../__fixtures__/movies/Avengers Infinity War (2018)/Avengers Infinity War (2018).mediainfo'
 import mkvpropeditAvengersInfinityWar from '../__fixtures__/movies/Avengers Infinity War (2018)/Avengers Infinity War (2018).mkvpropedit'
 import tmdbAvengersInfinityWar from '../__fixtures__/movies/Avengers Infinity War (2018)/Avengers Infinity War (2018).tmdbinfo'
+import { MediaFile } from '@/declarations'
 
 describe('media-scraper utility', () => {
   describe('parseFilename', () => {
@@ -110,12 +111,12 @@ describe('media-scraper utility', () => {
     it("has 'poster' property", () =>
       expect(
         loadMediainfoFromFile('/movies/Avengers Infinity War (2018)/Avengers Infinity War (2018).mkv')
-      ).resolves.toHaveProperty('poster', 'Avengers Infinity War (2018)-poster.jpg'))
+      ).resolves.toHaveProperty('art.poster', 'Avengers Infinity War (2018)-poster.jpg'))
 
     it("has 'fanart' property", () =>
       expect(
         loadMediainfoFromFile('/movies/Avengers Infinity War (2018)/Avengers Infinity War (2018).mkv')
-      ).resolves.toHaveProperty('fanart', 'Avengers Infinity War (2018)-fanart.jpg'))
+      ).resolves.toHaveProperty('art.fanart', 'Avengers Infinity War (2018)-fanart.jpg'))
 
     it("has 'nfo' property", () =>
       expect(
@@ -156,7 +157,7 @@ describe('media-scraper utility', () => {
         mediainfoAvengersInfinityWar
       )
       expect(mocked(childProcess.exec).mock.calls[0][0]).toContain(
-        '--edit track:1 --delete name --delete language --set "flag-default=0" --set "flag-enabled=0" --set "flag-forced=0"'
+        '--edit track:1 --delete name --delete language --set "flag-default=0" --set "flag-forced=0"'
       )
     })
 
@@ -175,7 +176,7 @@ describe('media-scraper utility', () => {
       )
 
       expect(mocked(childProcess.exec).mock.calls[0][0]).toContain(
-        '--edit track:2 --set "name=Main Track" --set "language=eng" --set "flag-default=1" --set "flag-enabled=1" --set "flag-forced=0"'
+        '--edit track:2 --set "name=Main Track" --set "language=eng" --set "flag-default=1" --set "flag-forced=0"'
       )
     })
 
@@ -187,7 +188,7 @@ describe('media-scraper utility', () => {
   })
 
   describe('muxMediaFile', () => {
-    let mergeFixture
+    let mergeFixture: MediaFile
 
     beforeEach(() => {
       mergeFixture = merge({}, mediainfoAvengersInfinityWar)

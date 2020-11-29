@@ -1,4 +1,6 @@
-export default {
+import { MediaFile } from '@/declarations'
+
+const mediaFile: MediaFile = {
   title: 'Avengers Infinity War (2018)',
   filename: '/movies/Avengers Infinity War (2019)/Avengers Infinity War (2018).mkv',
   tracks: [
@@ -10,7 +12,6 @@ export default {
       trackType: 'video',
       codecType: 'MPEG-H/HEVC/H.265',
       isDefault: false,
-      isEnabled: false,
       isForced: false,
       isMuxed: true,
     },
@@ -22,7 +23,6 @@ export default {
       trackType: 'audio',
       codecType: 'TrueHD Atmos',
       isDefault: true,
-      isEnabled: true,
       isForced: false,
       isMuxed: true,
       audioChannels: 8,
@@ -36,7 +36,6 @@ export default {
       trackType: 'audio',
       codecType: 'AC-3',
       isDefault: false,
-      isEnabled: true,
       isForced: false,
       isMuxed: true,
       audioChannels: 6,
@@ -51,7 +50,6 @@ export default {
       trackType: 'audio',
       codecType: 'DTS-HD Master Audio',
       isDefault: false,
-      isEnabled: true,
       isForced: false,
       isMuxed: true,
       audioChannels: 8,
@@ -65,7 +63,6 @@ export default {
       trackType: 'subtitles',
       codecType: 'HDMV PGS',
       isDefault: false,
-      isEnabled: true,
       isForced: false,
       isMuxed: true,
     },
@@ -77,7 +74,6 @@ export default {
       trackType: 'subtitles',
       codecType: 'HDMV PGS',
       isDefault: false,
-      isEnabled: true,
       isForced: false,
       isMuxed: true,
     },
@@ -89,7 +85,6 @@ export default {
       trackType: 'subtitles',
       codecType: 'HDMV PGS',
       isDefault: false,
-      isEnabled: true,
       isForced: false,
       isMuxed: true,
     },
@@ -101,9 +96,13 @@ export default {
     'Avengers Infinity War (2018)-fanart.jpg',
     'Avengers Infinity War (2018).mkv',
   ],
-  poster: 'Avengers Infinity War (2018)-poster.jpg',
-  fanart: 'Avengers Infinity War (2018)-fanart.jpg',
+  art: {
+    poster: 'Avengers Infinity War (2018)-poster.jpg',
+    fanart: 'Avengers Infinity War (2018)-fanart.jpg',
+  },
   nfo: 'Avengers Infinity War (2018).nfo',
   videoTag: 'MPEG-H/HEVC/H.265',
   audioTag: 'TrueHD Atmos 8ch',
 }
+
+export default mediaFile

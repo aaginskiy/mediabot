@@ -5,19 +5,19 @@ const baseRule: Rule = {
   type: 'track',
   conditions: [
     {
-      type: 'Eql',
+      type: 'eql',
       parameter: 'trackType',
       value: 'audio',
     },
     {
-      type: 'Eql',
+      type: 'eql',
       parameter: 'language',
       value: 'fra',
     },
   ],
   actions: [
     {
-      type: 'Remove',
+      type: 'remove',
       parameter: '',
       value: '',
     },

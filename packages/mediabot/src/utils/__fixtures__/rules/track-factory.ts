@@ -4,7 +4,6 @@ import { assign, cloneDeep } from 'lodash'
 const baseTrack: Track = {
   codecType: 'DTS',
   isDefault: true,
-  isEnabled: true,
   isForced: true,
   isMuxed: true,
   language: 'fra',

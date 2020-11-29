@@ -12,7 +12,7 @@ import socketio from '@feathersjs/socketio'
 
 import { Application } from './declarations'
 import defaultConfigExample from '../default-config.example'
-import Log from './logger'
+import { Log } from '@/utils'
 const logger = new Log('main')
 import middleware from './middleware'
 import services from './services'

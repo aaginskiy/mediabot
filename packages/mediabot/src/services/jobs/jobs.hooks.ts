@@ -32,6 +32,11 @@ export default {
             rec.function = 'refreshMovie'
             rec.movieId = rec.args[0]
             break
+          case 'autoFixMovie':
+            rec.priority = 'normal'
+            rec.function = 'autoFixMovie'
+            rec.movieId = rec.args[0]
+            break
           // case 'refreshAllMovies':
           //   rec.priority = 'high'
           //   rec.function = 'refreshAllMovies'

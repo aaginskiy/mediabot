@@ -95,6 +95,7 @@
         <v-tabs-items v-model="tab">
           <v-tab-item value="tab-1">
             <v-col cols="12">
+              {{ movie.mediaFiles.title }}
               <v-data-table
                 :headers="headers"
                 :items="movie.mediaFiles.tracks"

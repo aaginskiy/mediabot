@@ -13,7 +13,7 @@ const getUrl = (pathname?: string): string =>
     pathname,
   })
 
-describe('Feathers application tests (with jest)', () => {
+describe.skip('Feathers application tests (with jest)', () => {
   let server: Server
 
   beforeAll((done) => {

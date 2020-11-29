@@ -7,7 +7,7 @@ import sharp from 'sharp'
 const writeFile = util.promisify(fs.writeFile)
 import xml2js from 'xml2js'
 import { cloneDeep } from 'lodash'
-import Log from '../logger'
+import { Log, convertLangCode } from '@/utils'
 const logger = new Log('MediaScraper')
 import { RemoteMovieInfo, RemoteMovieInfoXml } from '../declarations'
 
@@ -75,7 +75,7 @@ class MediaScraper {
           tmdbId: movieInfo.id,
           title: movieInfo.title,
           originalTitle: movieInfo.original_title,
-          originalLanguage: movieInfo.original_language,
+          originalLanguage: convertLangCode(movieInfo.original_language),
           tagline: movieInfo.tagline ? movieInfo.tagline : undefined,
           plot: movieInfo.overview ? movieInfo.overview : undefined,
           outline: movieInfo.overview ? movieInfo.overview : undefined,
@@ -146,7 +146,7 @@ class MediaScraper {
     id: string | undefined,
     images: { poster: string | undefined; fanart: string | undefined },
     cacheLocation: string
-  ) {
+  ): Promise<any> {
     if (!id) return new Error('Cannot cache images for undefined ID')
 
     return Promise.all([
@@ -191,7 +191,7 @@ class MediaScraper {
           reject(err)
         })
         .on('close', () => {
-          resolve()
+          resolve(null)
         })
       // console.log(file)
       got
